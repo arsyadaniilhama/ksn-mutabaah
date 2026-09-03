@@ -78,6 +78,26 @@ export async function getDayValues(
   return out;
 }
 
+/** Aktivitas terbaru untuk feed dashboard. */
+export interface RecentActivity {
+  entry_date: string;
+  amalan_id: number;
+  status: EntryStatus | null;
+  rakaat: number | null;
+  santri: { nama: string; kelas: string } | null;
+}
+
+export async function listRecentEntries(limit = 10): Promise<RecentActivity[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("mutabaah_entries")
+    .select("entry_date, amalan_id, status, rakaat, santri:santri(nama, kelas)")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as unknown as RecentActivity[];
+}
+
 /** Upsert massal; konflik pada (santri_id, amalan_id, entry_date). */
 export async function upsertEntries(
   entries: {

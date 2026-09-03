@@ -1,106 +1,230 @@
-import Link from "next/link";
-import { listSantri, listEntries } from "@/lib/data";
-import { computeSantriMetrics } from "@/lib/metrics";
-import { monthLabel } from "@/lib/dates";
-import StatCard from "@/components/StatCard";
+﻿import Link from "next/link";
+import {
+  IconCalendarCheck as CalendarCheck,
+  IconGauge as Gauge,
+  IconPencil as Pencil,
+  IconSparkles as Sparkles,
+  IconTrendingDown as TrendingDown,
+  IconUsers as Users,
+} from "@tabler/icons-react";
+import { listSantri, listEntries, listRecentEntries } from "@/lib/data";
+import { computeSantriMetrics, computeKategoriBenchmark } from "@/lib/metrics";
+import { AMALAN_BY_ID } from "@/lib/amalan";
+import { monthLabel, todayISO, tanggalPanjang } from "@/lib/dates";
+import PageHeader from "@/components/PageHeader";
+import KpiCard from "@/components/KpiCard";
+import RingGauge from "@/components/RingGauge";
+import ProgressBar from "@/components/ProgressBar";
+import RutinitasBars from "@/components/RutinitasBars";
+import SantriTable from "@/components/SantriTable";
+import Avatar from "@/components/Avatar";
 
 export const dynamic = "force-dynamic";
-
-function toneFor(pct: number) {
-  return pct >= 80 ? "good" : pct >= 50 ? "warn" : "bad";
-}
+export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
+  const today = todayISO();
 
-  const [santri, entries] = await Promise.all([
+  const [santri, entries, recent] = await Promise.all([
     listSantri(),
     listEntries({ year, month }),
+    listRecentEntries(8),
   ]);
 
   const metrics = santri.map((s) => computeSantriMetrics(s, entries, year, month));
   const avg = metrics.length
     ? Math.round(metrics.reduce((a, m) => a + m.indeksRutinitas, 0) / metrics.length)
     : 0;
+  const benchmark = computeKategoriBenchmark(metrics);
+  const perKelas = santri.reduce<Record<string, number>>((acc, s) => {
+    acc[s.kelas] = (acc[s.kelas] ?? 0) + 1;
+    return acc;
+  }, {});
+  const terisiHariIni = new Set(
+    entries.filter((e) => e.entry_date === today).map((e) => e.santri_id),
+  ).size;
   const sorted = [...metrics].sort((a, b) => b.indeksRutinitas - a.indeksRutinitas);
-  const top = sorted.slice(0, 3);
-  const perluPerhatian = sorted.filter((m) => m.indeksRutinitas < 50).slice(-3).reverse();
+  const perlu = sorted.filter((m) => m.indeksRutinitas < 50).slice(0, 5);
+  const kosong = entries.length === 0;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-bold text-slate-900">Dashboard</h1>
-        <p className="text-sm text-slate-500">Ringkasan bulan {monthLabel(month, year)}</p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description={`Ringkasan mutabaah ${monthLabel(month, year)}`}
+      >
+        <Link href="/input" className="btn-primary">
+          <Pencil size={16} stroke={1.75} /> Input Hari Ini
+        </Link>
+      </PageHeader>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="Total Santri" value={santri.length} />
-        <StatCard label="Indeks Rata-rata" value={`${avg}%`} tone={toneFor(avg) as never} />
-        <StatCard label="Sudah Diisi" value={metrics.filter((m) => m.totalPoin > 0).length} hint="santri punya entri" />
-        <StatCard label="Perlu Perhatian" value={perluPerhatian.length} tone="bad" />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-semibold text-slate-700">Teraktif</h2>
-          <ol className="space-y-1 text-sm">
-            {top.map((m, i) => (
-              <li key={m.santri_id} className="flex justify-between">
-                <Link href={`/santri/${m.santri_id}`} className="hover:underline">
-                  {i + 1}. {m.nama}
-                </Link>
-                <span className="font-semibold text-brand-600">{m.indeksRutinitas}%</span>
-              </li>
-            ))}
-            {top.length === 0 && <li className="text-slate-400">Belum ada data.</li>}
-          </ol>
+      {kosong && (
+        <div className="card flex flex-wrap items-center justify-between gap-3 border-accent/30 bg-accent-soft/50 p-4">
+          <div className="flex items-center gap-3">
+            <span className="grid size-9 place-items-center rounded-lg bg-accent text-accent-fg">
+              <Sparkles size={18} stroke={1.75} />
+            </span>
+            <div>
+              <p className="text-sm font-medium text-ink">
+                Belum ada data mutabaah bulan ini
+              </p>
+              <p className="text-xs text-muted">
+                Mulai isi amalan harian santri untuk melihat metrik dan grafik.
+              </p>
+            </div>
+          </div>
+          <Link href="/input" className="btn-primary h-8 text-xs">
+            Mulai Input
+          </Link>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-semibold text-slate-700">Perlu Perhatian</h2>
-          <ol className="space-y-1 text-sm">
-            {perluPerhatian.map((m) => (
-              <li key={m.santri_id} className="flex justify-between">
-                <Link href={`/santri/${m.santri_id}`} className="hover:underline">
-                  {m.nama}
-                </Link>
-                <span className="font-semibold text-red-600">{m.indeksRutinitas}%</span>
-              </li>
-            ))}
-            {perluPerhatian.length === 0 && (
-              <li className="text-slate-400">Semua di atas 50%. Bagus!</li>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          icon={Users}
+          label="Total Santri"
+          value={santri.length}
+          sub={
+            <span className="tnum">
+              {Object.entries(perKelas)
+                .map(([k, v]) => `${k.replace("Kelas ", "K")}: ${v}`)
+                .join("  Â·  ")}
+            </span>
+          }
+        />
+        <KpiCard
+          icon={Gauge}
+          label="Indeks Rata-rata"
+          value={`${avg}%`}
+          sub="rata-rata 19 kategori amalan"
+          tone="accent"
+          right={<RingGauge value={avg} size={56} />}
+        />
+        <KpiCard
+          icon={CalendarCheck}
+          label="Pengisian Hari Ini"
+          value={
+            <span>
+              {terisiHariIni}
+              <span className="text-base font-medium text-faint">
+                /{santri.length}
+              </span>
+            </span>
+          }
+          sub={<ProgressBar value={santri.length ? (terisiHariIni / santri.length) * 100 : 0} />}
+          tone="accent"
+        />
+        <KpiCard
+          icon={TrendingDown}
+          label="Perlu Perhatian"
+          value={perlu.length}
+          sub="indeks rutinitas di bawah 50%"
+          tone={perlu.length > 0 ? "danger" : "default"}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="card p-5 lg:col-span-2">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-ink">
+              Rutinitas per Amalan
+            </h2>
+            <span className="text-xs text-faint">rata-rata seluruh santri</span>
+          </div>
+          <RutinitasBars
+            rows={Object.entries(benchmark).map(([id, pct]) => ({
+              id: Number(id),
+              nama: AMALAN_BY_ID[Number(id)]?.nama ?? "",
+              pct,
+            }))}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <div className="card p-5">
+            <h2 className="mb-3 text-sm font-semibold text-ink">Perlu Perhatian</h2>
+            {perlu.length === 0 ? (
+              <p className="text-xs text-faint">
+                Tidak ada santri di bawah 50%. Pertahankan!
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {perlu.map((m) => (
+                  <li key={m.santri_id}>
+                    <Link
+                      href={`/santri/${m.santri_id}`}
+                      className="group flex items-center gap-3"
+                    >
+                      <Avatar name={m.nama} size="sm" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-medium text-ink group-hover:text-accent">
+                          {m.nama}
+                        </span>
+                        <ProgressBar value={m.indeksRutinitas} className="mt-1" />
+                      </span>
+                      <span className="tnum text-xs font-semibold text-danger">
+                        {m.indeksRutinitas}%
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             )}
-          </ol>
+          </div>
+
+          <div className="card p-5">
+            <h2 className="mb-3 text-sm font-semibold text-ink">
+              Aktivitas Terakhir
+            </h2>
+            {recent.length === 0 ? (
+              <p className="text-xs text-faint">Belum ada aktivitas tercatat.</p>
+            ) : (
+              <ul className="space-y-2.5">
+                {recent.map((a, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-xs">
+                    <span
+                      className={
+                        "mt-1 size-1.5 shrink-0 rounded-full " +
+                        (a.status === "done"
+                          ? "bg-accent"
+                          : a.status === "miss"
+                            ? "bg-danger"
+                            : "bg-faint")
+                      }
+                    />
+                    <div className="min-w-0 flex-1 leading-snug">
+                      <span className="font-medium text-ink">
+                        {a.santri?.nama ?? "â€”"}
+                      </span>{" "}
+                      <span className="text-muted">
+                        {AMALAN_BY_ID[a.amalan_id]?.nama}
+                      </span>
+                      <div className="text-faint">
+                        {a.rakaat ? `${a.rakaat} rakaat Â· ` : ""}
+                        {tanggalPanjang(a.entry_date)}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase text-slate-400">
-            <tr>
-              <th className="px-4 py-2">Santri</th>
-              <th className="px-4 py-2">Kelas</th>
-              <th className="px-4 py-2 text-right">Indeks</th>
-              <th className="px-4 py-2 text-right">Streak</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((m) => (
-              <tr key={m.santri_id} className="border-t border-slate-100">
-                <td className="px-4 py-2">
-                  <Link href={`/santri/${m.santri_id}`} className="font-medium text-slate-800 hover:underline">
-                    {m.nama}
-                  </Link>
-                </td>
-                <td className="px-4 py-2 text-slate-500">{m.kelas}</td>
-                <td className="px-4 py-2 text-right font-semibold text-slate-700">{m.indeksRutinitas}%</td>
-                <td className="px-4 py-2 text-right text-slate-500">{m.streak} hari</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <SantriTable
+        rows={metrics.map((m) => ({
+          id: m.santri_id,
+          nama: m.nama,
+          nis: santri.find((s) => s.id === m.santri_id)?.nis ?? 0,
+          kelas: m.kelas,
+          indeks: m.indeksRutinitas,
+          streak: m.streak,
+        }))}
+      />
     </div>
   );
 }

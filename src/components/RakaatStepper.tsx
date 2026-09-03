@@ -19,7 +19,8 @@ export default function RakaatStepper({ value, onChange, disabled, max = 99 }: P
         type="button"
         disabled={disabled}
         onClick={dec}
-        className="h-8 w-8 rounded-lg bg-slate-100 text-lg font-bold text-slate-600 hover:bg-slate-200"
+        aria-label="Kurangi"
+        className="grid size-8 place-items-center rounded-lg bg-surface2 text-base font-bold text-muted transition hover:bg-line active:scale-95"
       >
         −
       </button>
@@ -31,19 +32,21 @@ export default function RakaatStepper({ value, onChange, disabled, max = 99 }: P
         disabled={disabled}
         value={value ?? ""}
         placeholder="0"
+        aria-label="Jumlah rakaat"
         onChange={(e) => {
           const raw = e.target.value;
           if (raw === "") return onChange(null);
           const v = Math.max(0, Math.min(max, parseInt(raw, 10) || 0));
           onChange(v);
         }}
-        className="h-8 w-14 rounded-lg border border-slate-300 text-center text-sm font-semibold outline-none focus:border-brand-500"
+        className="tnum h-8 w-12 rounded-lg border border-line bg-surface text-center text-sm font-semibold text-ink outline-none focus:border-accent"
       />
       <button
         type="button"
         disabled={disabled}
         onClick={inc}
-        className="h-8 w-8 rounded-lg bg-brand-500 text-lg font-bold text-white hover:bg-brand-600"
+        aria-label="Tambah"
+        className="grid size-8 place-items-center rounded-lg bg-accent text-base font-bold text-accent-fg transition hover:bg-accent-hover active:scale-95"
       >
         +
       </button>

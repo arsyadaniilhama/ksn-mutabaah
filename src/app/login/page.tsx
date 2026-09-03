@@ -9,18 +9,29 @@ export default function LoginPage() {
   const [state, formAction, pending] = useActionState(signIn, initialState);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+    <main className="relative flex min-h-dvh items-center justify-center bg-canvas p-4">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-accent-soft to-transparent"
+      />
       <form
         action={formAction}
-        className="w-full max-w-sm space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        className="card relative w-full max-w-sm space-y-5 p-7"
       >
-        <div className="space-y-1 text-center">
-          <h1 className="text-xl font-semibold text-slate-900">Mutabaah KSN</h1>
-          <p className="text-sm text-slate-500">Masuk sebagai Musyrif / Admin</p>
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="grid size-11 place-items-center rounded-xl bg-accent text-lg font-bold text-accent-fg">
+            K
+          </span>
+          <div>
+            <h1 className="text-base font-semibold text-ink">Mutabaah KSN</h1>
+            <p className="mt-0.5 text-sm text-muted">
+              Masuk sebagai Musyrif / Admin
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-slate-700" htmlFor="email">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-ink" htmlFor="email">
             Email
           </label>
           <input
@@ -28,12 +39,13 @@ export default function LoginPage() {
             name="email"
             type="email"
             autoComplete="username"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            required
+            className="input"
           />
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-slate-700" htmlFor="password">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-ink" htmlFor="password">
             Password
           </label>
           <input
@@ -41,12 +53,13 @@ export default function LoginPage() {
             name="password"
             type="password"
             autoComplete="current-password"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            required
+            className="input"
           />
         </div>
 
         {state.error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">
             {state.error}
           </p>
         )}
@@ -54,10 +67,14 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+          className="btn-primary w-full"
         >
           {pending ? "Memproses..." : "Masuk"}
         </button>
+
+        <p className="text-center text-[11px] text-faint">
+          PA IMSHUS · Pencatatan mutabaah harian santri
+        </p>
       </form>
     </main>
   );

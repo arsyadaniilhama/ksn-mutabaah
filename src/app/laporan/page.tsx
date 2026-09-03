@@ -1,10 +1,19 @@
 import Link from "next/link";
+import {
+  IconDownload as Download,
+  IconPdf as FilePdf,
+} from "@tabler/icons-react";
 import { listSantri, listEntries } from "@/lib/data";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { BULAN_ID, monthLabel } from "@/lib/dates";
+import PageHeader from "@/components/PageHeader";
+import Avatar from "@/components/Avatar";
+import Badge from "@/components/Badge";
+import ProgressBar from "@/components/ProgressBar";
 import type { Kelas } from "@/types";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Laporan" };
 
 const KELAS_LIST: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
 
@@ -27,40 +36,44 @@ export default async function LaporanPage({
     .map((s) => computeSantriMetrics(s, entries, year, month))
     .sort((a, b) => b.indeksRutinitas - a.indeksRutinitas);
 
-  const qs = (extra: Record<string, string | number>) => {
-    const p = new URLSearchParams({ kelas, month: String(month), year: String(year), ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, String(v)])) });
-    return `/laporan?${p.toString()}`;
-  };
+  const href = (m: number, k: Kelas = kelas) =>
+    `/laporan?${new URLSearchParams({ kelas: k, month: String(m), year: String(year) })}`;
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-lg font-bold text-slate-900">Laporan Bulanan</h1>
+    <div className="space-y-5">
+      <PageHeader
+        title="Laporan Bulanan"
+        description={`${kelas} · ${monthLabel(month, year)} · ${santri.length} santri`}
+      />
 
-      {/* Filter */}
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        {KELAS_LIST.map((k) => (
-          <Link
-            key={k}
-            href={qs({ kelas: k })}
-            className={
-              "rounded-lg px-3 py-1.5 font-medium " +
-              (k === kelas ? "bg-brand-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200")
-            }
-          >
-            {k}
-          </Link>
-        ))}
-        <span className="mx-2 text-slate-300">|</span>
+      <div className="card flex flex-wrap items-center gap-2 p-3">
+        <div className="flex rounded-lg border border-line bg-canvas p-0.5">
+          {KELAS_LIST.map((k) => (
+            <Link
+              key={k}
+              href={href(month, k)}
+              className={
+                "rounded-md px-3 py-1.5 text-xs font-medium transition " +
+                (k === kelas
+                  ? "bg-surface text-ink shadow-sm"
+                  : "text-muted hover:text-ink")
+              }
+            >
+              {k}
+            </Link>
+          ))}
+        </div>
+        <div className="h-5 w-px bg-line" />
         <div className="flex flex-wrap gap-1">
           {BULAN_ID.map((b, i) => (
             <Link
               key={b}
-              href={qs({ month: i + 1 })}
+              href={href(i + 1)}
               className={
-                "rounded px-2 py-1 text-xs " +
+                "rounded-md px-2 py-1 text-xs font-medium transition " +
                 (i + 1 === month
-                  ? "bg-slate-900 font-semibold text-white"
-                  : "bg-white text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50")
+                  ? "bg-accent text-accent-fg"
+                  : "text-muted hover:bg-surface2 hover:text-ink")
               }
             >
               {b.slice(0, 3)}
@@ -69,45 +82,64 @@ export default async function LaporanPage({
         </div>
       </div>
 
-      <p className="text-sm text-slate-500">
-        {kelas} · {monthLabel(month, year)} · {santri.length} santri
-      </p>
-
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <div className="card overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase text-slate-400">
-            <tr>
-              <th className="px-4 py-2">Santri</th>
-              <th className="px-3 py-2 text-right">Indeks</th>
-              <th className="px-3 py-2 text-right">Poin</th>
-              <th className="px-3 py-2 text-right">Streak</th>
-              <th className="px-3 py-2 text-right">Ekspor</th>
+          <thead>
+            <tr className="border-b border-line text-left text-xs text-faint">
+              <th className="px-4 py-2.5 font-medium">Santri</th>
+              <th className="px-4 py-2.5 font-medium">Indeks</th>
+              <th className="hidden px-4 py-2.5 text-right font-medium sm:table-cell">
+                Poin
+              </th>
+              <th className="hidden px-4 py-2.5 text-right font-medium sm:table-cell">
+                Streak
+              </th>
+              <th className="px-4 py-2.5 text-right font-medium">Ekspor</th>
             </tr>
           </thead>
           <tbody>
             {metrics.map((m) => (
-              <tr key={m.santri_id} className="border-t border-slate-100">
-                <td className="px-4 py-2">
-                  <Link href={`/santri/${m.santri_id}`} className="font-medium text-slate-800 hover:underline">
-                    {m.nama}
+              <tr
+                key={m.santri_id}
+                className="border-b border-line last:border-0 hover:bg-surface2/60"
+              >
+                <td className="px-4 py-2.5">
+                  <Link href={`/santri/${m.santri_id}`} className="flex items-center gap-3 group">
+                    <Avatar name={m.nama} size="sm" />
+                    <span className="truncate font-medium text-ink group-hover:text-accent">
+                      {m.nama}
+                    </span>
                   </Link>
                 </td>
-                <td className="px-3 py-2 text-right font-semibold text-slate-700">{m.indeksRutinitas}%</td>
-                <td className="px-3 py-2 text-right text-slate-500">{m.totalPoin}</td>
-                <td className="px-3 py-2 text-right text-slate-500">{m.streak}</td>
-                <td className="px-3 py-2 text-right">
-                  <div className="inline-flex gap-2">
+                <td className="px-4 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <ProgressBar value={m.indeksRutinitas} className="w-20" />
+                    <span className="tnum text-xs font-semibold text-ink">
+                      {m.indeksRutinitas}%
+                    </span>
+                  </div>
+                </td>
+                <td className="tnum hidden px-4 py-2.5 text-right text-muted sm:table-cell">
+                  {m.totalPoin}
+                </td>
+                <td className="hidden px-4 py-2.5 text-right sm:table-cell">
+                  <Badge tone={m.streak >= 7 ? "accent" : "neutral"}>{m.streak} hr</Badge>
+                </td>
+                <td className="px-4 py-2.5">
+                  <div className="flex justify-end gap-1">
                     <Link
                       href={`/santri/${m.santri_id}/raport?month=${month}&year=${year}`}
-                      className="text-brand-600 hover:underline"
+                      className="btn-ghost h-8 px-2 text-xs"
+                      title="Raport PDF"
                     >
-                      PDF
+                      <FilePdf size={15} stroke={1.75} /> PDF
                     </Link>
                     <a
                       href={`/api/export/excel?santri_id=${m.santri_id}&month=${month}&year=${year}`}
-                      className="text-slate-500 hover:underline"
+                      className="btn-ghost h-8 px-2 text-xs"
+                      title="Unduh Excel"
                     >
-                      XLSX
+                      <Download size={15} stroke={1.75} /> XLSX
                     </a>
                   </div>
                 </td>
@@ -115,8 +147,8 @@ export default async function LaporanPage({
             ))}
             {metrics.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
-                  Belum ada data.
+                <td colSpan={5} className="px-4 py-12 text-center text-sm text-faint">
+                  Belum ada data untuk periode ini.
                 </td>
               </tr>
             )}

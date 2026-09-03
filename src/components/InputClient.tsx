@@ -1,9 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  IconCalendarEvent as CalendarDays,
+  IconChevronLeft as ChevronLeft,
+  IconChevronRight as ChevronRight,
+} from "@tabler/icons-react";
 import { AMALAN, AMALAN_BY_ID } from "@/lib/amalan";
 import { daysInMonth, parseISO, todayISO } from "@/lib/dates";
 import AmalanRow from "@/components/AmalanRow";
+import Avatar from "@/components/Avatar";
 import type { CellValue, Kelas, MutabaahEntry, Santri } from "@/types";
 
 interface Props {
@@ -54,10 +60,7 @@ export default function InputClient({
     [santriList, kelas],
   );
   const [santriId, setSantriId] = useState<string>(
-    () =>
-      santriInKelas.find((s) => s.kelas === initialKelas)?.id ??
-      santriInKelas[0]?.id ??
-      "",
+    () => santriInKelas[0]?.id ?? "",
   );
   const [values, setValues] = useState<Record<number, CellValue>>(initialValues);
   const [loading, setLoading] = useState(false);
@@ -66,7 +69,6 @@ export default function InputClient({
 
   const first = useRef(true);
 
-  // Jaga santriId valid saat kelas berubah
   useEffect(() => {
     if (!santriInKelas.some((s) => s.id === santriId)) {
       setSantriId(santriInKelas[0]?.id ?? "");
@@ -88,7 +90,6 @@ export default function InputClient({
     }
   }, []);
 
-  // Muat ulang saat santri/tanggal berubah (skip render pertama)
   useEffect(() => {
     if (first.current) {
       first.current = false;
@@ -121,13 +122,13 @@ export default function InputClient({
   );
 
   const dt = parseISO(date);
+  const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
   const dim = daysInMonth(dt.getFullYear(), dt.getMonth() + 1);
   const days = Array.from({ length: dim }, (_, i) => i + 1);
-  const isToday = date === todayISO();
+  const today = todayISO();
 
   const currentIdx = santriInKelas.findIndex((s) => s.id === santriId);
   const isLastSantri = currentIdx >= santriInKelas.length - 1;
-
   const goNextSantri = () => {
     const next = santriInKelas[currentIdx + 1];
     if (next) setSantriId(next.id);
@@ -142,126 +143,147 @@ export default function InputClient({
 
   return (
     <div className="space-y-4">
-      {/* Kelas */}
-      <div className="flex gap-2">
-        {KELAS_LIST.map((k) => (
+      {/* Kelas + Tanggal */}
+      <div className="card flex flex-wrap items-center justify-between gap-3 p-3">
+        <div className="flex rounded-lg border border-line bg-canvas p-0.5">
+          {KELAS_LIST.map((k) => (
+            <button
+              key={k}
+              onClick={() => setKelas(k)}
+              className={
+                "rounded-md px-3 py-1.5 text-xs font-medium transition " +
+                (k === kelas
+                  ? "bg-surface text-ink shadow-sm"
+                  : "text-muted hover:text-ink")
+              }
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5">
           <button
-            key={k}
-            onClick={() => setKelas(k)}
-            className={
-              "rounded-lg px-4 py-2 text-sm font-semibold transition " +
-              (k === kelas
-                ? "bg-brand-600 text-white"
-                : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50")
-            }
+            onClick={() => setDate(shiftDate(date, -1))}
+            aria-label="Hari sebelumnya"
+            className="btn-outline size-8 p-0"
           >
-            {k}
+            <ChevronLeft size={14} stroke={2} />
           </button>
-        ))}
-      </div>
-
-      {/* Tanggal */}
-      <div className="rounded-xl border border-slate-200 bg-white p-3">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-600">
-            Tanggal {isToday && <span className="text-brand-600">• hari ini</span>}
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface2 px-3 py-1.5 text-xs font-semibold text-ink">
+            <CalendarDays size={14} stroke={1.75} className="text-accent" />
+            {dt.getDate()} {new Intl.DateTimeFormat("id-ID", { month: "long" }).format(dt)}{" "}
+            {dt.getFullYear()}
           </span>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setDate(shiftDate(date, -1))}
-              className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
-            >
-              ◀
-            </button>
-            <button
-              onClick={() => setDate(todayISO())}
-              className="rounded-lg bg-slate-100 px-3 text-xs font-medium text-slate-600 hover:bg-slate-200"
-            >
-              Hari ini
-            </button>
-            <button
-              onClick={() => setDate(shiftDate(date, 1))}
-              className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
-            >
-              ▶
-            </button>
-          </div>
-        </div>
-        <div className="flex gap-1 overflow-x-auto pb-1">
-          {days.map((d) => {
-            const iso = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-            return (
-              <button
-                key={d}
-                onClick={() => setDate(iso)}
-                className={
-                  "h-9 w-9 shrink-0 rounded-lg text-sm font-medium " +
-                  (iso === date
-                    ? "bg-brand-600 text-white"
-                    : "bg-slate-50 text-slate-600 hover:bg-slate-100")
-                }
-              >
-                {d}
-              </button>
-            );
-          })}
+          <button
+            onClick={() => setDate(shiftDate(date, 1))}
+            aria-label="Hari berikutnya"
+            className="btn-outline size-8 p-0"
+          >
+            <ChevronRight size={14} stroke={2} />
+          </button>
+          <button
+            onClick={() => setDate(today)}
+            className="btn-ghost h-8 px-2 text-xs"
+          >
+            Hari ini
+          </button>
         </div>
       </div>
 
-      {/* Santri tabs */}
+      {/* Chip tanggal */}
+      <div className="flex gap-1 overflow-x-auto pb-1">
+        {days.map((d) => {
+          const iso = `${ym}-${String(d).padStart(2, "0")}`;
+          const active = iso === date;
+          return (
+            <button
+              key={d}
+              onClick={() => setDate(iso)}
+              className={
+                "tnum grid size-9 shrink-0 place-items-center rounded-lg text-sm font-medium transition " +
+                (active
+                  ? "bg-accent text-accent-fg"
+                  : iso === today
+                    ? "bg-accent-soft text-accent ring-1 ring-accent/40"
+                    : "bg-surface text-muted ring-1 ring-line hover:bg-surface2")
+              }
+            >
+              {d}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Chip santri */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {santriInKelas.map((s) => (
           <button
             key={s.id}
             onClick={() => setSantriId(s.id)}
             className={
-              "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition " +
+              "flex shrink-0 items-center gap-2 rounded-full py-1 pl-1 pr-3.5 text-sm font-medium transition " +
               (s.id === santriId
-                ? "bg-slate-900 text-white"
-                : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50")
+                ? "bg-ink text-canvas"
+                : "bg-surface text-muted ring-1 ring-line hover:bg-surface2")
             }
           >
+            <Avatar name={s.nama} size="sm" />
             {s.nama}
           </button>
         ))}
       </div>
 
       {err && (
-        <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>
+        <div className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">
+          {err}
+        </div>
       )}
 
       {/* Panel amalan */}
       {current ? (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">
-              {current.nama}{" "}
-              <span className="font-normal text-slate-400">· NIS {current.nis}</span>
-            </h2>
-            {loading && <span className="text-xs text-slate-400">memuat…</span>}
+        <div className="card p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+            <div className="flex items-center gap-3">
+              <Avatar name={current.nama} />
+              <div className="leading-tight">
+                <div className="text-sm font-semibold text-ink">{current.nama}</div>
+                <div className="tnum text-xs text-faint">
+                  NIS {current.nis} · {current.kelas}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {loading && <span className="text-xs text-faint">memuat…</span>}
+              <span className="tnum chip bg-surface2 text-muted">
+                {filledCount}/19 terisi
+              </span>
+            </div>
           </div>
-          {AMALAN.map((a) => (
-            <AmalanRow
-              key={a.id}
-              amalan={a}
-              value={values[a.id] ?? null}
-              onChange={(next) => handleChange(a.id, next)}
-              saving={savingId === a.id}
-            />
-          ))}
-          <div className="flex items-center justify-between pt-2">
-            <span className="text-xs text-slate-500">Terisi {filledCount}/19</span>
+
+          <div className="grid gap-1.5 md:grid-cols-2">
+            {AMALAN.map((a) => (
+              <AmalanRow
+                key={a.id}
+                amalan={a}
+                value={values[a.id] ?? null}
+                onChange={(next) => handleChange(a.id, next)}
+                saving={savingId === a.id}
+              />
+            ))}
+          </div>
+
+          <div className="mt-4 flex justify-end border-t border-line pt-3">
             <button
               onClick={goNextSantri}
               disabled={isLastSantri}
-              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-40"
+              className="btn-primary"
             >
-              ✓ Selesai, santri berikutnya
+              Selesai, santri berikutnya
             </button>
           </div>
         </div>
       ) : (
-        <p className="text-sm text-slate-500">Tidak ada santri di kelas ini.</p>
+        <p className="text-sm text-muted">Tidak ada santri di kelas ini.</p>
       )}
     </div>
   );

@@ -1,10 +1,12 @@
 import { Suspense } from "react";
 import { listSantri, getDayValues } from "@/lib/data";
-import { todayISO } from "@/lib/dates";
+import { todayISO, tanggalPanjang } from "@/lib/dates";
 import InputClient from "@/components/InputClient";
+import PageHeader from "@/components/PageHeader";
 import type { Kelas } from "@/types";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Input Harian" };
 
 export default async function InputPage() {
   const santriList = await listSantri();
@@ -15,8 +17,11 @@ export default async function InputPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold text-slate-900">Input Harian Mutabaah</h1>
-      <Suspense fallback={<p className="text-sm text-slate-500">Memuat…</p>}>
+      <PageHeader
+        title="Input Harian"
+        description={`Catat amalan santri — ${tanggalPanjang(date)}`}
+      />
+      <Suspense fallback={<p className="text-sm text-muted">Memuat…</p>}>
         <InputClient
           santriList={santriList}
           initialKelas={first?.kelas ?? kelas}

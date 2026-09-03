@@ -13,29 +13,31 @@ interface Props {
 
 export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
   const isRakaat = amalan.value_type === "rakaat";
-  const filled = isRakaat ? (value as number) != null && (value as number) > 0 : value != null;
+  const filled = isRakaat
+    ? (value as number) != null && (value as number) > 0
+    : value != null;
 
   return (
     <div
       className={
-        "flex items-center justify-between gap-3 rounded-xl border px-3 py-2 transition " +
+        "flex items-center justify-between gap-3 rounded-lg border px-3 py-2 transition-colors " +
         (filled
-          ? "border-brand-100 bg-brand-50/40"
-          : "border-slate-200 bg-white") +
-        (saving ? " opacity-70" : "")
+          ? "border-accent/30 bg-accent-soft/60"
+          : "border-line bg-surface") +
+        (saving ? " opacity-60" : "")
       }
     >
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <span className="w-5 shrink-0 text-right text-xs font-bold text-slate-400">
+          <span className="tnum w-5 shrink-0 text-right text-xs font-semibold text-faint">
             {amalan.urut}
           </span>
-          <span className="truncate text-sm font-medium text-slate-800">
+          <span className="truncate text-sm font-medium text-ink">
             {amalan.nama}
           </span>
         </div>
         {amalan.keterangan && (
-          <div className="pl-7 text-xs text-slate-400">{amalan.keterangan}</div>
+          <div className="pl-7 text-xs text-faint">{amalan.keterangan}</div>
         )}
       </div>
 

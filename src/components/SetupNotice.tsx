@@ -1,19 +1,19 @@
 const STEP =
-  "rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700";
+  "rounded-lg border border-line bg-surface2 px-3 py-2 font-mono text-xs text-ink";
 
 export default function SetupNotice() {
   return (
-    <div className="mx-auto max-w-2xl py-10">
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-        <h1 className="text-lg font-bold text-amber-900">
-          ⚙️ Supabase belum dikonfigurasi
+    <div className="mx-auto max-w-2xl px-4 py-10">
+      <div className="card border-warn/40 p-6">
+        <h1 className="text-lg font-bold text-warn">
+          Supabase belum dikonfigurasi
         </h1>
-        <p className="mt-1 text-sm text-amber-800">
+        <p className="mt-1 text-sm text-muted">
           Aplikasi butuh kredensial Supabase sebelum bisa dipakai. Isi file{" "}
           <code className="font-mono">.env.local</code> lalu restart server dev.
         </p>
 
-        <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-slate-700">
+        <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-ink">
           <li>
             Buat project di supabase.com, buka{" "}
             <b>Project Settings → API</b>, salin <b>URL</b>, <b>anon key</b>, dan{" "}
@@ -39,19 +39,18 @@ export default function SetupNotice() {
             Buat 1 user di <b>Authentication → Users</b> (email/password) sebagai admin.
           </li>
           <li>
-            (Opsional) Seed data awal:
+            (Opsional) Seed roster:
             <div className={STEP + " mt-1"}>
               node --env-file=.env.local scripts/import-excel.mjs
             </div>
           </li>
           <li>
-            Restart:{" "}
-            <code className="font-mono">npm run dev</code>, lalu buka{" "}
+            Restart <code className="font-mono">npm run dev</code>, lalu buka{" "}
             <code className="font-mono">/login</code>.
           </li>
         </ol>
 
-        <p className="mt-4 text-xs text-amber-700">
+        <p className="mt-4 text-xs text-faint">
           Setelah env terisi, layar ini hilang otomatis.
         </p>
       </div>

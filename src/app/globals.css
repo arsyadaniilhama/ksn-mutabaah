@@ -2,30 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Design tokens: zinc neutrals + emerald accent, dual mode ===== */
 :root {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif;
+  --bg-canvas: 250 250 250;
+  --bg-surface: 255 255 255;
+  --bg-surface-2: 244 244 245;
+  --line: 228 228 231;
+  --line-strong: 212 212 216;
+  --ink: 24 24 27;
+  --ink-muted: 82 82 91;
+  --ink-faint: 161 161 170;
+  --accent: 5 150 105;
+  --accent-hover: 4 120 87;
+  --accent-fg: 255 255 255;
+  --accent-soft: 236 253 245;
+  --danger: 220 38 38;
+  --danger-soft: 254 242 242;
+  --warn: 217 119 6;
+  --warn-soft: 255 251 235;
+  --shadow-color: 24 24 27;
 }
 
-html,
-body {
-  font-family: var(--font-sans);
+.dark {
+  --bg-canvas: 9 9 11;
+  --bg-surface: 24 24 27;
+  --bg-surface-2: 39 39 42;
+  --line: 39 39 42;
+  --line-strong: 63 63 70;
+  --ink: 250 250 250;
+  --ink-muted: 161 161 170;
+  --ink-faint: 113 113 122;
+  --accent: 16 185 129;
+  --accent-hover: 52 211 153;
+  --accent-fg: 9 9 11;
+  --accent-soft: 6 78 59;
+  --danger: 248 113 113;
+  --danger-soft: 69 10 11;
+  --warn: 251 191 36;
+  --warn-soft: 71 45 7;
+  --shadow-color: 0 0 0;
 }
 
-body {
-  background: #f8fafc;
-  color: #0f172a;
+@layer base {
+  html {
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+  body {
+    @apply bg-canvas text-ink antialiased;
+  }
+  ::selection {
+    background: rgb(var(--accent) / 0.25);
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent) / 0.55);
+    outline-offset: 2px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--line-strong)) transparent;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-line bg-surface;
+    box-shadow:
+      0 1px 2px rgb(var(--shadow-color) / 0.04),
+      0 8px 24px -12px rgb(var(--shadow-color) / 0.08);
+  }
+  .btn {
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3.5 text-sm font-medium transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-accent-fg hover:bg-accent-hover;
+  }
+  .btn-ghost {
+    @apply btn text-muted hover:bg-surface2 hover:text-ink;
+  }
+  .btn-outline {
+    @apply btn border border-line bg-surface text-ink hover:bg-surface2;
+  }
+  .input {
+    @apply h-9 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink outline-none transition placeholder:text-faint focus:border-accent;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  .sidebar-link {
+    @apply flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors;
+  }
 }
 
 /* Slide toggle (Ya/Tidak) */
-.toggle-track {
-  transition: background-color 0.15s ease;
-}
 .toggle-thumb {
   transition: transform 0.15s ease;
 }
 
-/* Print / PDF raport */
+/* Print / PDF raport: selalu light, bersih */
 @media print {
   @page {
     size: A4;
@@ -35,6 +111,8 @@ body {
     display: none !important;
   }
   .print-area {
+    background: #fff !important;
+    color: #18181b !important;
     box-shadow: none !important;
     border: none !important;
   }

@@ -6,6 +6,7 @@ import PctBarChart from "@/components/PctBarChart";
 import ExportButtons from "@/components/ExportButtons";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Raport" };
 
 export default async function RaportPage({
   params,
@@ -28,73 +29,107 @@ export default async function RaportPage({
 
   return (
     <div className="space-y-4">
-      <div className="no-print flex items-center justify-between">
-        <a href={`/santri/${santri.id}`} className="text-sm text-slate-500 hover:underline">
+      <div className="no-print flex flex-wrap items-center justify-between gap-2">
+        <a
+          href={`/santri/${santri.id}`}
+          className="text-sm text-muted hover:text-ink"
+        >
           ← Kembali ke detail
         </a>
         <ExportButtons santriId={santri.id} month={month} year={year} />
       </div>
 
-      <div className="print-area mx-auto max-w-[210mm] rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        {/* Kop */}
-        <div className="border-b-2 border-slate-800 pb-3 text-center">
-          <h1 className="text-lg font-bold uppercase tracking-wide">
-            Laporan Mutabaah Santri
-          </h1>
-          <p className="text-sm">Pendidikan Islam IMSHUS — KSN</p>
+      {/* Dokumen: selalu light agar konsisten saat dicetak */}
+      <div className="print-area mx-auto max-w-[210mm] rounded-xl border border-zinc-200 bg-white p-8 text-zinc-900 shadow-sm">
+        <div className="flex items-center justify-between border-b-2 border-zinc-800 pb-4">
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-lg bg-emerald-600 text-lg font-bold text-white">
+              K
+            </span>
+            <div>
+              <h1 className="text-lg font-bold uppercase tracking-wide">
+                Laporan Mutabaah Santri
+              </h1>
+              <p className="text-sm text-zinc-500">
+                Pendidikan Islam IMSHUS — KSN
+              </p>
+            </div>
+          </div>
+          <div className="text-right text-sm">
+            <div className="font-semibold">{monthLabel(m.bulan, m.tahun)}</div>
+            <div className="text-zinc-500">Dokumen internal</div>
+          </div>
         </div>
 
-        {/* Identitas */}
-        <div className="mt-4 grid grid-cols-2 gap-y-1 text-sm">
-          <div><span className="text-slate-500">Nama</span>: <b>{m.nama}</b></div>
-          <div><span className="text-slate-500">Kelas</span>: {m.kelas}</div>
-          <div><span className="text-slate-500">NIS</span>: {santri.nis}</div>
-          <div><span className="text-slate-500">Periode</span>: {monthLabel(m.bulan, m.tahun)}</div>
+        <div className="mt-5 grid grid-cols-2 gap-y-1.5 text-sm">
+          <div>
+            <span className="text-zinc-500">Nama</span>{" "}
+            <b className="ml-1">{m.nama}</b>
+          </div>
+          <div>
+            <span className="text-zinc-500">Kelas</span>{" "}
+            <b className="ml-1">{m.kelas}</b>
+          </div>
+          <div>
+            <span className="text-zinc-500">NIS</span>{" "}
+            <b className="ml-1 tnum">{santri.nis}</b>
+          </div>
+          <div>
+            <span className="text-zinc-500">Periode</span>{" "}
+            <b className="ml-1">{monthLabel(m.bulan, m.tahun)}</b>
+          </div>
         </div>
 
-        {/* Ringkasan */}
-        <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+        <div className="mt-5 grid grid-cols-4 gap-2 text-center">
           {[
-            { l: "Indeks", v: `${m.indeksRutinitas}%` },
+            { l: "Indeks Rutinitas", v: `${m.indeksRutinitas}%` },
             { l: "Total Poin", v: m.totalPoin },
             { l: "Streak", v: `${m.streak} hr` },
-            { l: "Rakaat", v: m.totalRakaat },
+            { l: "Total Rakaat", v: m.totalRakaat },
           ].map((s) => (
-            <div key={s.l} className="rounded-lg border border-slate-200 py-2">
-              <div className="text-xs text-slate-400">{s.l}</div>
-              <div className="text-lg font-bold text-slate-800">{s.v}</div>
+            <div key={s.l} className="rounded-lg border border-zinc-200 bg-zinc-50 py-2.5">
+              <div className="text-[11px] uppercase tracking-wide text-zinc-500">
+                {s.l}
+              </div>
+              <div className="tnum mt-0.5 text-lg font-bold">{s.v}</div>
             </div>
           ))}
         </div>
 
-        {/* Grafik */}
         <div className="mt-6">
-          <h2 className="mb-1 text-sm font-semibold text-slate-700">
+          <h2 className="mb-1 text-sm font-semibold">
             Persentase Rutinitas per Amalan
           </h2>
-          <PctBarChart data={m.kategori.map((k) => ({ id: k.amalan_id, nama: k.nama, pct: k.pct }))} />
+          <PctBarChart
+            data={m.kategori.map((k) => ({
+              id: k.amalan_id,
+              nama: k.nama,
+              pct: k.pct,
+            }))}
+          />
         </div>
 
-        {/* Tabel */}
         <table className="mt-4 w-full border-collapse text-xs">
           <thead>
-            <tr className="bg-slate-100 text-left">
-              <th className="border border-slate-200 px-2 py-1">No</th>
-              <th className="border border-slate-200 px-2 py-1">Amalan</th>
-              <th className="border border-slate-200 px-2 py-1 text-right">Tercapai</th>
-              <th className="border border-slate-200 px-2 py-1 text-right">%</th>
+            <tr className="bg-zinc-100 text-left">
+              <th className="border border-zinc-200 px-2 py-1.5">No</th>
+              <th className="border border-zinc-200 px-2 py-1.5">Amalan</th>
+              <th className="border border-zinc-200 px-2 py-1.5 text-right">
+                Tercapai
+              </th>
+              <th className="border border-zinc-200 px-2 py-1.5 text-right">%</th>
             </tr>
           </thead>
           <tbody>
             {m.kategori.map((k) => (
               <tr key={k.amalan_id}>
-                <td className="border border-slate-200 px-2 py-1">{k.amalan_id}</td>
-                <td className="border border-slate-200 px-2 py-1">{k.nama}</td>
-                <td className="border border-slate-200 px-2 py-1 text-right">
+                <td className="tnum border border-zinc-200 px-2 py-1">{k.amalan_id}</td>
+                <td className="border border-zinc-200 px-2 py-1">{k.nama}</td>
+                <td className="tnum border border-zinc-200 px-2 py-1 text-right">
                   {k.done}/{k.total}
                   {k.rakaatTotal ? ` (${k.rakaatTotal} rk)` : ""}
                 </td>
-                <td className="border border-slate-200 px-2 py-1 text-right font-semibold">
+                <td className="tnum border border-zinc-200 px-2 py-1 text-right font-semibold">
                   {k.pct}%
                 </td>
               </tr>
@@ -102,21 +137,18 @@ export default async function RaportPage({
           </tbody>
         </table>
 
-        {/* Catatan + TTD */}
-        <div className="mt-6 grid grid-cols-2 gap-6 text-sm">
+        <div className="mt-8 grid grid-cols-2 gap-8 text-sm">
           <div>
-            <div className="mb-1 font-semibold text-slate-700">Catatan Musyrif</div>
-            <div className="min-h-[64px] rounded-lg border border-slate-200 p-2 text-slate-400">
-              &nbsp;
-            </div>
+            <div className="mb-1 font-semibold">Catatan Musyrif</div>
+            <div className="min-h-[72px] rounded-lg border border-zinc-300 p-2" />
           </div>
           <div className="text-center">
-            <div className="mb-8">
+            <div className="leading-relaxed">
               {monthLabel(m.bulan, m.tahun)}
               <br />
               Mengetahui, Musyrif
             </div>
-            <div className="mt-10 border-t border-slate-400 pt-1 inline-block w-40">
+            <div className="mx-auto mt-14 w-44 border-t border-zinc-500 pt-1">
               (....................)
             </div>
           </div>
