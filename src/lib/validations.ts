@@ -8,7 +8,10 @@ export const upsertEntrySchema = z.object({
   santri_id: z.string().uuid(),
   amalan_id: z.coerce.number().int().min(1).max(19),
   entry_date: isoDate,
-  status: z.enum(["done", "miss"]).nullable().optional(),
+  status: z
+    .enum(["done", "miss", "tepat", "masbuq", "sendiri"])
+    .nullable()
+    .optional(),
   rakaat: z.coerce.number().int().min(0).max(100).nullable().optional(),
   catatan: z.string().max(500).nullable().optional(),
 });

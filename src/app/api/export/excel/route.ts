@@ -82,6 +82,11 @@ export async function GET(request: Request) {
         const r = e?.rakaat ?? null;
         if (r && r > 0) total += r;
         cells.push(r && r > 0 ? r : null);
+      } else if (a.value_type === "fardhu") {
+        const map: Record<string, string> = { tepat: "T", masbuq: "M", sendiri: "S" };
+        const v = e?.status ? (map[e.status] ?? null) : null;
+        if (v) total += 1;
+        cells.push(v);
       } else {
         const v = e?.status === "done" ? "V" : e?.status === "miss" ? "X" : null;
         if (v === "V") total += 1;

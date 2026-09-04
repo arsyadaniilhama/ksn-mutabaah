@@ -28,25 +28,26 @@ const XLSX_PATH = positional[1] || path.join(ROOT, "..", "Mutabaah KSN.xlsx");
 const AMALAN = [
   [1, "Sholat Tahajjud", "Tulis Rakaat", "rakaat"],
   [2, "Sholat Witir", "Tulis Rakaat", "rakaat"],
-  [3, "Sholat Shubuh", "Datang sebelum adzan", "binary"],
+  [3, "Sholat Shubuh", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
   [4, "Dzikir Sholat Ba'da Shubuh", null, "binary"],
   [5, "Infaq Shubuh", null, "binary"],
   [6, "Dzikir Pagi", null, "binary"],
   [7, "Sholat Dhuha", "Tulis Rakaat", "rakaat"],
-  [8, "Sholat Zuhur", "Datang sebelum adzan", "binary"],
+  [8, "Sholat Zuhur", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
   [9, "Dzikir Sholat Ba'da Zuhur", null, "binary"],
-  [10, "Sholat 'Asar", "Datang sebelum adzan", "binary"],
+  [10, "Sholat 'Asar", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
   [11, "Dzikir Sholat Ba'da 'Asar", null, "binary"],
   [12, "Dzikir Petang", null, "binary"],
-  [13, "Sholat Maghrib", "Datang sebelum adzan", "binary"],
+  [13, "Sholat Maghrib", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
   [14, "Dzikir Sholat Ba'da Maghrib", null, "binary"],
-  [15, "Sholat Isya'", "Datang sebelum adzan", "binary"],
+  [15, "Sholat Isya'", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
   [16, "Dzikir Sholat Ba'da Isya'", null, "binary"],
   [17, "Sholat Rawatib", "Tulis Rakaat", "rakaat"],
   [18, "Puasa", null, "binary"],
   [19, "Sunnah Sebelum Tidur", "3 Qul dan Doa Sebelum Tidur", "binary"],
 ];
 const RAKAAT = new Set([1, 2, 7, 17]);
+const FARDHU = new Set([3, 8, 10, 13, 15]);
 
 const BULAN = {
   januari: 1, februari: 2, maret: 3, april: 4, mei: 5, juni: 6, juli: 7,
@@ -133,11 +134,12 @@ async function main() {
     const nilai = String(nilaiRaw ?? "").trim();
     let status = null, rakaat = null;
     const firstNum = (nilai.match(/\d+/) ?? [])[0];
-    if (nilai.toUpperCase() === "V") status = "done";
+    if (nilai.toUpperCase() === "V") status = FARDHU.has(amal) ? "tepat" : "done";
     else if (nilai.toUpperCase() === "X") status = "miss";
     else if (firstNum != null) {
       const v = Number(firstNum);
       if (RAKAAT.has(amal)) { rakaat = v; status = v > 0 ? "done" : null; }
+      else if (FARDHU.has(amal)) { status = "tepat"; }
       else status = "done";
       if (!/^\d+$/.test(nilai))
         flagged.push(`dinormalisasi '${nilai}' -> ${v} (${nama}, amal ${amal}, tgl ${tgl})`);

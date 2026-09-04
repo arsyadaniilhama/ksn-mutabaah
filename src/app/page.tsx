@@ -22,6 +22,21 @@ import Avatar from "@/components/Avatar";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
 
+const STATUS_DOT: Record<string, string> = {
+  done: "bg-accent",
+  tepat: "bg-accent",
+  masbuq: "bg-warn",
+  sendiri: "bg-line-strong",
+  miss: "bg-danger",
+};
+const STATUS_LABEL: Record<string, string> = {
+  done: "Ya",
+  miss: "Tidak",
+  tepat: "Tepat Waktu",
+  masbuq: "Masbuq",
+  sendiri: "Sendiri",
+};
+
 export default async function DashboardPage() {
   const now = new Date();
   const year = now.getFullYear();
@@ -188,22 +203,22 @@ export default async function DashboardPage() {
                     <span
                       className={
                         "mt-1 size-1.5 shrink-0 rounded-full " +
-                        (a.status === "done"
-                          ? "bg-accent"
-                          : a.status === "miss"
-                            ? "bg-danger"
-                            : "bg-faint")
+                        (a.status ? (STATUS_DOT[a.status] ?? "bg-faint") : "bg-faint")
                       }
                     />
                     <div className="min-w-0 flex-1 leading-snug">
                       <span className="font-medium text-ink">
-                        {a.santri?.nama ?? "â€”"}
+                        {a.santri?.nama ?? "—"}
                       </span>{" "}
                       <span className="text-muted">
                         {AMALAN_BY_ID[a.amalan_id]?.nama}
                       </span>
                       <div className="text-faint">
-                        {a.rakaat ? `${a.rakaat} rakaat Â· ` : ""}
+                        {a.rakaat
+                          ? `${a.rakaat} rakaat · `
+                          : a.status
+                            ? `${STATUS_LABEL[a.status] ?? ""} · `
+                            : ""}
                         {tanggalPanjang(a.entry_date)}
                       </div>
                     </div>

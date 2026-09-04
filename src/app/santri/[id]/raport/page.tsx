@@ -128,6 +128,7 @@ export default async function RaportPage({
                 <td className="tnum border border-zinc-200 px-2 py-1 text-right">
                   {k.done}/{k.total}
                   {k.rakaatTotal ? ` (${k.rakaatTotal} rk)` : ""}
+                  {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
                 </td>
                 <td className="tnum border border-zinc-200 px-2 py-1 text-right font-semibold">
                   {k.pct}%

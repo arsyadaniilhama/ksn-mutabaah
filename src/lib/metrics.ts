@@ -49,6 +49,9 @@ export function computeSantriMetrics(
   const kategori: KategoriMetric[] = AMALAN.map((a) => {
     let done = 0;
     let rakaatTotal = 0;
+    let tepat = 0;
+    let masbuq = 0;
+    let sendiri = 0;
     for (let day = 1; day <= D; day++) {
       const e = byDayAmal.get(`${a.id}:${day}`);
       if (!e) continue;
@@ -56,6 +59,14 @@ export function computeSantriMetrics(
         const r = e.rakaat ?? 0;
         rakaatTotal += r;
         if (r > 0) done++;
+      } else if (a.value_type === "fardhu") {
+        // Semua mode (tepat/masbuq/sendiri) dihitung "sholat" (kepatuhan).
+        if (e.status === "tepat" || e.status === "masbuq" || e.status === "sendiri") {
+          done++;
+          if (e.status === "tepat") tepat++;
+          else if (e.status === "masbuq") masbuq++;
+          else sendiri++;
+        }
       } else if (e.status === "done") {
         done++;
       }
@@ -69,6 +80,7 @@ export function computeSantriMetrics(
       total: D,
       pct,
       ...(a.value_type === "rakaat" ? { rakaatTotal } : {}),
+      ...(a.value_type === "fardhu" ? { tepat, masbuq, sendiri } : {}),
     };
   });
 
@@ -77,15 +89,20 @@ export function computeSantriMetrics(
     kategori.reduce((s, k) => s + (k.rakaatTotal ?? 0), 0);
   const totalRakaat = kategori.reduce((s, k) => s + (k.rakaatTotal ?? 0), 0);
 
-  // streak: hari berturut-turut "lengkap" (semua binary done & semua rakaat > 0)
+  // streak: hari berturut-turut "lengkap"
   const wajibBinary = AMALAN.filter((a) => a.value_type === "binary").map((a) => a.id);
   const wajibRakaat = AMALAN.filter((a) => a.value_type === "rakaat").map((a) => a.id);
+  const wajibFardhu = AMALAN.filter((a) => a.value_type === "fardhu").map((a) => a.id);
   const isDayComplete = (day: number): boolean => {
     for (const id of wajibBinary) {
       if (byDayAmal.get(`${id}:${day}`)?.status !== "done") return false;
     }
     for (const id of wajibRakaat) {
       if ((byDayAmal.get(`${id}:${day}`)?.rakaat ?? 0) <= 0) return false;
+    }
+    for (const id of wajibFardhu) {
+      const st = byDayAmal.get(`${id}:${day}`)?.status;
+      if (st !== "tepat" && st !== "masbuq" && st !== "sendiri") return false;
     }
     return true;
   };

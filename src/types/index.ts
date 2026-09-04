@@ -1,8 +1,12 @@
 export type Kelas = "Kelas 1" | "Kelas 2" | "Kelas 3";
 
-export type ValueType = "binary" | "rakaat";
+export type ValueType = "binary" | "rakaat" | "fardhu";
 
-export type EntryStatus = "done" | "miss";
+export type BinaryStatus = "done" | "miss";
+
+export type FardhuStatus = "tepat" | "masbuq" | "sendiri";
+
+export type EntryStatus = BinaryStatus | FardhuStatus;
 
 export interface Santri {
   id: string;
@@ -41,6 +45,9 @@ export interface KategoriMetric {
   total: number; // hari berjalan yang dinilai
   pct: number; // 0..100
   rakaatTotal?: number;
+  tepat?: number; // breakdown fardhu
+  masbuq?: number;
+  sendiri?: number;
 }
 
 export interface SantriMonthlyMetrics {

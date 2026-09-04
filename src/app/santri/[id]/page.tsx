@@ -108,6 +108,7 @@ export default async function SantriDetailPage({
                 <td className="tnum px-4 py-2.5 text-right text-muted">
                   {k.done}/{k.total}
                   {k.rakaatTotal ? ` · ${k.rakaatTotal} rk` : ""}
+                  {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
                 </td>
                 <td className="px-5 py-2.5">
                   <div className="flex items-center gap-2">

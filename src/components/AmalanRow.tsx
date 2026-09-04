@@ -2,7 +2,13 @@
 
 import ToggleSlide from "@/components/ToggleSlide";
 import RakaatStepper from "@/components/RakaatStepper";
-import type { AmalanKategori, CellValue, EntryStatus } from "@/types";
+import FardhuSegment from "@/components/FardhuSegment";
+import type {
+  AmalanKategori,
+  BinaryStatus,
+  CellValue,
+  FardhuStatus,
+} from "@/types";
 
 interface Props {
   amalan: AmalanKategori;
@@ -13,6 +19,7 @@ interface Props {
 
 export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
   const isRakaat = amalan.value_type === "rakaat";
+  const isFardhu = amalan.value_type === "fardhu";
   const filled = isRakaat
     ? (value as number) != null && (value as number) > 0
     : value != null;
@@ -47,9 +54,14 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
             value={(value as number | null) ?? null}
             onChange={(v) => onChange(v)}
           />
+        ) : isFardhu ? (
+          <FardhuSegment
+            value={(value as FardhuStatus | null) ?? null}
+            onChange={(v) => onChange(v)}
+          />
         ) : (
           <ToggleSlide
-            value={(value as EntryStatus | null) ?? null}
+            value={(value as BinaryStatus | null) ?? null}
             onChange={(v) => onChange(v)}
           />
         )}

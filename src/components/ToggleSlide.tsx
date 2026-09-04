@@ -1,10 +1,10 @@
 "use client";
 
-import type { EntryStatus } from "@/types";
+import type { BinaryStatus } from "@/types";
 
 interface Props {
-  value: EntryStatus | null;
-  onChange: (next: EntryStatus | null) => void;
+  value: BinaryStatus | null;
+  onChange: (next: BinaryStatus | null) => void;
   disabled?: boolean;
 }
 
@@ -13,7 +13,7 @@ interface Props {
  * Tap sisi aktif lagi -> kembali netral (hapus nilai).
  */
 export default function ToggleSlide({ value, onChange, disabled }: Props) {
-  const set = (v: EntryStatus) => onChange(value === v ? null : v);
+  const set = (v: BinaryStatus) => onChange(value === v ? null : v);
 
   return (
     <div
@@ -26,24 +26,12 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         className={
           "toggle-thumb absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-full " +
           (value === "done"
-            ? "translate-x-full bg-accent"
+            ? "translate-x-0 bg-accent"
             : value === "miss"
-              ? "translate-x-0 bg-danger"
+              ? "translate-x-full bg-danger"
               : "translate-x-0 bg-transparent")
         }
       />
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => set("miss")}
-        aria-pressed={value === "miss"}
-        className={
-          "relative z-10 w-14 py-1.5 text-center transition-colors " +
-          (value === "miss" ? "text-accent-fg" : "text-muted hover:text-ink")
-        }
-      >
-        Tidak
-      </button>
       <button
         type="button"
         disabled={disabled}
@@ -55,6 +43,18 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         }
       >
         Ya
+      </button>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => set("miss")}
+        aria-pressed={value === "miss"}
+        className={
+          "relative z-10 w-14 py-1.5 text-center transition-colors " +
+          (value === "miss" ? "text-accent-fg" : "text-muted hover:text-ink")
+        }
+      >
+        Tidak
       </button>
     </div>
   );
