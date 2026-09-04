@@ -27,7 +27,7 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
   return (
     <div
       className={
-        "flex flex-col gap-1.5 rounded-lg border px-2 py-1.5 transition-colors md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 md:py-2 " +
+        "flex flex-col gap-1 rounded-lg border px-2 py-1 transition-colors md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 md:py-2 " +
         (filled
           ? "border-accent/30 bg-accent-soft/60"
           : "border-line bg-surface") +

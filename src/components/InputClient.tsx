@@ -190,6 +190,19 @@ export default function InputClient({
   const currentIdx = santriInKelas.findIndex((s) => s.id === santriId);
   const current = santriInKelas[currentIdx];
 
+  const rowsFor = (list: typeof AMALAN) =>
+    list.map((a) => (
+      <AmalanRow
+        key={a.id}
+        amalan={a}
+        value={values[a.id] ?? null}
+        onChange={(next) => handleChange(a.id, next)}
+        saving={savingId === a.id}
+      />
+    ));
+  const colLeft = AMALAN.slice(0, 10);
+  const colRight = AMALAN.slice(10);
+
   const goNext = () => {
     const next = santriInKelas[currentIdx + 1];
     if (next) {
@@ -222,10 +235,10 @@ export default function InputClient({
   };
 
   const panel = (
-    <div className="card flex h-full min-h-0 flex-col p-4">
+    <div className="card flex h-full min-h-0 flex-col p-3 lg:p-4">
       {current ? (
         <>
-          <div className="mb-3 flex items-center justify-between gap-2 border-b border-line pb-3">
+          <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-line pb-1.5 lg:mb-3 lg:border-line lg:pb-3">
             <div className="flex min-w-0 items-center gap-3">
               <Avatar name={current.nama} />
               <div className="min-w-0 leading-tight">
@@ -244,16 +257,19 @@ export default function InputClient({
               </span>
             </div>
           </div>
-          <div className="grid flex-1 content-start grid-cols-2 gap-1.5 overflow-y-auto pr-1">
-            {AMALAN.map((a) => (
-              <AmalanRow
-                key={a.id}
-                amalan={a}
-                value={values[a.id] ?? null}
-                onChange={(next) => handleChange(a.id, next)}
-                saving={savingId === a.id}
-              />
-            ))}
+          {/* HP: 2 kolom compact, urutan per-kolom (1-10 | 11-19) */}
+          <div className="flex flex-1 gap-1.5 overflow-y-auto pr-1 lg:hidden">
+            <div className="flex-1 space-y-1">{rowsFor(colLeft)}</div>
+            <div className="flex-1 space-y-1">{rowsFor(colRight)}</div>
+          </div>
+          {/* PC lg-xl: 1 kolom gaya penuh */}
+          <div className="hidden flex-1 space-y-1.5 overflow-y-auto pr-1 lg:block xl:hidden">
+            {rowsFor(AMALAN)}
+          </div>
+          {/* PC xl+: 2 kolom vertikal gaya penuh */}
+          <div className="hidden flex-1 gap-1.5 overflow-y-auto pr-1 xl:flex">
+            <div className="flex-1 space-y-1.5">{rowsFor(colLeft)}</div>
+            <div className="flex-1 space-y-1.5">{rowsFor(colRight)}</div>
           </div>
           <div className="mt-3 hidden justify-end border-t border-line pt-3 lg:flex">
             <button onClick={goNext} className="btn-primary">
@@ -352,7 +368,7 @@ export default function InputClient({
       {/* Mobile: slide-over panel */}
       {mobileOpen && current && (
         <div className="fixed inset-0 z-40 flex flex-col bg-canvas lg:hidden">
-          <div className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2.5">
+          <div className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
             <button
               onClick={() => setMobileOpen(false)}
               aria-label="Kembali ke daftar"
