@@ -103,18 +103,24 @@
 
 /* Print / PDF raport: selalu light, bersih */
 @media print {
+  /* margin 0 -> browser tidak mencetak header/footer (tanggal, judul, URL) */
   @page {
     size: A4;
-    margin: 14mm;
+    margin: 0;
   }
   .no-print {
     display: none !important;
   }
   .print-area {
+    width: 210mm;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 12mm 14mm !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     background: #fff !important;
     color: #18181b !important;
-    box-shadow: none !important;
-    border: none !important;
   }
   body {
     background: #fff;

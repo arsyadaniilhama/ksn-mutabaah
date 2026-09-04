@@ -27,8 +27,10 @@ interface Datum {
 
 export default function PctBarChart({
   data,
+  height = 288,
 }: {
   data: { id: number; nama: string; pct: number }[];
+  height?: number;
 }) {
   const rows: Datum[] = data.map((d) => ({
     ...d,
@@ -36,7 +38,7 @@ export default function PctBarChart({
   }));
 
   return (
-    <div className="h-72 w-full">
+    <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={rows} margin={{ top: 8, right: 8, left: -18, bottom: 60 }}>
           <CartesianGrid
