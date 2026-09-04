@@ -103,9 +103,9 @@
 
 /* Print / PDF raport: selalu light, bersih */
 @media print {
-  /* margin 0 -> browser tidak mencetak header/footer (tanggal, judul, URL) */
+  /* F4 210x330mm; margin 0 -> browser tidak mencetak header/footer (tanggal, judul, URL) */
   @page {
-    size: A4;
+    size: 210mm 330mm;
     margin: 0;
   }
   .no-print {

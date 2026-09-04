@@ -98,12 +98,11 @@ export default async function RaportPage({
           ))}
         </div>
 
-        <div className="mt-4">
+        <div className="mt-6">
           <h2 className="mb-1 text-sm font-semibold">
             Persentase Rutinitas per Amalan
           </h2>
           <PctBarChart
-            height={176}
             data={m.kategori.map((k) => ({
               id: k.amalan_id,
               nama: k.nama,
@@ -112,51 +111,34 @@ export default async function RaportPage({
           />
         </div>
 
-        <table className="mt-3 w-full border-collapse text-[10px]">
+        <table className="mt-4 w-full border-collapse text-xs">
           <thead>
             <tr className="bg-zinc-100 text-center">
-              <th className="border border-zinc-200 px-2 py-1">No</th>
-              <th className="border border-zinc-200 px-2 py-1">Amalan</th>
-              <th className="border border-zinc-200 px-2 py-1">Tercapai</th>
-              <th className="border border-zinc-200 px-2 py-1">%</th>
+              <th className="border border-zinc-200 px-2 py-1.5">No</th>
+              <th className="border border-zinc-200 px-2 py-1.5">Amalan</th>
+              <th className="border border-zinc-200 px-2 py-1.5">Tercapai</th>
+              <th className="border border-zinc-200 px-2 py-1.5">%</th>
             </tr>
           </thead>
           <tbody>
             {m.kategori.map((k) => (
               <tr key={k.amalan_id}>
-                <td className="tnum border border-zinc-200 px-2 py-0.5 text-center">
+                <td className="tnum border border-zinc-200 px-2 py-1 text-center">
                   {k.amalan_id}
                 </td>
-                <td className="border border-zinc-200 px-2 py-0.5 text-left">{k.nama}</td>
-                <td className="tnum border border-zinc-200 px-2 py-0.5 text-center">
+                <td className="border border-zinc-200 px-2 py-1 text-left">{k.nama}</td>
+                <td className="tnum border border-zinc-200 px-2 py-1 text-center">
                   {k.done}/{k.total}
                   {k.rakaatTotal ? ` (${k.rakaatTotal} rk)` : ""}
                   {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
                 </td>
-                <td className="tnum border border-zinc-200 px-2 py-0.5 text-center font-semibold">
+                <td className="tnum border border-zinc-200 px-2 py-1 text-center font-semibold">
                   {k.pct}%
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-
-        <div className="mt-5 grid grid-cols-2 gap-8 text-sm">
-          <div>
-            <div className="mb-1 font-semibold">Catatan Musyrif</div>
-            <div className="min-h-[64px] rounded-lg border border-zinc-300 p-2" />
-          </div>
-          <div className="text-center">
-            <div className="leading-relaxed">
-              {monthLabel(m.bulan, m.tahun)}
-              <br />
-              Mengetahui, Musyrif
-            </div>
-            <div className="mx-auto mt-10 w-44 border-t border-zinc-500 pt-1">
-              (....................)
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
