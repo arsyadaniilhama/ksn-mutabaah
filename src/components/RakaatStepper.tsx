@@ -14,7 +14,7 @@ export default function RakaatStepper({ value, onChange, disabled, max = 99 }: P
   const inc = () => onChange(Math.min(max, n + 1));
 
   return (
-    <div className={"inline-flex items-center gap-1 " + (disabled ? "opacity-50" : "")}>
+    <div className={"flex w-full items-center justify-between gap-1 md:inline-flex md:w-auto md:justify-start " + (disabled ? "opacity-50" : "")}>
       <button
         type="button"
         disabled={disabled}

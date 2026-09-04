@@ -98,6 +98,16 @@ export default function InputClient({
     }
   }, [santriInKelas, santriId]);
 
+  // Kunci scroll background saat slide-over terbuka (HP)
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+
   const loadDay = useCallback(async (sid: string, d: string) => {
     if (!sid) return;
     setLoading(true);
@@ -367,7 +377,7 @@ export default function InputClient({
 
       {/* Mobile: slide-over panel */}
       {mobileOpen && current && (
-        <div className="fixed inset-0 z-40 flex flex-col bg-canvas lg:hidden">
+        <div className="fixed inset-0 z-40 flex h-dvh flex-col bg-canvas lg:hidden">
           <div className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
             <button
               onClick={() => setMobileOpen(false)}
@@ -384,7 +394,7 @@ export default function InputClient({
               </div>
             </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-3">{panel}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">{panel}</div>
           <div className="border-t border-line bg-surface p-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
             <button onClick={goNext} className="btn-primary w-full">
               Selesai & santri berikutnya
