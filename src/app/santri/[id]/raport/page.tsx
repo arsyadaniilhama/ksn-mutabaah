@@ -51,32 +51,31 @@ export default async function RaportPage({
                 Laporan Mutabaah Santri
               </h1>
               <p className="text-sm text-zinc-500">
-                Pendidikan Islam IMSHUS — KSN
+                Bagian Kesantrian IMSHUS
               </p>
             </div>
           </div>
           <div className="text-right text-sm">
             <div className="font-semibold">{monthLabel(m.bulan, m.tahun)}</div>
-            <div className="text-zinc-500">Dokumen internal</div>
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-y-1.5 text-sm">
-          <div>
-            <span className="text-zinc-500">Nama</span>{" "}
-            <b className="ml-1">{m.nama}</b>
+        <div className="mt-5 grid grid-cols-2 gap-x-8 gap-y-1.5 text-sm">
+          <div className="flex gap-2">
+            <span className="w-16 shrink-0 text-zinc-500">Nama</span>
+            <b>{m.nama}</b>
           </div>
-          <div>
-            <span className="text-zinc-500">Kelas</span>{" "}
-            <b className="ml-1">{m.kelas}</b>
+          <div className="flex gap-2">
+            <span className="w-16 shrink-0 text-zinc-500">Kelas</span>
+            <b>{m.kelas}</b>
           </div>
-          <div>
-            <span className="text-zinc-500">NIS</span>{" "}
-            <b className="ml-1 tnum">{santri.nis}</b>
+          <div className="flex gap-2">
+            <span className="w-16 shrink-0 text-zinc-500">NIS</span>
+            <b className="tnum">{santri.nis}</b>
           </div>
-          <div>
-            <span className="text-zinc-500">Periode</span>{" "}
-            <b className="ml-1">{monthLabel(m.bulan, m.tahun)}</b>
+          <div className="flex gap-2">
+            <span className="w-16 shrink-0 text-zinc-500">Periode</span>
+            <b>{monthLabel(m.bulan, m.tahun)}</b>
           </div>
         </div>
 
