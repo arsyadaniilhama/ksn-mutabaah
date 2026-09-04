@@ -26,7 +26,7 @@ export default function FardhuSegment({ value, onChange, disabled }: Props) {
     <div
       role="radiogroup"
       className={
-        "inline-flex select-none gap-0.5 rounded-full border border-line bg-surface2 p-0.5 text-[11px] font-semibold " +
+        "inline-flex select-none gap-0.5 rounded-full border border-line bg-surface2 p-0.5 text-[10px] font-semibold md:text-[11px] " +
         (disabled ? "opacity-50" : "")
       }
     >
@@ -38,16 +38,16 @@ export default function FardhuSegment({ value, onChange, disabled }: Props) {
             type="button"
             disabled={disabled}
             aria-pressed={active}
+            aria-label={o.label}
             title={o.label}
             onClick={() => set(o.value)}
             className={
-              "rounded-full px-2.5 py-1 whitespace-nowrap transition-colors " +
-              (active
-                ? activeBg[o.value]
-                : "text-muted hover:text-ink")
+              "rounded-full px-2.5 py-1 whitespace-nowrap transition-colors md:px-2.5 " +
+              (active ? activeBg[o.value] : "text-muted hover:text-ink")
             }
           >
-            {o.label}
+            <span className="md:hidden">{o.short}</span>
+            <span className="hidden md:inline">{o.label}</span>
           </button>
         );
       })}

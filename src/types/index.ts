@@ -19,6 +19,7 @@ export interface Santri {
 export interface AmalanKategori {
   id: number;
   nama: string;
+  short: string;
   keterangan: string | null;
   value_type: ValueType;
   urut: number;

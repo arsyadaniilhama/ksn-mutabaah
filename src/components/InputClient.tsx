@@ -244,7 +244,7 @@ export default function InputClient({
               </span>
             </div>
           </div>
-          <div className="grid flex-1 content-start gap-1.5 overflow-y-auto pr-1 xl:grid-cols-2">
+          <div className="grid flex-1 content-start grid-cols-2 gap-1.5 overflow-y-auto pr-1">
             {AMALAN.map((a) => (
               <AmalanRow
                 key={a.id}

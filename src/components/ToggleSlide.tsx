@@ -17,10 +17,10 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
 
   return (
     <div
-      className={
-        "relative inline-flex select-none overflow-hidden rounded-full border border-line bg-surface2 text-xs font-semibold " +
-        (disabled ? "opacity-50" : "")
-      }
+        className={
+          "relative inline-flex select-none overflow-hidden rounded-full border border-line bg-surface2 text-[10px] font-semibold md:text-xs " +
+          (disabled ? "opacity-50" : "")
+        }
     >
       <span
         className={
@@ -38,7 +38,7 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         onClick={() => set("done")}
         aria-pressed={value === "done"}
         className={
-          "relative z-10 w-14 py-1.5 text-center transition-colors " +
+          "relative z-10 w-9 py-1 text-center transition-colors md:w-14 md:py-1.5 " +
           (value === "done" ? "text-accent-fg" : "text-muted hover:text-ink")
         }
       >
@@ -50,7 +50,7 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         onClick={() => set("miss")}
         aria-pressed={value === "miss"}
         className={
-          "relative z-10 w-14 py-1.5 text-center transition-colors " +
+          "relative z-10 w-9 py-1 text-center transition-colors md:w-14 md:py-1.5 " +
           (value === "miss" ? "text-accent-fg" : "text-muted hover:text-ink")
         }
       >
