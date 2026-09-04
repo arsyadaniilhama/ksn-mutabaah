@@ -111,26 +111,26 @@ export default async function RaportPage({
 
         <table className="mt-4 w-full border-collapse text-xs">
           <thead>
-            <tr className="bg-zinc-100 text-left">
+            <tr className="bg-zinc-100 text-center">
               <th className="border border-zinc-200 px-2 py-1.5">No</th>
               <th className="border border-zinc-200 px-2 py-1.5">Amalan</th>
-              <th className="border border-zinc-200 px-2 py-1.5 text-right">
-                Tercapai
-              </th>
-              <th className="border border-zinc-200 px-2 py-1.5 text-right">%</th>
+              <th className="border border-zinc-200 px-2 py-1.5">Tercapai</th>
+              <th className="border border-zinc-200 px-2 py-1.5">%</th>
             </tr>
           </thead>
           <tbody>
             {m.kategori.map((k) => (
               <tr key={k.amalan_id}>
-                <td className="tnum border border-zinc-200 px-2 py-1">{k.amalan_id}</td>
-                <td className="border border-zinc-200 px-2 py-1">{k.nama}</td>
-                <td className="tnum border border-zinc-200 px-2 py-1 text-right">
+                <td className="tnum border border-zinc-200 px-2 py-1 text-center">
+                  {k.amalan_id}
+                </td>
+                <td className="border border-zinc-200 px-2 py-1 text-left">{k.nama}</td>
+                <td className="tnum border border-zinc-200 px-2 py-1 text-center">
                   {k.done}/{k.total}
                   {k.rakaatTotal ? ` (${k.rakaatTotal} rk)` : ""}
                   {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
                 </td>
-                <td className="tnum border border-zinc-200 px-2 py-1 text-right font-semibold">
+                <td className="tnum border border-zinc-200 px-2 py-1 text-center font-semibold">
                   {k.pct}%
                 </td>
               </tr>
