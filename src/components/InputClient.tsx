@@ -377,7 +377,7 @@ export default function InputClient({
 
       {/* Mobile: slide-over panel */}
       {mobileOpen && current && (
-        <div className="fixed inset-0 z-40 flex h-dvh flex-col bg-canvas lg:hidden">
+        <div className="fixed inset-0 z-40 !mt-0 flex h-dvh flex-col bg-canvas lg:hidden">
           <div className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
             <button
               onClick={() => setMobileOpen(false)}

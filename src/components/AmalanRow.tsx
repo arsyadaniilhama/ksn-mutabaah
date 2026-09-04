@@ -27,7 +27,7 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
   return (
     <div
       className={
-        "flex h-[58px] flex-col justify-between rounded-lg border px-2 py-1 transition-colors md:h-auto md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 md:py-2 " +
+        "flex h-[58px] flex-col justify-between rounded-lg border px-2 py-1 transition-colors md:h-[54px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 " +
         (filled
           ? "border-accent/30 bg-accent-soft/60"
           : "border-line bg-surface") +
@@ -53,7 +53,7 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
         )}
       </div>
 
-      <div className="w-full shrink-0 self-stretch md:w-auto md:self-auto">
+      <div className="w-full shrink-0 self-stretch md:w-[240px]">
         {isRakaat ? (
           <RakaatStepper
             value={(value as number | null) ?? null}

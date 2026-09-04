@@ -28,7 +28,7 @@ export default function Sheet({ open, onClose, title, children }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="fixed inset-0 z-50 !mt-0" role="dialog" aria-modal="true" aria-label={title}>
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
         onClick={onClose}
