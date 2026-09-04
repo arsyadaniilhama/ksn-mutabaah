@@ -21,3 +21,21 @@ export const bulkUpsertSchema = z.object({
 });
 
 export type UpsertEntryInput = z.infer<typeof upsertEntrySchema>;
+
+const kelasEnum = z.enum(["Kelas 1", "Kelas 2", "Kelas 3"]);
+
+export const santriCreateSchema = z.object({
+  nis: z.coerce.number().int().min(1).max(9999),
+  nama: z.string().trim().min(3, "Nama minimal 3 karakter").max(60),
+  kelas: kelasEnum,
+});
+
+export const santriUpdateSchema = z
+  .object({
+    nis: z.coerce.number().int().min(1).max(9999),
+    nama: z.string().trim().min(3, "Nama minimal 3 karakter").max(60),
+    kelas: kelasEnum,
+    aktif: z.boolean(),
+  })
+  .partial()
+  .refine((v) => Object.keys(v).length > 0, { message: "Tidak ada perubahan" });

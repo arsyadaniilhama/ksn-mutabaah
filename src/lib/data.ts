@@ -3,13 +3,93 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { AMALAN_BY_ID } from "@/lib/amalan";
 import type { CellValue, EntryStatus, MutabaahEntry, Santri } from "@/types";
 
-export async function listSantri(kelas?: string): Promise<Santri[]> {
+export async function listSantri(kelas?: string, includeInactive = false): Promise<Santri[]> {
   const supabase = createAdminClient();
   let q = supabase.from("santri").select("*").order("nis");
   if (kelas) q = q.eq("kelas", kelas);
+  if (!includeInactive) q = q.eq("aktif", true);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return (data ?? []) as Santri[];
+}
+
+export async function createSantri(input: {
+  nis: number;
+  nama: string;
+  kelas: string;
+}): Promise<Santri> {
+  const supabase = createAdminClient();
+  const { data: dup } = await supabase
+    .from("santri")
+    .select("id")
+    .eq("nis", input.nis)
+    .maybeSingle();
+  if (dup) throw new Error("NIS sudah dipakai santri lain.");
+  const { data, error } = await supabase
+    .from("santri")
+    .insert({ nis: input.nis, nama: input.nama, kelas: input.kelas })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Santri;
+}
+
+export async function updateSantri(
+  id: string,
+  patch: Partial<{ nis: number; nama: string; kelas: string; aktif: boolean }>,
+): Promise<Santri> {
+  const supabase = createAdminClient();
+  if (patch.nis != null) {
+    const { data: dup } = await supabase
+      .from("santri")
+      .select("id")
+      .eq("nis", patch.nis)
+      .neq("id", id)
+      .maybeSingle();
+    if (dup) throw new Error("NIS sudah dipakai santri lain.");
+  }
+  const { data, error } = await supabase
+    .from("santri")
+    .update(patch)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Santri;
+}
+
+/** Jumlah amalan terisi per santri pada satu tanggal. */
+export async function getDayProgress(date: string): Promise<Record<string, number>> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("mutabaah_entries")
+    .select("santri_id")
+    .eq("entry_date", date)
+    .or("status.not.is.null,rakaat.gt.0");
+  if (error) throw new Error(error.message);
+  const out: Record<string, number> = {};
+  for (const r of data ?? []) {
+    out[r.santri_id as string] = (out[r.santri_id as string] ?? 0) + 1;
+  }
+  return out;
+}
+
+/** Tanggal-tanggal pada bulan tertentu yang punya minimal satu entri. */
+export async function getMonthCoverage(
+  year: number,
+  month: number,
+): Promise<string[]> {
+  const supabase = createAdminClient();
+  const start = `${year}-${String(month).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const end = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  const { data, error } = await supabase
+    .from("mutabaah_entries")
+    .select("entry_date")
+    .gte("entry_date", start)
+    .lte("entry_date", end);
+  if (error) throw new Error(error.message);
+  return [...new Set((data ?? []).map((r) => r.entry_date as string))];
 }
 
 export async function getSantri(id: string): Promise<Santri | null> {

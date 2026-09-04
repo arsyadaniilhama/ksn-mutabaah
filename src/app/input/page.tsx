@@ -1,5 +1,10 @@
 import { Suspense } from "react";
-import { listSantri, getDayValues } from "@/lib/data";
+import {
+  listSantri,
+  getDayValues,
+  getDayProgress,
+  getMonthCoverage,
+} from "@/lib/data";
 import { todayISO, tanggalPanjang } from "@/lib/dates";
 import InputClient from "@/components/InputClient";
 import PageHeader from "@/components/PageHeader";
@@ -9,9 +14,14 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Input Harian" };
 
 export default async function InputPage() {
-  const santriList = await listSantri();
-  const kelas: Kelas = "Kelas 1";
   const date = todayISO();
+  const now = new Date();
+  const [santriList, progress, coverage] = await Promise.all([
+    listSantri(),
+    getDayProgress(date),
+    getMonthCoverage(now.getFullYear(), now.getMonth() + 1),
+  ]);
+  const kelas: Kelas = "Kelas 1";
   const first = santriList.find((s) => s.kelas === kelas) ?? santriList[0];
   const initialValues = first ? await getDayValues(first.id, date) : {};
 
@@ -27,6 +37,8 @@ export default async function InputPage() {
           initialKelas={first?.kelas ?? kelas}
           initialDate={date}
           initialValues={initialValues}
+          initialProgress={progress}
+          initialCoverage={coverage}
         />
       </Suspense>
     </div>

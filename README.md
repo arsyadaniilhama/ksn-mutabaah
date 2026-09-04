@@ -42,14 +42,19 @@ node --env-file=.env.local scripts/import-excel.mjs --with-entries
 
 Skrip mencetak jumlah dan **mem-flag** nama/nilai tak cocok (tanpa menghentikan proses).
 
+> **Catatan:** sejak ada fitur **Kelola Santri di web** (`/santri` → tambah/ubah/nonaktifkan),
+> `santri.md` berfungsi sebagai *seed awal* saja. Menjalankan ulang importer dapat **menimpa
+> nama** santri yang sudah diedit di web (pencocokan by NIS).
+
 ## Rute utama
 
 | Rute | Fungsi |
 | --- | --- |
 | `/login` | Masuk musyrif/admin |
-| `/input` | Input harian (tab santri + slide toggle Ya/Tidak, stepper rakaat) |
+| `/input` | Input harian — master-detail (daftar santri + search + mini calendar; HP: slide-over) |
 | `/` | Dashboard ringkasan bulan berjalan |
-| `/santri` · `/santri/[id]` | Daftar & detail santri + grafik |
+| `/santri` | Daftar + kelola santri (tambah, ubah, nonaktifkan) |
+| `/santri/[id]` | Detail santri + grafik |
 | `/santri/[id]/raport` | Raport bulanan (Cetak/Simpan PDF) |
 | `/laporan` | Rekap per kelas + ekspor PDF/Excel |
 
