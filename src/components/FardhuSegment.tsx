@@ -12,7 +12,7 @@ interface Props {
 const activeBg: Record<FardhuStatus, string> = {
   tepat: "bg-accent text-accent-fg",
   masbuq: "bg-warn text-white",
-  sendiri: "bg-line-strong text-ink",
+  sendiri: "bg-danger text-white",
 };
 
 /**

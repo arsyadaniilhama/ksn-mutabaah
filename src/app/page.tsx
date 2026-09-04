@@ -26,7 +26,7 @@ const STATUS_DOT: Record<string, string> = {
   done: "bg-accent",
   tepat: "bg-accent",
   masbuq: "bg-warn",
-  sendiri: "bg-line-strong",
+  sendiri: "bg-danger",
   miss: "bg-danger",
 };
 const STATUS_LABEL: Record<string, string> = {
