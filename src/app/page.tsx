@@ -7,7 +7,7 @@ import {
   IconTrendingDown as TrendingDown,
   IconUsers as Users,
 } from "@tabler/icons-react";
-import { listSantri, listEntries, listRecentEntries } from "@/lib/data";
+import { listSantri, listEntries, listRecentEntries, getDayProgress } from "@/lib/data";
 import { computeSantriMetrics, computeKategoriBenchmark } from "@/lib/metrics";
 import { AMALAN_BY_ID } from "@/lib/amalan";
 import { monthLabel, todayISO, tanggalPanjang } from "@/lib/dates";
@@ -43,10 +43,11 @@ export default async function DashboardPage() {
   const month = now.getMonth() + 1;
   const today = todayISO();
 
-  const [santri, entries, recent] = await Promise.all([
+  const [santri, entries, recent, progressToday] = await Promise.all([
     listSantri(),
     listEntries({ year, month }),
     listRecentEntries(8),
+    getDayProgress(today),
   ]);
 
   const metrics = santri.map((s) => computeSantriMetrics(s, entries, year, month));
@@ -58,9 +59,7 @@ export default async function DashboardPage() {
     acc[s.kelas] = (acc[s.kelas] ?? 0) + 1;
     return acc;
   }, {});
-  const terisiHariIni = new Set(
-    entries.filter((e) => e.entry_date === today).map((e) => e.santri_id),
-  ).size;
+  const terisiHariIni = Object.values(progressToday).filter((n) => n > 0).length;
   const sorted = [...metrics].sort((a, b) => b.indeksRutinitas - a.indeksRutinitas);
   const perlu = sorted.filter((m) => m.indeksRutinitas < 50).slice(0, 5);
   const kosong = entries.length === 0;

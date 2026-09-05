@@ -61,20 +61,21 @@ export async function updateSantri(
 /** Jumlah amalan terisi per santri pada satu tanggal. */
 export async function getDayProgress(date: string): Promise<Record<string, number>> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("mutabaah_entries")
-    .select("santri_id")
-    .eq("entry_date", date)
-    .or("status.not.is.null,rakaat.gt.0");
-  if (error) throw new Error(error.message);
+  const rows = await fetchAll<{ santri_id: string }>((from, to) =>
+    supabase
+      .from("mutabaah_entries")
+      .select("santri_id")
+      .eq("entry_date", date)
+      .or("status.not.is.null,rakaat.gt.0")
+      .order("id")
+      .range(from, to),
+  );
   const out: Record<string, number> = {};
-  for (const r of data ?? []) {
-    out[r.santri_id as string] = (out[r.santri_id as string] ?? 0) + 1;
-  }
+  for (const r of rows) out[r.santri_id] = (out[r.santri_id] ?? 0) + 1;
   return out;
 }
 
-/** Tanggal-tanggal pada bulan tertentu yang punya minimal satu entri. */
+/** Tanggal-tanggal pada bulan tertentu yang punya minimal satu nilai terisi. */
 export async function getMonthCoverage(
   year: number,
   month: number,
@@ -83,13 +84,17 @@ export async function getMonthCoverage(
   const start = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDay = new Date(year, month, 0).getDate();
   const end = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
-  const { data, error } = await supabase
-    .from("mutabaah_entries")
-    .select("entry_date")
-    .gte("entry_date", start)
-    .lte("entry_date", end);
-  if (error) throw new Error(error.message);
-  return [...new Set((data ?? []).map((r) => r.entry_date as string))];
+  const rows = await fetchAll<{ entry_date: string }>((from, to) =>
+    supabase
+      .from("mutabaah_entries")
+      .select("entry_date")
+      .gte("entry_date", start)
+      .lte("entry_date", end)
+      .or("status.not.is.null,rakaat.gt.0")
+      .order("id")
+      .range(from, to),
+  );
+  return [...new Set(rows.map((r) => r.entry_date))];
 }
 
 export async function getSantri(id: string): Promise<Santri | null> {
@@ -101,6 +106,21 @@ export async function getSantri(id: string): Promise<Santri | null> {
     .maybeSingle();
   if (error) throw new Error(error.message);
   return (data as Santri) ?? null;
+}
+
+/** Ambil SEMUA baris query dengan paginasi (PostgREST memotong di 1000 baris tanpa .range). */
+async function fetchAll<T>(makeQuery: (from: number, to: number) => PromiseLike<{ data: unknown; error: { message: string } | null }>, pageSize = 1000): Promise<T[]> {
+  const out: T[] = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await makeQuery(from, from + pageSize - 1);
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as T[];
+    out.push(...rows);
+    if (rows.length < pageSize) break;
+    from += pageSize;
+  }
+  return out;
 }
 
 /** Ambil semua entri untuk rentang bulan (opsional filter kelas/santri). */
@@ -115,23 +135,25 @@ export async function listEntries(params: {
   const lastDay = new Date(params.year, params.month, 0).getDate();
   const end = `${params.year}-${String(params.month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
-  let q = supabase
-    .from("mutabaah_entries")
-    .select("*")
-    .gte("entry_date", start)
-    .lte("entry_date", end);
-  if (params.santriId) q = q.eq("santri_id", params.santriId);
-
-  const { data, error } = await q;
-  if (error) throw new Error(error.message);
-  let rows = (data ?? []) as MutabaahEntry[];
+  const rows = await fetchAll<MutabaahEntry>((from, to) => {
+    let q = supabase
+      .from("mutabaah_entries")
+      .select("*")
+      .gte("entry_date", start)
+      .lte("entry_date", end)
+      .order("id")
+      .range(from, to);
+    if (params.santriId) q = q.eq("santri_id", params.santriId);
+    return q;
+  });
+  let result = rows;
 
   if (params.kelas) {
     const santri = await listSantri(params.kelas);
     const ids = new Set(santri.map((s) => s.id));
-    rows = rows.filter((r) => ids.has(r.santri_id));
+    result = result.filter((r) => ids.has(r.santri_id));
   }
-  return rows;
+  return result;
 }
 
 /** Nilai 19 amalan untuk satu santri pada satu tanggal (untuk UI input). */

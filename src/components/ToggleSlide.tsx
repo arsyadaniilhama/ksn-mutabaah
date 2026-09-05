@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { BinaryStatus } from "@/types";
 
@@ -18,7 +18,7 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
   return (
     <div
         className={
-          "relative inline-flex w-full select-none overflow-hidden rounded-full border border-line bg-surface2 text-[10px] font-semibold md:text-xs " +
+          "relative inline-flex w-full select-none overflow-hidden rounded-full border border-line bg-surface2 text-[10px] font-semibold xl:text-xs " +
           (disabled ? "opacity-50" : "")
         }
     >
@@ -38,7 +38,7 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         onClick={() => set("done")}
         aria-pressed={value === "done"}
         className={
-          "relative z-10 flex-1 py-1 text-center transition-colors md:py-1.5 " +
+          "relative z-10 flex-1 py-1 text-center transition-colors xl:py-1.5 " +
           (value === "done" ? "text-accent-fg" : "text-muted hover:text-ink")
         }
       >
@@ -50,7 +50,7 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         onClick={() => set("miss")}
         aria-pressed={value === "miss"}
         className={
-          "relative z-10 flex-1 py-1 text-center transition-colors md:py-1.5 " +
+          "relative z-10 flex-1 py-1 text-center transition-colors xl:py-1.5 " +
           (value === "miss" ? "text-accent-fg" : "text-muted hover:text-ink")
         }
       >

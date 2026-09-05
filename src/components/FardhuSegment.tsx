@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FARDHU_OPTIONS } from "@/lib/amalan";
 import type { FardhuStatus } from "@/types";
@@ -26,7 +26,7 @@ export default function FardhuSegment({ value, onChange, disabled }: Props) {
     <div
       role="radiogroup"
       className={
-        "flex w-full select-none gap-0.5 rounded-full border border-line bg-surface2 p-0.5 text-[10px] font-semibold md:text-[11px] " +
+        "flex w-full select-none gap-0.5 rounded-full border border-line bg-surface2 p-0.5 text-[10px] font-semibold xl:text-[11px] " +
         (disabled ? "opacity-50" : "")
       }
     >
@@ -42,12 +42,12 @@ export default function FardhuSegment({ value, onChange, disabled }: Props) {
             title={o.label}
             onClick={() => set(o.value)}
             className={
-              "flex-1 rounded-full px-1 py-1 whitespace-nowrap transition-colors md:px-2 " +
+              "flex-1 rounded-full px-1 py-1 whitespace-nowrap transition-colors xl:px-2 " +
               (active ? activeBg[o.value] : "text-muted hover:text-ink")
             }
           >
-            <span className="md:hidden">{o.short}</span>
-            <span className="hidden md:inline">{o.label}</span>
+            <span className="xl:hidden">{o.short}</span>
+            <span className="hidden xl:inline">{o.label}</span>
           </button>
         );
       })}

@@ -26,21 +26,25 @@ export default async function InputPage() {
   const initialValues = first ? await getDayValues(first.id, date) : {};
 
   return (
-    <div>
-      <PageHeader
-        title="Input Harian"
-        description={`Catat amalan santri — ${tanggalPanjang(date)}`}
-      />
-      <Suspense fallback={<p className="text-sm text-muted">Memuat…</p>}>
-        <InputClient
-          santriList={santriList}
-          initialKelas={first?.kelas ?? kelas}
-          initialDate={date}
-          initialValues={initialValues}
-          initialProgress={progress}
-          initialCoverage={coverage}
+    <div className="lg:flex lg:h-[calc(100dvh-64px)] lg:flex-col lg:overflow-hidden">
+      <div className="shrink-0">
+        <PageHeader
+          title="Input Harian"
+          description={`Catat amalan santri — ${tanggalPanjang(date)}`}
         />
-      </Suspense>
+      </div>
+      <div className="lg:min-h-0 lg:flex-1">
+        <Suspense fallback={<p className="text-sm text-muted">Memuat…</p>}>
+          <InputClient
+            santriList={santriList}
+            initialKelas={first?.kelas ?? kelas}
+            initialDate={date}
+            initialValues={initialValues}
+            initialProgress={progress}
+            initialCoverage={coverage}
+          />
+        </Suspense>
+      </div>
     </div>
   );
 }

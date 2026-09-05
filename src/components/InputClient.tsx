@@ -267,24 +267,20 @@ export default function InputClient({
               </span>
             </div>
           </div>
-          {/* HP: 2 kolom compact, urutan per-kolom (1-10 | 11-19) */}
+          {/* HP/tablet: 2 kolom compact, urutan per-kolom (1-10 | 11-19) */}
           <div className="flex flex-1 gap-1.5 overflow-y-auto pr-1 lg:hidden">
             <div className="flex-1 space-y-1">{rowsFor(colLeft)}</div>
             <div className="flex-1 space-y-1">{rowsFor(colRight)}</div>
           </div>
-          {/* PC lg-xl: 1 kolom gaya penuh */}
-          <div className="hidden flex-1 space-y-1.5 overflow-y-auto pr-1 lg:block xl:hidden">
-            {rowsFor(AMALAN)}
+          {/* PC lg+: 2 kolom vertikal gaya penuh */}
+          <div className="hidden flex-1 gap-1.5 overflow-y-auto pr-1 lg:flex">
+            <div className="flex-1 space-y-1 xl:space-y-1.5">{rowsFor(colLeft)}</div>
+            <div className="flex-1 space-y-1 xl:space-y-1.5">{rowsFor(colRight)}</div>
           </div>
-          {/* PC xl+: 2 kolom vertikal gaya penuh */}
-          <div className="hidden flex-1 gap-1.5 overflow-y-auto pr-1 xl:flex">
-            <div className="flex-1 space-y-1.5">{rowsFor(colLeft)}</div>
-            <div className="flex-1 space-y-1.5">{rowsFor(colRight)}</div>
-          </div>
-          <div className="mt-3 hidden justify-end border-t border-line pt-3 lg:flex">
-            <button onClick={goNext} className="btn-primary">
+          <div className="mt-2 hidden justify-end border-t border-line pt-2 lg:flex">
+            <button onClick={goNext} className="btn-primary h-8 text-xs">
               Santri berikutnya
-              <ChevronRight size={15} stroke={2} />
+              <ChevronRight size={14} stroke={2} />
             </button>
           </div>
         </>
@@ -295,9 +291,9 @@ export default function InputClient({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:space-y-3 lg:overflow-hidden">
       {/* Toolbar */}
-      <div className="card flex flex-wrap items-center justify-between gap-3 p-3">
+      <div className="card flex shrink-0 flex-wrap items-center justify-between gap-3 p-3">
         <div className="flex rounded-lg border border-line bg-canvas p-0.5">
           {KELAS_LIST.map((k) => (
             <button
@@ -355,19 +351,19 @@ export default function InputClient({
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-1">
+      <div className="flex shrink-0 items-center justify-between px-1">
         <span className="tnum text-xs text-muted">
           Terisi hari ini: {terisi}/{santriInKelas.length} santri
         </span>
         <span className="text-xs text-faint lg:hidden">ketuk santri untuk mengisi</span>
       </div>
 
-      {/* Desktop: master-detail dua kolom */}
-      <div className="hidden gap-4 lg:grid lg:grid-cols-[320px_1fr]">
-        <div className="card h-[calc(100dvh-230px)] min-h-[420px] p-3">
+      {/* Desktop: master-detail dua kolom (tinggi terkunci viewport, halaman tak scroll) */}
+      <div className="hidden min-h-0 flex-1 gap-4 lg:grid lg:grid-cols-[300px_1fr]">
+        <div className="card min-h-0 p-3">
           <SantriList items={items} selectedId={santriId} onSelect={setSantriId} />
         </div>
-        <div className="h-[calc(100dvh-230px)] min-h-[420px]">{panel}</div>
+        <div className="min-h-0">{panel}</div>
       </div>
 
       {/* Mobile: daftar penuh */}

@@ -27,7 +27,7 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
   return (
     <div
       className={
-        "flex h-[58px] flex-col justify-between rounded-lg border px-2 py-1 transition-colors md:h-[54px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 " +
+        "amalan-cell flex h-[58px] flex-col justify-between rounded-lg border px-2 py-1 transition-colors md:h-[38px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 xl:h-[54px] " +
         (filled
           ? "border-accent/30 bg-accent-soft/60"
           : "border-line bg-surface") +
@@ -47,13 +47,13 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
           </span>
         </div>
         {amalan.keterangan && (
-          <div className="hidden pl-6 text-xs text-faint md:block">
+          <div className="amalan-ket hidden pl-6 text-xs text-faint xl:block">
             {amalan.keterangan}
           </div>
         )}
       </div>
 
-      <div className="w-full shrink-0 self-stretch md:w-[240px]">
+      <div className="w-full shrink-0 self-stretch md:w-[200px] xl:w-[240px]">
         {isRakaat ? (
           <RakaatStepper
             value={(value as number | null) ?? null}
