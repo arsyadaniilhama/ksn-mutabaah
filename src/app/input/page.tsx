@@ -27,7 +27,7 @@ export default async function InputPage() {
 
   return (
     <div className="lg:flex lg:h-[calc(100dvh-64px)] lg:flex-col lg:overflow-hidden">
-      <div className="shrink-0">
+      <div className="shrink-0 lg:[&>div]:mb-3">
         <PageHeader
           title="Input Harian"
           description={`Catat amalan santri — ${tanggalPanjang(date)}`}

@@ -265,6 +265,13 @@ export default function InputClient({
               <span className="tnum chip bg-surface2 text-muted">
                 {items.find((i) => i.id === current.id)?.filled ?? 0}/19
               </span>
+              <button
+                onClick={goNext}
+                className="btn-primary hidden h-7 px-2.5 text-xs lg:inline-flex"
+              >
+                Santri berikutnya
+                <ChevronRight size={13} stroke={2} />
+              </button>
             </div>
           </div>
           {/* HP/tablet: 2 kolom compact, urutan per-kolom (1-10 | 11-19) */}
@@ -274,14 +281,8 @@ export default function InputClient({
           </div>
           {/* PC lg+: 2 kolom vertikal gaya penuh */}
           <div className="hidden flex-1 gap-1.5 overflow-y-auto pr-1 lg:flex">
-            <div className="flex-1 space-y-1 xl:space-y-1.5">{rowsFor(colLeft)}</div>
-            <div className="flex-1 space-y-1 xl:space-y-1.5">{rowsFor(colRight)}</div>
-          </div>
-          <div className="mt-2 hidden justify-end border-t border-line pt-2 lg:flex">
-            <button onClick={goNext} className="btn-primary h-8 text-xs">
-              Santri berikutnya
-              <ChevronRight size={14} stroke={2} />
-            </button>
+            <div className="flex flex-1 flex-col gap-1 xl:gap-1.5">{rowsFor(colLeft)}</div>
+            <div className="flex flex-1 flex-col gap-1 xl:gap-1.5">{rowsFor(colRight)}</div>
           </div>
         </>
       ) : (
@@ -337,6 +338,9 @@ export default function InputClient({
           <button onClick={() => setDate(todayISO())} className="btn-ghost h-8 px-2 text-xs">
             Hari ini
           </button>
+          <span className="tnum chip ml-1 hidden bg-accent-soft text-accent lg:inline-flex">
+            Terisi {terisi}/{santriInKelas.length}
+          </span>
           {calOpen && (
             <MiniCalendar
               year={dt.getFullYear()}
@@ -351,7 +355,7 @@ export default function InputClient({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center justify-between px-1">
+      <div className="flex shrink-0 items-center justify-between px-1 lg:hidden">
         <span className="tnum text-xs text-muted">
           Terisi hari ini: {terisi}/{santriInKelas.length} santri
         </span>
