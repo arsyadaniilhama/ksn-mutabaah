@@ -245,7 +245,7 @@ export default function InputClient({
   };
 
   const panel = (
-    <div className="card flex h-full min-h-0 flex-col p-3 lg:p-4">
+    <div className="card flex h-full min-h-0 min-w-0 flex-col p-3 lg:p-4">
       {current ? (
         <>
           <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-line pb-1.5 lg:mb-3 lg:border-line lg:pb-3">
@@ -280,9 +280,9 @@ export default function InputClient({
             <div className="flex-1 space-y-1">{rowsFor(colRight)}</div>
           </div>
           {/* PC lg+: 2 kolom vertikal auto-fit (sel mengisi tinggi tersedia, bebas resolusi) */}
-          <div className="hidden min-h-0 flex-1 gap-1.5 overflow-y-auto pr-1 lg:flex">
-            <div className="flex flex-1 flex-col gap-0.5 xl:gap-1.5">{rowsFor(colLeft)}</div>
-            <div className="flex flex-1 flex-col gap-0.5 xl:gap-1.5">
+          <div className="hidden min-h-0 min-w-0 flex-1 gap-1.5 overflow-y-auto pr-1 lg:flex">
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5 xl:gap-1.5">{rowsFor(colLeft)}</div>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5 xl:gap-1.5">
               {rowsFor(colRight)}
               <div aria-hidden className="hidden flex-1 lg:block" />
             </div>
@@ -366,11 +366,11 @@ export default function InputClient({
       </div>
 
       {/* Desktop: master-detail dua kolom (tinggi terkunci viewport, halaman tak scroll) */}
-      <div className="hidden min-h-0 flex-1 gap-4 lg:grid lg:grid-cols-[300px_1fr]">
+      <div className="hidden min-h-0 flex-1 gap-4 lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
         <div className="card min-h-0 p-3">
           <SantriList items={items} selectedId={santriId} onSelect={setSantriId} />
         </div>
-        <div className="min-h-0">{panel}</div>
+        <div className="min-h-0 min-w-0">{panel}</div>
       </div>
 
       {/* Mobile: daftar penuh */}
