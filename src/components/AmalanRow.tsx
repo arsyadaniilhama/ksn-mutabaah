@@ -27,7 +27,7 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
   return (
     <div
       className={
-        "amalan-cell flex h-[58px] flex-col justify-between rounded-lg border px-2 py-1 transition-colors md:h-[38px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 xl:h-[54px] " +
+        "amalan-cell flex h-[58px] flex-col justify-between rounded-lg border px-2 py-1 transition-colors md:h-[38px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 lg:h-auto lg:min-h-0 lg:max-h-[58px] lg:flex-1 lg:py-0.5 " +
         (filled
           ? "border-accent/30 bg-accent-soft/60"
           : "border-line bg-surface") +
@@ -47,7 +47,7 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
           </span>
         </div>
         {amalan.keterangan && (
-          <div className="amalan-ket hidden pl-6 text-xs text-faint xl:block">
+          <div className="amalan-ket hidden pl-6 text-xs text-faint">
             {amalan.keterangan}
           </div>
         )}

@@ -101,13 +101,10 @@
   transition: transform 0.15s ease;
 }
 
-/* Laptop pendek (<=900px tinggi, mis. 14" scale 125%): sel amalan kompak agar muat tanpa scroll */
-@media (min-width: 1280px) and (max-height: 900px) {
-  .amalan-cell {
-    height: 38px !important;
-  }
+/* Keterangan amalan hanya muncul di layar tinggi & lebar (agar tak mengganggu fit di laptop pendek) */
+@media (min-width: 1280px) and (min-height: 880px) {
   .amalan-ket {
-    display: none !important;
+    display: block;
   }
 }
 

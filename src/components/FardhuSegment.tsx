@@ -42,7 +42,7 @@ export default function FardhuSegment({ value, onChange, disabled }: Props) {
             title={o.label}
             onClick={() => set(o.value)}
             className={
-              "flex-1 rounded-full px-1 py-1 whitespace-nowrap transition-colors xl:px-2 " +
+              "flex-1 rounded-full px-1 py-0.5 whitespace-nowrap transition-colors xl:px-2 xl:py-1 " +
               (active ? activeBg[o.value] : "text-muted hover:text-ink")
             }
           >

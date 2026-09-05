@@ -38,7 +38,7 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         onClick={() => set("done")}
         aria-pressed={value === "done"}
         className={
-          "relative z-10 flex-1 py-1 text-center transition-colors xl:py-1.5 " +
+          "relative z-10 flex-1 py-0.5 text-center transition-colors xl:py-1.5 " +
           (value === "done" ? "text-accent-fg" : "text-muted hover:text-ink")
         }
       >
@@ -50,7 +50,7 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         onClick={() => set("miss")}
         aria-pressed={value === "miss"}
         className={
-          "relative z-10 flex-1 py-1 text-center transition-colors xl:py-1.5 " +
+          "relative z-10 flex-1 py-0.5 text-center transition-colors xl:py-1.5 " +
           (value === "miss" ? "text-accent-fg" : "text-muted hover:text-ink")
         }
       >

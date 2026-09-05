@@ -279,10 +279,13 @@ export default function InputClient({
             <div className="flex-1 space-y-1">{rowsFor(colLeft)}</div>
             <div className="flex-1 space-y-1">{rowsFor(colRight)}</div>
           </div>
-          {/* PC lg+: 2 kolom vertikal gaya penuh */}
-          <div className="hidden flex-1 gap-1.5 overflow-y-auto pr-1 lg:flex">
-            <div className="flex flex-1 flex-col gap-1 xl:gap-1.5">{rowsFor(colLeft)}</div>
-            <div className="flex flex-1 flex-col gap-1 xl:gap-1.5">{rowsFor(colRight)}</div>
+          {/* PC lg+: 2 kolom vertikal auto-fit (sel mengisi tinggi tersedia, bebas resolusi) */}
+          <div className="hidden min-h-0 flex-1 gap-1.5 overflow-y-auto pr-1 lg:flex">
+            <div className="flex flex-1 flex-col gap-0.5 xl:gap-1.5">{rowsFor(colLeft)}</div>
+            <div className="flex flex-1 flex-col gap-0.5 xl:gap-1.5">
+              {rowsFor(colRight)}
+              <div aria-hidden className="hidden flex-1 lg:block" />
+            </div>
           </div>
         </>
       ) : (
