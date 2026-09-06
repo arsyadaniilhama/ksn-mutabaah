@@ -6,7 +6,7 @@ import {
 import { listSantri, listEntries } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
-import { BULAN_ID, monthLabel } from "@/lib/dates";
+import { BULAN_ID, monthLabel, bagianJakarta } from "@/lib/dates";
 import PageHeader from "@/components/PageHeader";
 import Avatar from "@/components/Avatar";
 import Badge from "@/components/Badge";
@@ -24,22 +24,22 @@ export default async function LaporanPage({
   searchParams: Promise<{ kelas?: string; month?: string; year?: string }>;
 }) {
   const sp = await searchParams;
-  const now = new Date();
+  const jkt = bagianJakarta();
   const user = await getCurrentUser();
   const institusi = user?.institusi ?? "PA IMSHUS";
   const label = institusi === "PI IMSHUS" ? "santriwati" : "santri";
 
   const [allSantri, entries] = await Promise.all([
     listSantri(undefined, false, institusi),
-    listEntries({ year: Number(sp.year) || now.getFullYear(), month: Number(sp.month) || now.getMonth() + 1, institusi }),
+    listEntries({ year: Number(sp.year) || jkt.y, month: Number(sp.month) || jkt.m, institusi }),
   ]);
   const adaKelas = KELAS_ORDER.filter((k) =>
     allSantri.some((s) => s.kelas === k),
   ) as Kelas[];
   const KELAS_LIST = adaKelas.length ? adaKelas : KELAS_ORDER;
   const kelas = (KELAS_LIST.includes(sp.kelas as Kelas) ? sp.kelas : KELAS_LIST[0]) as Kelas;
-  const month = Number(sp.month) || now.getMonth() + 1;
-  const year = Number(sp.year) || now.getFullYear();
+  const month = Number(sp.month) || jkt.m;
+  const year = Number(sp.year) || jkt.y;
 
   const santri = allSantri.filter((s) => s.kelas === kelas);
   const metrics = santri

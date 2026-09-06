@@ -11,7 +11,7 @@ import { listSantri, listEntries, listRecentEntries, getDayProgress } from "@/li
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics, computeKategoriBenchmark } from "@/lib/metrics";
 import { AMALAN_BY_ID } from "@/lib/amalan";
-import { monthLabel, todayISO, tanggalPanjang } from "@/lib/dates";
+import { monthLabel, todayISO, tanggalPanjang, bagianJakarta } from "@/lib/dates";
 import PageHeader from "@/components/PageHeader";
 import KpiCard from "@/components/KpiCard";
 import RingGauge from "@/components/RingGauge";
@@ -39,9 +39,9 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function DashboardPage() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const jkt = bagianJakarta();
+  const year = jkt.y;
+  const month = jkt.m;
   const today = todayISO();
 
   const user = await getCurrentUser();

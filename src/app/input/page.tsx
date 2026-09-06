@@ -6,7 +6,7 @@ import {
   getMonthCoverage,
 } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
-import { todayISO, tanggalPanjang } from "@/lib/dates";
+import { todayISO, tanggalPanjang, bagianJakarta } from "@/lib/dates";
 import InputClient from "@/components/InputClient";
 import PageHeader from "@/components/PageHeader";
 import type { Kelas } from "@/types";
@@ -16,14 +16,14 @@ export const metadata = { title: "Input Harian" };
 
 export default async function InputPage() {
   const date = todayISO();
-  const now = new Date();
+  const jkt = bagianJakarta();
   const user = await getCurrentUser();
   const institusi = user?.institusi ?? "PA IMSHUS";
   const label = institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
   const [santriList, progress, coverage] = await Promise.all([
     listSantri(undefined, false, institusi),
     getDayProgress(date),
-    getMonthCoverage(now.getFullYear(), now.getMonth() + 1),
+    getMonthCoverage(jkt.y, jkt.m),
   ]);
   const kelasList = Array.from(new Set(santriList.map((s) => s.kelas))) as Kelas[];
   const kelas: Kelas = kelasList[0] ?? "Kelas 1";

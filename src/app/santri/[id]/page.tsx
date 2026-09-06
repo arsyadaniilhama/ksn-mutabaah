@@ -4,7 +4,7 @@ import { IconFilter as Filter, IconPdf as FilePdf } from "@tabler/icons-react";
 import { getSantri, listEntries } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
-import { monthLabel } from "@/lib/dates";
+import { monthLabel, bagianJakarta } from "@/lib/dates";
 import PageHeader from "@/components/PageHeader";
 import KpiCard from "@/components/KpiCard";
 import Avatar from "@/components/Avatar";
@@ -33,9 +33,9 @@ export default async function SantriDetailPage({
 }) {
   const { id } = await params;
   const sp = await searchParams;
-  const now = new Date();
-  const year = Number(sp.year) || now.getFullYear();
-  const month = Number(sp.month) || now.getMonth() + 1;
+  const jkt = bagianJakarta();
+  const year = Number(sp.year) || jkt.y;
+  const month = Number(sp.month) || jkt.m;
 
   const santri = await getSantri(id);
   if (!santri) notFound();

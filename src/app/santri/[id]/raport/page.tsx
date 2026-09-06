@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getSantri, listEntries } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
-import { monthLabel } from "@/lib/dates";
+import { monthLabel, bagianJakarta } from "@/lib/dates";
 import PctBarChart from "@/components/PctBarChart";
 import ExportButtons from "@/components/ExportButtons";
 
@@ -18,9 +18,9 @@ export default async function RaportPage({
 }) {
   const { id } = await params;
   const sp = await searchParams;
-  const now = new Date();
-  const year = Number(sp.year) || now.getFullYear();
-  const month = Number(sp.month) || now.getMonth() + 1;
+  const jkt = bagianJakarta();
+  const year = Number(sp.year) || jkt.y;
+  const month = Number(sp.month) || jkt.m;
 
   const santri = await getSantri(id);
   if (!santri) notFound();

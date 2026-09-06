@@ -24,6 +24,24 @@ export function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
 
+const JKT_TZ = "Asia/Jakarta";
+
+/** Bagian tanggal (y/m/d) menurut waktu Jakarta (WIB) — tidak bergantung TZ server. */
+export function bagianJakarta(now: Date = new Date()): {
+  y: number;
+  m: number;
+  d: number;
+} {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: JKT_TZ,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(now);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  return { y: get("year"), m: get("month"), d: get("day") };
+}
+
 export function toISO(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -31,8 +49,10 @@ export function toISO(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+/** Tanggal "hari ini" versi WIB, format yyyy-mm-dd. */
 export function todayISO(): string {
-  return toISO(new Date());
+  const { y, m, d } = bagianJakarta();
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
 export function parseISO(iso: string): Date {
@@ -41,17 +61,16 @@ export function parseISO(iso: string): Date {
 }
 
 /**
- * Hari berjalan (D) untuk rentang metrik:
+ * Hari berjalan (D) untuk rentang metrik (acuan WIB):
  * - bulan lampau  -> total hari bulan itu
- * - bulan berjalan-> tanggal hari ini
+ * - bulan berjalan-> tanggal hari ini (WIB)
  * - bulan depan   -> 0
  */
 export function hariBerjalan(year: number, month: number, now = new Date()): number {
   const dim = daysInMonth(year, month);
-  const nowY = now.getFullYear();
-  const nowM = now.getMonth() + 1;
+  const { y: nowY, m: nowM, d: nowD } = bagianJakarta(now);
   if (year < nowY || (year === nowY && month < nowM)) return dim;
-  if (year === nowY && month === nowM) return now.getDate();
+  if (year === nowY && month === nowM) return nowD;
   return 0;
 }
 
