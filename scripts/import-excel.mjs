@@ -23,6 +23,7 @@ if (!URL_ || !KEY) {
 const WITH_ENTRIES = process.argv.includes("--with-entries");
 const positional = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const SANTRI_MD = positional[0] || path.join(ROOT, "..", "santri.md");
+const SANTRIWATI_MD = path.join(ROOT, "..", "santriwati.md");
 const XLSX_PATH = positional[1] || path.join(ROOT, "..", "Mutabaah KSN.xlsx");
 
 const AMALAN = [
@@ -80,6 +81,21 @@ function parseSantriMd(file) {
   return out;
 }
 
+/** Format santriwati.md: | No | NIS | Nama | Kelas | dengan kelas "2 PI IMSHUS". */
+function parseSantriwatiMd(file) {
+  if (!fs.existsSync(file)) return [];
+  const md = fs.readFileSync(file, "utf8");
+  const out = [];
+  for (const line of md.split(/\r?\n/)) {
+    const m = line.match(/^\|\s*\d+\s*\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*\d+\s+PI IMSHUS\s*\|/);
+    if (m) {
+      const kelasNum = line.match(/\|\s*(\d+)\s+PI IMSHUS\s*\|/)[1];
+      out.push({ nis: Number(m[1]), nama: m[2].trim(), kelas: `Kelas ${kelasNum}` });
+    }
+  }
+  return out;
+}
+
 async function main() {
   const supabase = createClient(URL_, KEY, { auth: { persistSession: false } });
 
@@ -91,16 +107,26 @@ async function main() {
   if (e1) throw new Error("kategori: " + e1.message);
   console.log(`✓ ${AMALAN.length} kategori amalan`);
 
-  // 2. santri
+  // 2. santri (PA IMSHUS) + santriwati (PI IMSHUS)
   const santri = parseSantriMd(SANTRI_MD);
   const { error: e2 } = await supabase.from("santri").upsert(
-    santri.map((s) => ({ nis: s.nis, nama: s.nama, kelas: s.kelas })),
-    { onConflict: "nis" },
+    santri.map((s) => ({ nis: s.nis, nama: s.nama, kelas: s.kelas, institusi: "PA IMSHUS" })),
+    { onConflict: "institusi,nis" },
   );
   if (e2) throw new Error("santri: " + e2.message);
+
+  const santriwati = parseSantriwatiMd(SANTRIWATI_MD);
+  if (santriwati.length) {
+    const { error: e2w } = await supabase.from("santri").upsert(
+      santriwati.map((s) => ({ nis: s.nis, nama: s.nama, kelas: s.kelas, institusi: "PI IMSHUS" })),
+      { onConflict: "institusi,nis" },
+    );
+    if (e2w) throw new Error("santriwati: " + e2w.message);
+  }
+
   const { data: srows } = await supabase.from("santri").select("id,nama");
   const byName = new Map((srows ?? []).map((r) => [norm(r.nama), r.id]));
-  console.log(`✓ ${santri.length} santri (roster: ${SANTRI_MD})`);
+  console.log(`✓ ${santri.length} santri (PA IMSHUS) + ${santriwati.length} santriwati (PI IMSHUS)`);
 
   // 3. entri dari Excel (opsional)
   if (!WITH_ENTRIES) {

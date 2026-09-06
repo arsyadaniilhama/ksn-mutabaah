@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getSantri, listEntries } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { monthLabel } from "@/lib/dates";
 import PctBarChart from "@/components/PctBarChart";
@@ -23,6 +24,8 @@ export default async function RaportPage({
 
   const santri = await getSantri(id);
   if (!santri) notFound();
+  const user = await getCurrentUser();
+  if (user && santri.institusi !== user.institusi) notFound();
 
   const entries = await listEntries({ year, month, santriId: santri.id });
   const m = computeSantriMetrics(santri, entries, year, month);

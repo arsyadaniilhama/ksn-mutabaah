@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createSantri } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { santriCreateSchema } from "@/lib/validations";
 
 async function ensureAuth() {
@@ -12,8 +13,8 @@ async function ensureAuth() {
 }
 
 export async function POST(request: Request) {
-  if (!(await ensureAuth()))
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const cu = await getCurrentUser();
+  if (!cu) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   let body: unknown;
   try {
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
   try {
-    const santri = await createSantri(parsed.data);
+    const santri = await createSantri({ ...parsed.data, institusi: cu.institusi });
     return NextResponse.json({ santri });
   } catch (e) {
     return NextResponse.json(

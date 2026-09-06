@@ -5,6 +5,7 @@ import {
   getDayProgress,
   getMonthCoverage,
 } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { todayISO, tanggalPanjang } from "@/lib/dates";
 import InputClient from "@/components/InputClient";
 import PageHeader from "@/components/PageHeader";
@@ -16,12 +17,15 @@ export const metadata = { title: "Input Harian" };
 export default async function InputPage() {
   const date = todayISO();
   const now = new Date();
+  const user = await getCurrentUser();
+  const institusi = user?.institusi ?? "PA IMSHUS";
   const [santriList, progress, coverage] = await Promise.all([
-    listSantri(),
+    listSantri(undefined, false, institusi),
     getDayProgress(date),
     getMonthCoverage(now.getFullYear(), now.getMonth() + 1),
   ]);
-  const kelas: Kelas = "Kelas 1";
+  const kelasList = Array.from(new Set(santriList.map((s) => s.kelas))) as Kelas[];
+  const kelas: Kelas = kelasList[0] ?? "Kelas 1";
   const first = santriList.find((s) => s.kelas === kelas) ?? santriList[0];
   const initialValues = first ? await getDayValues(first.id, date) : {};
 

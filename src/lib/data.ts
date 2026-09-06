@@ -3,11 +3,16 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { AMALAN_BY_ID } from "@/lib/amalan";
 import type { CellValue, EntryStatus, MutabaahEntry, Santri } from "@/types";
 
-export async function listSantri(kelas?: string, includeInactive = false): Promise<Santri[]> {
+export async function listSantri(
+  kelas?: string,
+  includeInactive = false,
+  institusi?: string,
+): Promise<Santri[]> {
   const supabase = createAdminClient();
   let q = supabase.from("santri").select("*").order("nis");
   if (kelas) q = q.eq("kelas", kelas);
   if (!includeInactive) q = q.eq("aktif", true);
+  if (institusi) q = q.eq("institusi", institusi);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return (data ?? []) as Santri[];
@@ -17,17 +22,24 @@ export async function createSantri(input: {
   nis: number;
   nama: string;
   kelas: string;
+  institusi: string;
 }): Promise<Santri> {
   const supabase = createAdminClient();
   const { data: dup } = await supabase
     .from("santri")
     .select("id")
+    .eq("institusi", input.institusi)
     .eq("nis", input.nis)
     .maybeSingle();
-  if (dup) throw new Error("NIS sudah dipakai santri lain.");
+  if (dup) throw new Error("NIS sudah dipakai santri lain di institusi ini.");
   const { data, error } = await supabase
     .from("santri")
-    .insert({ nis: input.nis, nama: input.nama, kelas: input.kelas })
+    .insert({
+      nis: input.nis,
+      nama: input.nama,
+      kelas: input.kelas,
+      institusi: input.institusi,
+    })
     .select()
     .single();
   if (error) throw new Error(error.message);
@@ -37,16 +49,26 @@ export async function createSantri(input: {
 export async function updateSantri(
   id: string,
   patch: Partial<{ nis: number; nama: string; kelas: string; aktif: boolean }>,
+  institusi?: string,
 ): Promise<Santri> {
   const supabase = createAdminClient();
+  const { data: current } = await supabase
+    .from("santri")
+    .select("id,institusi")
+    .eq("id", id)
+    .maybeSingle();
+  if (!current) throw new Error("Santri tidak ditemukan.");
+  if (institusi && current.institusi !== institusi)
+    throw new Error("Akses ditolak: santri bukan dari institusi Anda.");
   if (patch.nis != null) {
     const { data: dup } = await supabase
       .from("santri")
       .select("id")
+      .eq("institusi", current.institusi)
       .eq("nis", patch.nis)
       .neq("id", id)
       .maybeSingle();
-    if (dup) throw new Error("NIS sudah dipakai santri lain.");
+    if (dup) throw new Error("NIS sudah dipakai santri lain di institusi ini.");
   }
   const { data, error } = await supabase
     .from("santri")
@@ -123,12 +145,13 @@ async function fetchAll<T>(makeQuery: (from: number, to: number) => PromiseLike<
   return out;
 }
 
-/** Ambil semua entri untuk rentang bulan (opsional filter kelas/santri). */
+/** Ambil semua entri untuk rentang bulan (opsional filter kelas/santri/institusi). */
 export async function listEntries(params: {
   year: number;
   month: number;
   kelas?: string;
   santriId?: string;
+  institusi?: string;
 }): Promise<MutabaahEntry[]> {
   const supabase = createAdminClient();
   const start = `${params.year}-${String(params.month).padStart(2, "0")}-01`;
@@ -148,8 +171,8 @@ export async function listEntries(params: {
   });
   let result = rows;
 
-  if (params.kelas) {
-    const santri = await listSantri(params.kelas);
+  if (params.kelas || params.institusi) {
+    const santri = await listSantri(params.kelas, true, params.institusi);
     const ids = new Set(santri.map((s) => s.id));
     result = result.filter((r) => ids.has(r.santri_id));
   }
@@ -189,13 +212,23 @@ export interface RecentActivity {
   santri: { nama: string; kelas: string } | null;
 }
 
-export async function listRecentEntries(limit = 10): Promise<RecentActivity[]> {
+export async function listRecentEntries(
+  limit = 10,
+  institusi?: string,
+): Promise<RecentActivity[]> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
+  let q = supabase
     .from("mutabaah_entries")
     .select("entry_date, amalan_id, status, rakaat, santri:santri(nama, kelas)")
-    .order("updated_at", { ascending: false })
-    .limit(limit);
+    .order("updated_at", { ascending: false });
+  if (institusi) {
+    const santri = await listSantri(undefined, true, institusi);
+    q = q.in(
+      "santri_id",
+      santri.map((s) => s.id),
+    );
+  }
+  const { data, error } = await q.limit(limit);
   if (error) throw new Error(error.message);
   return (data ?? []) as unknown as RecentActivity[];
 }

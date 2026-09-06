@@ -8,6 +8,7 @@ import {
   IconUsers as Users,
 } from "@tabler/icons-react";
 import { listSantri, listEntries, listRecentEntries, getDayProgress } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics, computeKategoriBenchmark } from "@/lib/metrics";
 import { AMALAN_BY_ID } from "@/lib/amalan";
 import { monthLabel, todayISO, tanggalPanjang } from "@/lib/dates";
@@ -43,10 +44,13 @@ export default async function DashboardPage() {
   const month = now.getMonth() + 1;
   const today = todayISO();
 
+  const user = await getCurrentUser();
+  const institusi = user?.institusi ?? "PA IMSHUS";
+
   const [santri, entries, recent, progressToday] = await Promise.all([
-    listSantri(),
-    listEntries({ year, month }),
-    listRecentEntries(8),
+    listSantri(undefined, false, institusi),
+    listEntries({ year, month, institusi }),
+    listRecentEntries(8, institusi),
     getDayProgress(today),
   ]);
 

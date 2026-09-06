@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -25,7 +25,7 @@ interface Props {
   initialCoverage: string[];
 }
 
-const KELAS_LIST: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
+const KELAS_ORDER: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
 
 function buildEntry(
   santriId: string,
@@ -71,6 +71,11 @@ export default function InputClient({
 }: Props) {
   const [kelas, setKelas] = useState<Kelas>(initialKelas);
   const [date, setDate] = useState<string>(initialDate);
+  const kelasList = useMemo(
+    () =>
+      KELAS_ORDER.filter((k) => santriList.some((s) => s.kelas === k)),
+    [santriList],
+  );
   const santriInKelas = useMemo(
     () => santriList.filter((s) => s.kelas === kelas),
     [santriList, kelas],
@@ -256,12 +261,12 @@ export default function InputClient({
                   {current.nama}
                 </div>
                 <div className="tnum text-xs text-faint">
-                  NIS {current.nis} · {fmtTanggal(date)}
+                  NIS {current.nis} Â· {fmtTanggal(date)}
                 </div>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              {loading && <span className="text-xs text-faint">memuat…</span>}
+              {loading && <span className="text-xs text-faint">memuatâ€¦</span>}
               <span className="tnum chip bg-surface2 text-muted">
                 {items.find((i) => i.id === current.id)?.filled ?? 0}/19
               </span>
@@ -299,7 +304,7 @@ export default function InputClient({
       {/* Toolbar */}
       <div className="card flex shrink-0 flex-wrap items-center justify-between gap-3 p-3">
         <div className="flex rounded-lg border border-line bg-canvas p-0.5">
-          {KELAS_LIST.map((k) => (
+          {kelasList.map((k) => (
             <button
               key={k}
               onClick={() => setKelas(k)}
@@ -393,7 +398,7 @@ export default function InputClient({
             <div className="min-w-0 flex-1 leading-tight">
               <div className="truncate text-sm font-semibold text-ink">{current.nama}</div>
               <div className="tnum text-[11px] text-faint">
-                {current.kelas} · {fmtTanggal(date)}
+                {current.kelas} Â· {fmtTanggal(date)}
               </div>
             </div>
           </div>

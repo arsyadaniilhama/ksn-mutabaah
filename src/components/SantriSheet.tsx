@@ -8,16 +8,23 @@ interface Props {
   open: boolean;
   mode: "add" | "edit";
   initial: Partial<Santri> & { kelas?: Kelas };
+  institusi: string;
+  kelasList: Kelas[];
   onClose: () => void;
   onSaved: (message: string) => void;
 }
 
-const KELAS_LIST: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
-
-export default function SantriSheet({ open, mode, initial, onClose, onSaved }: Props) {
+export default function SantriSheet({
+  open,
+  mode,
+  initial,
+  kelasList,
+  onClose,
+  onSaved,
+}: Props) {
   const [nama, setNama] = useState("");
   const [nis, setNis] = useState("");
-  const [kelas, setKelas] = useState<Kelas>("Kelas 1");
+  const [kelas, setKelas] = useState<Kelas>(kelasList[0] ?? "Kelas 1");
   const [aktif, setAktif] = useState(true);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -26,10 +33,10 @@ export default function SantriSheet({ open, mode, initial, onClose, onSaved }: P
     if (!open) return;
     setNama(initial.nama ?? "");
     setNis(initial.nis != null ? String(initial.nis) : "");
-    setKelas((initial.kelas as Kelas) ?? "Kelas 1");
+    setKelas((initial.kelas as Kelas) ?? kelasList[0] ?? "Kelas 1");
     setAktif(initial.aktif ?? true);
     setErr(null);
-  }, [open, initial]);
+  }, [open, initial, kelasList]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,8 +114,11 @@ export default function SantriSheet({ open, mode, initial, onClose, onSaved }: P
         </div>
         <div className="space-y-1.5">
           <span className="text-sm font-medium text-ink">Kelas</span>
-          <div className="grid grid-cols-3 gap-1 rounded-lg border border-line bg-canvas p-1">
-            {KELAS_LIST.map((k) => (
+          <div
+            className="grid gap-1 rounded-lg border border-line bg-canvas p-1"
+            style={{ gridTemplateColumns: `repeat(${kelasList.length}, 1fr)` }}
+          >
+            {kelasList.map((k) => (
               <button
                 type="button"
                 key={k}

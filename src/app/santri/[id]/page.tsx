@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IconFilter as Filter, IconPdf as FilePdf } from "@tabler/icons-react";
 import { getSantri, listEntries } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { monthLabel } from "@/lib/dates";
 import PageHeader from "@/components/PageHeader";
@@ -38,6 +39,8 @@ export default async function SantriDetailPage({
 
   const santri = await getSantri(id);
   if (!santri) notFound();
+  const user = await getCurrentUser();
+  if (user && santri.institusi !== user.institusi) notFound();
 
   const entries = await listEntries({ year, month, santriId: santri.id });
   const m = computeSantriMetrics(santri, entries, year, month);

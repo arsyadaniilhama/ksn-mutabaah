@@ -4,6 +4,7 @@ import {
   IconPdf as FilePdf,
 } from "@tabler/icons-react";
 import { listSantri, listEntries } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { BULAN_ID, monthLabel } from "@/lib/dates";
 import PageHeader from "@/components/PageHeader";
@@ -15,7 +16,7 @@ import type { Kelas } from "@/types";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Laporan" };
 
-const KELAS_LIST: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
+const KELAS_ORDER: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
 
 export default async function LaporanPage({
   searchParams,
@@ -24,14 +25,22 @@ export default async function LaporanPage({
 }) {
   const sp = await searchParams;
   const now = new Date();
-  const kelas = (KELAS_LIST.includes(sp.kelas as Kelas) ? sp.kelas : "Kelas 1") as Kelas;
+  const user = await getCurrentUser();
+  const institusi = user?.institusi ?? "PA IMSHUS";
+
+  const [allSantri, entries] = await Promise.all([
+    listSantri(undefined, false, institusi),
+    listEntries({ year: Number(sp.year) || now.getFullYear(), month: Number(sp.month) || now.getMonth() + 1, institusi }),
+  ]);
+  const adaKelas = KELAS_ORDER.filter((k) =>
+    allSantri.some((s) => s.kelas === k),
+  ) as Kelas[];
+  const KELAS_LIST = adaKelas.length ? adaKelas : KELAS_ORDER;
+  const kelas = (KELAS_LIST.includes(sp.kelas as Kelas) ? sp.kelas : KELAS_LIST[0]) as Kelas;
   const month = Number(sp.month) || now.getMonth() + 1;
   const year = Number(sp.year) || now.getFullYear();
 
-  const [santri, entries] = await Promise.all([
-    listSantri(kelas),
-    listEntries({ year, month, kelas }),
-  ]);
+  const santri = allSantri.filter((s) => s.kelas === kelas);
   const metrics = santri
     .map((s) => computeSantriMetrics(s, entries, year, month))
     .sort((a, b) => b.indeksRutinitas - a.indeksRutinitas);

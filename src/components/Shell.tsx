@@ -90,7 +90,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-function UserFooter({ email }: { email?: string | null }) {
+function UserFooter({ email, institusi }: { email?: string | null; institusi?: string | null }) {
   return (
     <div className="border-t border-line p-3">
       <div className="flex items-center gap-2.5 rounded-lg px-1.5 py-1.5">
@@ -99,7 +99,7 @@ function UserFooter({ email }: { email?: string | null }) {
           <div className="truncate text-xs font-medium text-ink">
             {email ?? "Musyrif"}
           </div>
-          <div className="text-[11px] text-faint">Musyrif / Admin</div>
+          <div className="text-[11px] text-faint">{institusi ?? "Musyrif / Admin"}</div>
         </div>
         <ThemeToggle />
         <form action={signOut}>
@@ -119,9 +119,11 @@ function UserFooter({ email }: { email?: string | null }) {
 export default function Shell({
   children,
   email,
+  institusi,
 }: {
   children: React.ReactNode;
   email?: string | null;
+  institusi?: string | null;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -139,7 +141,7 @@ export default function Shell({
           <Brand />
         </div>
         <Nav />
-        <UserFooter email={email} />
+        <UserFooter email={email} institusi={institusi} />
       </aside>
 
       {/* Header mobile */}
@@ -176,7 +178,7 @@ export default function Shell({
               </button>
             </div>
             <Nav onNavigate={() => setOpen(false)} />
-            <UserFooter email={email} />
+            <UserFooter email={email} institusi={institusi} />
           </aside>
         </div>
       )}

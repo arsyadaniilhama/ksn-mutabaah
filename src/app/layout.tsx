@@ -5,12 +5,12 @@ import Shell from "@/components/Shell";
 import SetupNotice from "@/components/SetupNotice";
 import ThemeProvider from "@/components/ThemeProvider";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "Mutabaah KSN", template: "%s · Mutabaah KSN" },
-  description: "Pencatatan mutabaah harian santri PA IMSHUS",
+  description: "Pencatatan mutabaah harian santri PA IMSHUS & santriwati PI IMSHUS",
 };
 
 export default async function RootLayout({
@@ -19,16 +19,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const configured = isSupabaseConfigured();
-  let email: string | null = null;
-  if (configured) {
-    try {
-      const supabase = await createClient();
-      const { data } = await supabase.auth.getUser();
-      email = data.user?.email ?? null;
-    } catch {
-      email = null;
-    }
-  }
+  const user = configured ? await getCurrentUser().catch(() => null) : null;
   return (
     <html
       lang="id"
@@ -37,7 +28,13 @@ export default async function RootLayout({
     >
       <body className="min-h-dvh font-sans">
         <ThemeProvider>
-          {configured ? <Shell email={email}>{children}</Shell> : <SetupNotice />}
+          {configured ? (
+            <Shell email={user?.email ?? null} institusi={user?.institusi ?? null}>
+              {children}
+            </Shell>
+          ) : (
+            <SetupNotice />
+          )}
         </ThemeProvider>
       </body>
     </html>

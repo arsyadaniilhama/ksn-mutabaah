@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
-import { createClient } from "@/lib/supabase/server";
 import { getSantri, listEntries } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { AMALAN } from "@/lib/amalan";
 import { bulanName, daysInMonth } from "@/lib/dates";
 import type { MutabaahEntry } from "@/types";
@@ -13,11 +13,8 @@ function safeName(s: string) {
 }
 
 export async function GET(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const cu = await getCurrentUser();
+  if (!cu) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
   const santriId = searchParams.get("santri_id") ?? "";
@@ -28,6 +25,8 @@ export async function GET(request: Request) {
 
   const santri = await getSantri(santriId);
   if (!santri) return NextResponse.json({ error: "santri tidak ditemukan" }, { status: 404 });
+  if (santri.institusi !== cu.institusi)
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const entries = await listEntries({ year, month, santriId });
   const dim = daysInMonth(year, month);

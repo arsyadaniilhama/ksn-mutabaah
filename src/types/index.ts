@@ -1,5 +1,7 @@
 export type Kelas = "Kelas 1" | "Kelas 2" | "Kelas 3";
 
+export type Institusi = "PA IMSHUS" | "PI IMSHUS";
+
 export type ValueType = "binary" | "rakaat" | "fardhu";
 
 export type BinaryStatus = "done" | "miss";
@@ -13,6 +15,7 @@ export interface Santri {
   nis: number;
   nama: string;
   kelas: Kelas;
+  institusi: string;
   aktif: boolean;
 }
 

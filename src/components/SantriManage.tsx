@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconPencil as Pencil, IconPlus as Plus } from "@tabler/icons-react";
@@ -10,21 +10,31 @@ import SantriSheet from "@/components/SantriSheet";
 import Toast from "@/components/Toast";
 import type { Kelas, Santri } from "@/types";
 
-const KELAS_LIST: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
+const KELAS_ORDER: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
 
 type SheetState =
   | { mode: "add"; kelas: Kelas }
   | { mode: "edit"; santri: Santri }
   | null;
 
-export default function SantriManage({ santri }: { santri: Santri[] }) {
+export default function SantriManage({
+  santri,
+  institusi,
+}: {
+  santri: Santri[];
+  institusi: string;
+}) {
   const router = useRouter();
   const [sheet, setSheet] = useState<SheetState>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const kelasList = useMemo(() => {
+    const ada = KELAS_ORDER.filter((k) => santri.some((s) => s.kelas === k));
+    return ada.length ? ada : KELAS_ORDER;
+  }, [santri]);
 
   return (
     <div className="space-y-8">
-      {KELAS_LIST.map((k) => {
+      {kelasList.map((k) => {
         const list = santri.filter((s) => s.kelas === k);
         const aktifCount = list.filter((s) => s.aktif).length;
         return (
@@ -85,10 +95,12 @@ export default function SantriManage({ santri }: { santri: Santri[] }) {
       <SantriSheet
         open={sheet !== null}
         mode={sheet?.mode ?? "add"}
+        institusi={institusi}
+        kelasList={kelasList}
         initial={
           sheet?.mode === "edit"
             ? sheet.santri
-            : { kelas: sheet?.mode === "add" ? sheet.kelas : "Kelas 1", aktif: true }
+            : { kelas: sheet?.mode === "add" ? sheet.kelas : kelasList[0], aktif: true }
         }
         onClose={() => setSheet(null)}
         onSaved={(msg) => {
