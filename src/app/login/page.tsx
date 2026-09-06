@@ -25,7 +25,7 @@ export default function LoginPage() {
           <div>
             <h1 className="text-base font-semibold text-ink">Mutabaah KSN</h1>
             <p className="mt-0.5 text-sm text-muted">
-              Masuk sebagai Musyrif / Admin
+              Masuk sebagai Musyrif/Musyrifah
             </p>
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function LoginPage() {
         </button>
 
         <p className="text-center text-[11px] text-faint">
-          PA IMSHUS · Pencatatan mutabaah harian santri
+          PA & PI IMSHUS · Pencatatan mutabaah harian santri & santriwati
         </p>
       </form>
     </main>
