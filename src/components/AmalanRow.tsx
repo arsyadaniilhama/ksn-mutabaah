@@ -42,7 +42,7 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
           <span className="truncate text-[11px] font-medium text-ink md:hidden">
             {amalan.short}
           </span>
-          <span className="hidden truncate text-sm font-medium text-ink md:block">
+          <span className="hidden truncate text-sm font-medium text-ink md:block lg:whitespace-normal lg:line-clamp-2 lg:leading-tight">
             {amalan.nama}
           </span>
         </div>
@@ -53,7 +53,7 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
         )}
       </div>
 
-      <div className="w-full shrink-0 self-stretch md:w-[200px] xl:w-[240px]">
+      <div className="w-full shrink-0 self-stretch md:w-[200px] xl:w-[210px]">
         {isRakaat ? (
           <RakaatStepper
             value={(value as number | null) ?? null}
