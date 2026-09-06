@@ -27,6 +27,7 @@ export default async function LaporanPage({
   const now = new Date();
   const user = await getCurrentUser();
   const institusi = user?.institusi ?? "PA IMSHUS";
+  const label = institusi === "PI IMSHUS" ? "santriwati" : "santri";
 
   const [allSantri, entries] = await Promise.all([
     listSantri(undefined, false, institusi),
@@ -52,7 +53,7 @@ export default async function LaporanPage({
     <div className="space-y-5">
       <PageHeader
         title="Laporan Bulanan"
-        description={`${kelas} · ${monthLabel(month, year)} · ${santri.length} santri`}
+        description={`${kelas} · ${monthLabel(month, year)} · ${santri.length} ${label}`}
       />
 
       <div className="card flex flex-wrap items-center gap-2 p-3">

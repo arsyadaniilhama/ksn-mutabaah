@@ -25,7 +25,12 @@ type SortKey = "nama" | "indeks" | "streak";
 const KELAS = ["Semua", "Kelas 1", "Kelas 2", "Kelas 3"];
 const PAGE_SIZE = 10;
 
-export default function SantriTable({ rows }: { rows: SantriRow[] }) {
+interface Props {
+  rows: SantriRow[];
+  label?: string;
+}
+
+export default function SantriTable({ rows, label = "Santri" }: Props) {
   const [q, setQ] = useState("");
   const [kelas, setKelas] = useState("Semua");
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({
@@ -122,7 +127,7 @@ export default function SantriTable({ rows }: { rows: SantriRow[] }) {
                 className="inline-flex items-center gap-1 hover:text-ink"
                 onClick={() => toggleSort("nama")}
               >
-                Santri <SortIcon col="nama" />
+                {label} <SortIcon col="nama" />
               </button>
             </th>
             <th className="hidden px-4 py-2.5 font-medium sm:table-cell">Kelas</th>
@@ -187,7 +192,7 @@ export default function SantriTable({ rows }: { rows: SantriRow[] }) {
               <td colSpan={4} className="px-4 py-12 text-center">
                 <Users size={28} stroke={1.5} className="mx-auto mb-2 text-faint" />
                 <p className="text-sm font-medium text-muted">
-                  Tidak ada santri yang cocok
+                  Tidak ada {label.toLowerCase()} yang cocok
                 </p>
                 <p className="mt-1 text-xs text-faint">
                   Ubah kata kunci atau filter kelas.
@@ -201,7 +206,7 @@ export default function SantriTable({ rows }: { rows: SantriRow[] }) {
       {pages > 1 && (
         <div className="flex items-center justify-between border-t border-line px-4 py-3 text-xs text-muted">
           <span className="tnum">
-            {filtered.length} santri · hal {safePage + 1}/{pages}
+            {filtered.length} {label.toLowerCase()} · hal {safePage + 1}/{pages}
           </span>
           <div className="flex gap-1">
             <button

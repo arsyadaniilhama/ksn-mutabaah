@@ -19,6 +19,7 @@ export default async function InputPage() {
   const now = new Date();
   const user = await getCurrentUser();
   const institusi = user?.institusi ?? "PA IMSHUS";
+  const label = institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
   const [santriList, progress, coverage] = await Promise.all([
     listSantri(undefined, false, institusi),
     getDayProgress(date),
@@ -34,13 +35,14 @@ export default async function InputPage() {
       <div className="shrink-0 lg:[&>div]:mb-3">
         <PageHeader
           title="Input Harian"
-          description={`Catat amalan santri — ${tanggalPanjang(date)}`}
+          description={`Catat amalan ${label.toLowerCase()} — ${tanggalPanjang(date)}`}
         />
       </div>
       <div className="lg:min-h-0 lg:flex-1">
         <Suspense fallback={<p className="text-sm text-muted">Memuat…</p>}>
           <InputClient
             santriList={santriList}
+            label={label}
             initialKelas={first?.kelas ?? kelas}
             initialDate={date}
             initialValues={initialValues}

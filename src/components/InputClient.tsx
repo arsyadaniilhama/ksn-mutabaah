@@ -23,6 +23,7 @@ interface Props {
   initialValues: Record<number, CellValue>;
   initialProgress: Record<string, number>;
   initialCoverage: string[];
+  label?: string;
 }
 
 const KELAS_ORDER: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
@@ -68,7 +69,9 @@ export default function InputClient({
   initialValues,
   initialProgress,
   initialCoverage,
+  label = "Santri",
 }: Props) {
+  const labelLc = label.toLowerCase();
   const [kelas, setKelas] = useState<Kelas>(initialKelas);
   const [date, setDate] = useState<string>(initialDate);
   const kelasList = useMemo(
@@ -224,7 +227,7 @@ export default function InputClient({
       setSantriId(next.id);
     } else {
       setMobileOpen(false);
-      setToast("Semua santri di kelas ini sudah dibuka hari ini.");
+      setToast(`Semua ${labelLc} di kelas ini sudah dibuka hari ini.`);
       setToastTone("ok");
     }
   };
@@ -261,12 +264,12 @@ export default function InputClient({
                   {current.nama}
                 </div>
                 <div className="tnum text-xs text-faint">
-                  NIS {current.nis} Â· {fmtTanggal(date)}
+                  NIS {current.nis} · {fmtTanggal(date)}
                 </div>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              {loading && <span className="text-xs text-faint">memuatâ€¦</span>}
+              {loading && <span className="text-xs text-faint">memuat…</span>}
               <span className="tnum chip bg-surface2 text-muted">
                 {items.find((i) => i.id === current.id)?.filled ?? 0}/19
               </span>
@@ -274,7 +277,7 @@ export default function InputClient({
                 onClick={goNext}
                 className="btn-primary hidden h-7 px-2.5 text-xs lg:inline-flex"
               >
-                Santri berikutnya
+                {label} berikutnya
                 <ChevronRight size={13} stroke={2} />
               </button>
             </div>
@@ -294,7 +297,7 @@ export default function InputClient({
           </div>
         </>
       ) : (
-        <p className="text-sm text-muted">Pilih santri dulu.</p>
+        <p className="text-sm text-muted">Pilih {labelLc} dulu.</p>
       )}
     </div>
   );
@@ -365,9 +368,9 @@ export default function InputClient({
 
       <div className="flex shrink-0 items-center justify-between px-1 lg:hidden">
         <span className="tnum text-xs text-muted">
-          Terisi hari ini: {terisi}/{santriInKelas.length} santri
+          Terisi hari ini: {terisi}/{santriInKelas.length} {labelLc}
         </span>
-        <span className="text-xs text-faint lg:hidden">ketuk santri untuk mengisi</span>
+        <span className="text-xs text-faint lg:hidden">ketuk {labelLc} untuk mengisi</span>
       </div>
 
       {/* Desktop: master-detail dua kolom (tinggi terkunci viewport, halaman tak scroll) */}
@@ -398,14 +401,14 @@ export default function InputClient({
             <div className="min-w-0 flex-1 leading-tight">
               <div className="truncate text-sm font-semibold text-ink">{current.nama}</div>
               <div className="tnum text-[11px] text-faint">
-                {current.kelas} Â· {fmtTanggal(date)}
+                {current.kelas} · {fmtTanggal(date)}
               </div>
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">{panel}</div>
           <div className="border-t border-line bg-surface p-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
             <button onClick={goNext} className="btn-primary w-full">
-              Selesai & santri berikutnya
+              Selesai & {labelLc} berikutnya
             </button>
           </div>
         </div>

@@ -9,6 +9,7 @@ interface Props {
   mode: "add" | "edit";
   initial: Partial<Santri> & { kelas?: Kelas };
   institusi: string;
+  label?: string;
   kelasList: Kelas[];
   onClose: () => void;
   onSaved: (message: string) => void;
@@ -19,6 +20,7 @@ export default function SantriSheet({
   mode,
   initial,
   kelasList,
+  label = "Santri",
   onClose,
   onSaved,
 }: Props) {
@@ -83,7 +85,7 @@ export default function SantriSheet({
     <Sheet
       open={open}
       onClose={onClose}
-      title={mode === "add" ? `Tambah Santri — ${kelas}` : "Ubah Data Santri"}
+      title={mode === "add" ? `Tambah ${label} — ${kelas}` : `Ubah Data ${label}`}
     >
       <form onSubmit={submit} className="space-y-4">
         <div className="space-y-1.5">

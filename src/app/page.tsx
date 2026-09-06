@@ -46,6 +46,8 @@ export default async function DashboardPage() {
 
   const user = await getCurrentUser();
   const institusi = user?.institusi ?? "PA IMSHUS";
+  const label = institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
+  const labelLc = institusi === "PI IMSHUS" ? "santriwati" : "santri";
 
   const [santri, entries, recent, progressToday] = await Promise.all([
     listSantri(undefined, false, institusi),
@@ -63,7 +65,10 @@ export default async function DashboardPage() {
     acc[s.kelas] = (acc[s.kelas] ?? 0) + 1;
     return acc;
   }, {});
-  const terisiHariIni = Object.values(progressToday).filter((n) => n > 0).length;
+  const idsInst = new Set(santri.map((s) => s.id));
+  const terisiHariIni = Object.entries(progressToday).filter(
+    ([id, n]) => idsInst.has(id) && n > 0,
+  ).length;
   const sorted = [...metrics].sort((a, b) => b.indeksRutinitas - a.indeksRutinitas);
   const perlu = sorted.filter((m) => m.indeksRutinitas < 50).slice(0, 5);
   const kosong = entries.length === 0;
@@ -90,7 +95,7 @@ export default async function DashboardPage() {
                 Belum ada data mutabaah bulan ini
               </p>
               <p className="text-xs text-muted">
-                Mulai isi amalan harian santri untuk melihat metrik dan grafik.
+                Mulai isi amalan harian {labelLc} untuk melihat metrik dan grafik.
               </p>
             </div>
           </div>
@@ -103,13 +108,13 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           icon={Users}
-          label="Total Santri"
+          label={`Total ${label}`}
           value={santri.length}
           sub={
             <span className="tnum">
               {Object.entries(perKelas)
                 .map(([k, v]) => `${k.replace("Kelas ", "K")}: ${v}`)
-                .join("  Â·  ")}
+                .join("  ·  ")}
             </span>
           }
         />
@@ -150,7 +155,7 @@ export default async function DashboardPage() {
             <h2 className="text-sm font-semibold text-ink">
               Rutinitas per Amalan
             </h2>
-            <span className="text-xs text-faint">rata-rata seluruh santri</span>
+            <span className="text-xs text-faint">rata-rata seluruh {labelLc}</span>
           </div>
           <RutinitasBars
             rows={Object.entries(benchmark).map(([id, pct]) => ({
@@ -166,7 +171,7 @@ export default async function DashboardPage() {
             <h2 className="mb-3 text-sm font-semibold text-ink">Perlu Perhatian</h2>
             {perlu.length === 0 ? (
               <p className="text-xs text-faint">
-                Tidak ada santri di bawah 50%. Pertahankan!
+                Tidak ada {labelLc} di bawah 50%. Pertahankan!
               </p>
             ) : (
               <ul className="space-y-3">
@@ -234,6 +239,7 @@ export default async function DashboardPage() {
       </div>
 
       <SantriTable
+        label={label}
         rows={metrics.map((m) => ({
           id: m.santri_id,
           nama: m.nama,

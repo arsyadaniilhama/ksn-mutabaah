@@ -20,9 +20,11 @@ type SheetState =
 export default function SantriManage({
   santri,
   institusi,
+  label = "Santri",
 }: {
   santri: Santri[];
   institusi: string;
+  label?: string;
 }) {
   const router = useRouter();
   const [sheet, setSheet] = useState<SheetState>(null);
@@ -85,7 +87,9 @@ export default function SantriManage({
                 </div>
               ))}
               {list.length === 0 && (
-                <p className="text-sm text-faint">Belum ada santri di kelas ini.</p>
+                <p className="text-sm text-faint">
+                  Belum ada {label.toLowerCase()} di kelas ini.
+                </p>
               )}
             </div>
           </section>
@@ -96,6 +100,7 @@ export default function SantriManage({
         open={sheet !== null}
         mode={sheet?.mode ?? "add"}
         institusi={institusi}
+        label={label}
         kelasList={kelasList}
         initial={
           sheet?.mode === "edit"

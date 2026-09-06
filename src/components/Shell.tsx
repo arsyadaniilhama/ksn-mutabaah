@@ -34,7 +34,7 @@ const GROUPS: {
   },
 ];
 
-function Brand() {
+function Brand({ institusi }: { institusi?: string | null }) {
   return (
     <Link href="/" className="flex items-center gap-2.5">
       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent text-sm font-bold text-accent-fg">
@@ -42,13 +42,19 @@ function Brand() {
       </span>
       <span className="leading-tight">
         <span className="block text-sm font-semibold text-ink">Mutabaah KSN</span>
-        <span className="block text-[11px] text-faint">PA IMSHUS</span>
+        <span className="block text-[11px] text-faint">{institusi ?? "PA IMSHUS"}</span>
       </span>
     </Link>
   );
 }
 
-function Nav({ onNavigate }: { onNavigate?: () => void }) {
+function Nav({
+  onNavigate,
+  santriLabel,
+}: {
+  onNavigate?: () => void;
+  santriLabel: string;
+}) {
   const pathname = usePathname();
   return (
     <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
@@ -59,6 +65,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
           </div>
           <ul className="space-y-0.5">
             {g.items.map((item) => {
+              const itemLabel = item.href === "/santri" ? santriLabel : item.label;
               const active =
                 item.href === "/"
                   ? pathname === "/"
@@ -78,7 +85,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
                     }
                   >
                     <Icon size={19} stroke={active ? 2.25 : 1.75} />
-                    {item.label}
+                    {itemLabel}
                   </Link>
                 </li>
               );
@@ -128,6 +135,7 @@ export default function Shell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isLogin = pathname.startsWith("/login");
+  const santriLabel = institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -138,15 +146,15 @@ export default function Shell({
       {/* Sidebar desktop */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-surface lg:flex">
         <div className="flex h-16 items-center border-b border-line px-5">
-          <Brand />
+          <Brand institusi={institusi} />
         </div>
-        <Nav />
+        <Nav santriLabel={santriLabel} />
         <UserFooter email={email} institusi={institusi} />
       </aside>
 
       {/* Header mobile */}
       <header className="no-print sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur lg:hidden">
-        <Brand />
+        <Brand institusi={institusi} />
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <button
@@ -168,7 +176,7 @@ export default function Shell({
           />
           <aside className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-line bg-surface shadow-2xl">
             <div className="flex h-16 items-center justify-between border-b border-line px-5">
-              <Brand />
+              <Brand institusi={institusi} />
               <button
                 aria-label="Tutup menu"
                 onClick={() => setOpen(false)}
@@ -177,7 +185,7 @@ export default function Shell({
                 <X size={18} />
               </button>
             </div>
-            <Nav onNavigate={() => setOpen(false)} />
+            <Nav onNavigate={() => setOpen(false)} santriLabel={santriLabel} />
             <UserFooter email={email} institusi={institusi} />
           </aside>
         </div>
