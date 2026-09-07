@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
+import { ADAB_IDS } from "@/lib/amalan";
 import { monthLabel, bagianJakarta } from "@/lib/dates";
 import PctBarChart from "@/components/PctBarChart";
 import ExportButtons from "@/components/ExportButtons";
+import type { KategoriMetric } from "@/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Raport" };
@@ -111,11 +113,12 @@ export default async function RaportPage({
           ))}
         </div>
 
-        <div className="mt-6">
+        <div className="mt-4">
           <h2 className="mb-1 text-sm font-semibold">
             Persentase Rutinitas per Amalan
           </h2>
           <PctBarChart
+            height={m.kategori.length > 19 ? 176 : 240}
             data={m.kategori.map((k) => ({
               id: k.amalan_id,
               nama: k.nama,
@@ -124,47 +127,87 @@ export default async function RaportPage({
           />
         </div>
 
-        <table className="mt-4 w-full border-collapse text-xs">
-          <thead>
-            <tr className="bg-zinc-100 text-center">
-              <th className="border border-zinc-200 px-2 py-1.5">No</th>
-              <th className="border border-zinc-200 px-2 py-1.5">Amalan</th>
-              <th className="border border-zinc-200 px-2 py-1.5">Tercapai</th>
-              <th className="border border-zinc-200 px-2 py-1.5">%</th>
-            </tr>
-          </thead>
-          <tbody>
-            {m.kategori.map((k) => (
-              <tr key={k.amalan_id}>
-                <td className="tnum border border-zinc-200 px-2 py-1 text-center">
-                  {k.amalan_id}
-                </td>
-                <td className="border border-zinc-200 px-2 py-1 text-left">{k.nama}</td>
-                <td className="tnum border border-zinc-200 px-2 py-1 text-center">
-                  {k.done}/{k.total}
-                  {k.rakaatTotal ? ` (${k.rakaatTotal} rk)` : ""}
-                  {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
-                </td>
-                <td className="tnum border border-zinc-200 px-2 py-1 text-center font-semibold">
-                  {m.terukur ? `${k.pct}%` : "—"}
-                </td>
-              </tr>
-            ))}
-            {m.haidCount > 0 && (
-              <tr>
-                <td className="border border-zinc-200 px-2 py-1 text-center">—</td>
-                <td className="border border-zinc-200 px-2 py-1 text-left">
-                  Haid (dibebaskan)
-                </td>
-                <td className="tnum border border-zinc-200 px-2 py-1 text-center">
-                  {m.haidCount} hari
-                </td>
-                <td className="border border-zinc-200 px-2 py-1 text-center">—</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        {m.kategori.length > 19 ? (
+          <div className="mt-3 grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                Ibadah Harian
+              </h3>
+              <Tabel
+                rows={m.kategori.filter((k) => !ADAB_IDS.has(k.amalan_id))}
+                terukur={m.terukur}
+              />
+            </div>
+            <div>
+              <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                Adab Sehari-hari
+              </h3>
+              <Tabel
+                rows={m.kategori.filter((k) => ADAB_IDS.has(k.amalan_id))}
+                terukur={m.terukur}
+                haidCount={m.haidCount}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="mt-3">
+            <Tabel rows={m.kategori} terukur={m.terukur} />
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function Tabel({
+  rows,
+  terukur,
+  haidCount,
+}: {
+  rows: KategoriMetric[];
+  terukur: boolean;
+  haidCount?: number;
+}) {
+  return (
+    <table className="w-full border-collapse text-[10px]">
+      <thead>
+        <tr className="bg-zinc-100 text-center">
+          <th className="border border-zinc-200 px-1.5 py-1">No</th>
+          <th className="border border-zinc-200 px-1.5 py-1">Amalan</th>
+          <th className="border border-zinc-200 px-1.5 py-1">Tercapai</th>
+          <th className="border border-zinc-200 px-1.5 py-1">%</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((k) => (
+          <tr key={k.amalan_id}>
+            <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center">
+              {k.amalan_id}
+            </td>
+            <td className="border border-zinc-200 px-1.5 py-0.5 text-left">{k.nama}</td>
+            <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center">
+              {k.done}/{k.total}
+              {k.rakaatTotal ? ` (${k.rakaatTotal} rk)` : ""}
+              {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
+            </td>
+            <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center font-semibold">
+              {terukur ? `${k.pct}%` : "—"}
+            </td>
+          </tr>
+        ))}
+        {haidCount != null && haidCount > 0 && (
+          <tr>
+            <td className="border border-zinc-200 px-1.5 py-0.5 text-center">—</td>
+            <td className="border border-zinc-200 px-1.5 py-0.5 text-left">
+              Haid (dibebaskan)
+            </td>
+            <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center">
+              {haidCount} hari
+            </td>
+            <td className="border border-zinc-200 px-1.5 py-0.5 text-center">—</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
   );
 }

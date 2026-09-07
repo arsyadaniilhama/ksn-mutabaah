@@ -136,7 +136,7 @@ export default async function DashboardPage() {
           icon={Gauge}
           label="Indeks Rata-rata"
           value={`${avg}%`}
-          sub="rata-rata 19 kategori amalan"
+          sub={`rata-rata ${metrics[0]?.kategori.length ?? 19} kategori amalan`}
           tone="accent"
           right={<RingGauge value={avg} size={56} />}
         />

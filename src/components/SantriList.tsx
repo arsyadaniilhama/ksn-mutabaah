@@ -15,9 +15,10 @@ interface Props {
   items: SantriListItem[];
   selectedId: string;
   onSelect: (id: string) => void;
+  total?: number;
 }
 
-export default function SantriList({ items, selectedId, onSelect }: Props) {
+export default function SantriList({ items, selectedId, onSelect, total = 19 }: Props) {
   const [q, setQ] = useState("");
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -46,7 +47,7 @@ export default function SantriList({ items, selectedId, onSelect }: Props) {
       <ul className="-mx-1 flex-1 space-y-1 overflow-y-auto px-1 pb-2">
         {filtered.map((s) => {
           const active = s.id === selectedId;
-          const complete = s.filled >= 19;
+          const complete = s.filled >= total;
           return (
             <li key={s.id}>
               <button
@@ -74,7 +75,7 @@ export default function SantriList({ items, selectedId, onSelect }: Props) {
                   <CircleCheck size={18} className="shrink-0 text-accent" />
                 ) : (
                   <span className="tnum chip shrink-0 bg-surface2 text-muted">
-                    {s.filled}/19
+                    {s.filled}/{total}
                   </span>
                 )}
               </button>

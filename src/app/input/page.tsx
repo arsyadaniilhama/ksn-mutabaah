@@ -6,6 +6,7 @@ import {
   getMonthCoverage,
 } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
+import { AMALAN_FOR } from "@/lib/amalan";
 import { todayISO, tanggalPanjang, bagianJakarta } from "@/lib/dates";
 import InputClient from "@/components/InputClient";
 import PageHeader from "@/components/PageHeader";
@@ -44,6 +45,7 @@ export default async function InputPage() {
             santriList={santriList}
             label={label}
             institusi={institusi}
+            amalanList={AMALAN_FOR(institusi)}
             initialKelas={first?.kelas ?? kelas}
             initialDate={date}
             initialValues={initialValues}

@@ -6,7 +6,7 @@ const isoDate = z
 
 export const upsertEntrySchema = z.object({
   santri_id: z.string().uuid(),
-  amalan_id: z.coerce.number().int().min(1).max(19),
+  amalan_id: z.coerce.number().int().min(1).max(30),
   entry_date: isoDate,
   status: z
     .enum(["done", "miss", "tepat", "masbuq", "sendiri"])

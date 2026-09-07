@@ -27,25 +27,36 @@ const SANTRIWATI_MD = path.join(ROOT, "..", "santriwati.md");
 const XLSX_PATH = positional[1] || path.join(ROOT, "..", "Mutabaah KSN.xlsx");
 
 const AMALAN = [
-  [1, "Sholat Tahajjud", "Tulis Rakaat", "rakaat"],
-  [2, "Sholat Witir", "Tulis Rakaat", "rakaat"],
-  [3, "Sholat Shubuh", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
-  [4, "Dzikir Sholat Ba'da Shubuh", null, "binary"],
-  [5, "Infaq Shubuh", null, "binary"],
-  [6, "Dzikir Pagi", null, "binary"],
-  [7, "Sholat Dhuha", "Tulis Rakaat", "rakaat"],
-  [8, "Sholat Zuhur", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
-  [9, "Dzikir Sholat Ba'da Zuhur", null, "binary"],
-  [10, "Sholat 'Asar", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
-  [11, "Dzikir Sholat Ba'da 'Asar", null, "binary"],
-  [12, "Dzikir Petang", null, "binary"],
-  [13, "Sholat Maghrib", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
-  [14, "Dzikir Sholat Ba'da Maghrib", null, "binary"],
-  [15, "Sholat Isya'", "Tepat Waktu / Masbuq / Sendiri", "fardhu"],
-  [16, "Dzikir Sholat Ba'da Isya'", null, "binary"],
-  [17, "Sholat Rawatib", "Tulis Rakaat", "rakaat"],
-  [18, "Puasa", null, "binary"],
-  [19, "Sunnah Sebelum Tidur", "3 Qul dan Doa Sebelum Tidur", "binary"],
+  [1, "Sholat Tahajjud", "Tulis Rakaat", "rakaat", null],
+  [2, "Sholat Witir", "Tulis Rakaat", "rakaat", null],
+  [3, "Sholat Shubuh", "Tepat Waktu / Masbuq / Sendiri", "fardhu", null],
+  [4, "Dzikir Sholat Ba'da Shubuh", null, "binary", null],
+  [5, "Infaq Shubuh", null, "binary", null],
+  [6, "Dzikir Pagi", null, "binary", null],
+  [7, "Sholat Dhuha", "Tulis Rakaat", "rakaat", null],
+  [8, "Sholat Zuhur", "Tepat Waktu / Masbuq / Sendiri", "fardhu", null],
+  [9, "Dzikir Sholat Ba'da Zuhur", null, "binary", null],
+  [10, "Sholat 'Asar", "Tepat Waktu / Masbuq / Sendiri", "fardhu", null],
+  [11, "Dzikir Sholat Ba'da 'Asar", null, "binary", null],
+  [12, "Dzikir Petang", null, "binary", null],
+  [13, "Sholat Maghrib", "Tepat Waktu / Masbuq / Sendiri", "fardhu", null],
+  [14, "Dzikir Sholat Ba'da Maghrib", null, "binary", null],
+  [15, "Sholat Isya'", "Tepat Waktu / Masbuq / Sendiri", "fardhu", null],
+  [16, "Dzikir Sholat Ba'da Isya'", null, "binary", null],
+  [17, "Sholat Rawatib", "Tulis Rakaat", "rakaat", null],
+  [18, "Puasa", null, "binary", null],
+  [19, "Sunnah Sebelum Tidur", "3 Qul dan Doa Sebelum Tidur", "binary", null],
+  [20, "Makan/Minum Tidak Berdiri", null, "binary", "PI IMSHUS"],
+  [21, "Menjaga Suara", null, "binary", "PI IMSHUS"],
+  [22, "Membantu Ustadzah/Teman", null, "binary", "PI IMSHUS"],
+  [23, "Memaafkan Kesalahan Orang Lain", null, "binary", "PI IMSHUS"],
+  [24, "Menyapa Orang Lain", null, "binary", "PI IMSHUS"],
+  [25, "Memanggil Teman Sesuai Nama", null, "binary", "PI IMSHUS"],
+  [26, "Tidak Mengejek/Menertawakan Teman", null, "binary", "PI IMSHUS"],
+  [27, "Tidak Mengghasab Barang Orang Lain", null, "binary", "PI IMSHUS"],
+  [28, "Tidak Berkata Kotor", null, "binary", "PI IMSHUS"],
+  [29, "Tidak Mencela Makanan", null, "binary", "PI IMSHUS"],
+  [30, "Tidak Merusak Inventaris Asrama/Sekolah", null, "binary", "PI IMSHUS"],
 ];
 const RAKAAT = new Set([1, 2, 7, 17]);
 const FARDHU = new Set([3, 8, 10, 13, 15]);
@@ -101,7 +112,7 @@ async function main() {
 
   // 1. kategori
   const { error: e1 } = await supabase.from("amalan_kategori").upsert(
-    AMALAN.map(([id, nama, ket, vt]) => ({ id, nama, keterangan: ket, value_type: vt, urut: id })),
+    AMALAN.map(([id, nama, ket, vt, inst]) => ({ id, nama, keterangan: ket, value_type: vt, urut: id, institusi: inst })),
     { onConflict: "id" },
   );
   if (e1) throw new Error("kategori: " + e1.message);

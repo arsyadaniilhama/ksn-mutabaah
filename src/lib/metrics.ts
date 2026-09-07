@@ -1,4 +1,4 @@
-import { AMALAN, HAID_TETAP_IDS } from "@/lib/amalan";
+import { AMALAN_FOR, HAID_TETAP_IDS } from "@/lib/amalan";
 import { daysInMonth, hariBerjalan, parseISO } from "@/lib/dates";
 import type {
   KategoriMetric,
@@ -42,6 +42,7 @@ export function computeSantriMetrics(
   haid?: Set<string>,
 ): SantriMonthlyMetrics {
   const D = hariBerjalan(year, month);
+  const daftar = AMALAN_FOR(santri.institusi);
   const iso = (d: number) =>
     `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   const isHaid = (d: number) => !!haid?.has(iso(d));
@@ -57,7 +58,7 @@ export function computeSantriMetrics(
     byDayAmal.set(`${e.amalan_id}:${d}`, e);
   }
 
-  const kategori: KategoriMetric[] = AMALAN.map((a) => {
+  const kategori: KategoriMetric[] = daftar.map((a) => {
     const tetap = HAID_TETAP_IDS.has(a.id);
     // Infaq/Dzikir pagi-petang/Sunnah tidur: penyebut penuh (hari haid tetap wajib).
     // Amalan lain: hari haid keluar dari penyebut, tapi entri yang tetap diisi dihitung.
@@ -105,9 +106,9 @@ export function computeSantriMetrics(
   const totalRakaat = kategori.reduce((s, k) => s + (k.rakaatTotal ?? 0), 0);
 
   // streak: hari berturut-turut "lengkap"; hari haid dilewati tanpa memutus
-  const wajibBinary = AMALAN.filter((a) => a.value_type === "binary").map((a) => a.id);
-  const wajibRakaat = AMALAN.filter((a) => a.value_type === "rakaat").map((a) => a.id);
-  const wajibFardhu = AMALAN.filter((a) => a.value_type === "fardhu").map((a) => a.id);
+  const wajibBinary = daftar.filter((a) => a.value_type === "binary").map((a) => a.id);
+  const wajibRakaat = daftar.filter((a) => a.value_type === "rakaat").map((a) => a.id);
+  const wajibFardhu = daftar.filter((a) => a.value_type === "fardhu").map((a) => a.id);
   const isDayComplete = (day: number): boolean => {
     for (const id of wajibBinary) {
       if (byDayAmal.get(`${id}:${day}`)?.status !== "done") return false;
@@ -157,17 +158,18 @@ export function computeSantriMetrics(
   };
 }
 
-/** Rata-rata % per kategori untuk sekumpulan santri (benchmark kelas). */
+/** Rata-rata % per kategori untuk sekumpulan santri (benchmark kelas/institusi). */
 export function computeKategoriBenchmark(
   metricsList: SantriMonthlyMetrics[],
 ): Record<number, number> {
   const terukurList = metricsList.filter((m) => m.terukur);
+  const kategoriIds = metricsList[0]?.kategori.map((k) => k.amalan_id) ?? [];
   const out: Record<number, number> = {};
-  for (const a of AMALAN) {
+  for (const id of kategoriIds) {
     const vals = terukurList.map(
-      (m) => m.kategori.find((k) => k.amalan_id === a.id)?.pct ?? 0,
+      (m) => m.kategori.find((k) => k.amalan_id === id)?.pct ?? 0,
     );
-    out[a.id] = vals.length
+    out[id] = vals.length
       ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length)
       : 0;
   }

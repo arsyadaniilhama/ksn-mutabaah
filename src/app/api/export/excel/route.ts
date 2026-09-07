@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
-import { AMALAN } from "@/lib/amalan";
+import { AMALAN_FOR } from "@/lib/amalan";
 import { bulanName, daysInMonth } from "@/lib/dates";
 import type { MutabaahEntry } from "@/types";
 
@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const entries = await listEntries({ year, month, santriId });
+  const daftar = AMALAN_FOR(santri.institusi);
   const haidSet =
     santri.institusi === "PI IMSHUS"
       ? new Set(await getHaidDates(santriId, year, month))
@@ -77,7 +78,7 @@ export async function GET(request: Request) {
   });
 
   // Baris amalan
-  AMALAN.forEach((a, i) => {
+  daftar.forEach((a, i) => {
     const rowNo = 7 + i;
     const cells: (string | number | null)[] = [];
     let total = 0;
@@ -116,7 +117,7 @@ export async function GET(request: Request) {
 
   // Baris Haid (khusus PI, hanya bila ada)
   if (haidSet.size > 0) {
-    const haidRow = ws.getRow(7 + AMALAN.length);
+    const haidRow = ws.getRow(7 + daftar.length);
     const hcells: (string | number | null)[] = [];
     let hcount = 0;
     for (let day = 1; day <= dim; day++) {

@@ -26,6 +26,7 @@ export interface AmalanKategori {
   keterangan: string | null;
   value_type: ValueType;
   urut: number;
+  institusi?: string | null; // null = berlaku untuk semua institusi
 }
 
 export interface MutabaahEntry {

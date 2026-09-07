@@ -8,6 +8,7 @@ import {
   IconChevronRight as ChevronRight,
 } from "@tabler/icons-react";
 import { AMALAN, AMALAN_BY_ID } from "@/lib/amalan";
+import type { AmalanKategori } from "@/types";
 import { daysInMonth, parseISO, todayISO } from "@/lib/dates";
 import AmalanRow from "@/components/AmalanRow";
 import Avatar from "@/components/Avatar";
@@ -25,6 +26,7 @@ interface Props {
   initialCoverage: string[];
   label?: string;
   institusi?: string;
+  amalanList?: AmalanKategori[];
 }
 
 const KELAS_ORDER: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
@@ -72,8 +74,11 @@ export default function InputClient({
   initialCoverage,
   label = "Santri",
   institusi,
+  amalanList = AMALAN,
 }: Props) {
   const labelLc = label.toLowerCase();
+  const totalAmalan = amalanList.length;
+  const splitIdx = Math.ceil(totalAmalan / 2);
   const canHaid = institusi === "PI IMSHUS";
   const [haidDates, setHaidDates] = useState<Set<string>>(new Set());
   const [haidSaving, setHaidSaving] = useState(false);
@@ -235,7 +240,7 @@ export default function InputClient({
           body: JSON.stringify({ entries: [entry] }),
         });
         if (!res.ok) throw new Error();
-        const filled = AMALAN.filter((a) => {
+        const filled = amalanList.filter((a) => {
           const v = newValues[a.id];
           return a.value_type === "rakaat" ? (v as number) > 0 : v != null;
         }).length;
@@ -254,7 +259,7 @@ export default function InputClient({
         setSavingId(null);
       }
     },
-    [santriId, date, values],
+    [santriId, date, values, amalanList],
   );
 
   const currentIdx = santriInKelas.findIndex((s) => s.id === santriId);
@@ -270,8 +275,8 @@ export default function InputClient({
         saving={savingId === a.id}
       />
     ));
-  const colLeft = AMALAN.slice(0, 10);
-  const colRight = AMALAN.slice(10);
+  const colLeft = amalanList.slice(0, splitIdx);
+  const colRight = amalanList.slice(splitIdx);
 
   const goNext = () => {
     const next = santriInKelas[currentIdx + 1];
@@ -323,7 +328,7 @@ export default function InputClient({
             <div className="flex shrink-0 items-center gap-2">
               {loading && <span className="text-xs text-faint">memuat…</span>}
               <span className="tnum chip bg-surface2 text-muted">
-                {items.find((i) => i.id === current.id)?.filled ?? 0}/19
+                {items.find((i) => i.id === current.id)?.filled ?? 0}/{totalAmalan}
               </span>
               {canHaid && (
                 <button
@@ -370,7 +375,9 @@ export default function InputClient({
             <div className="flex min-w-0 flex-1 flex-col gap-0.5 xl:gap-1.5">{rowsFor(colLeft)}</div>
             <div className="flex min-w-0 flex-1 flex-col gap-0.5 xl:gap-1.5">
               {rowsFor(colRight)}
-              <div aria-hidden className="hidden flex-1 lg:block" />
+              {colRight.length < colLeft.length && (
+                <div aria-hidden className="hidden flex-1 lg:block" />
+              )}
             </div>
           </div>
         </>
@@ -455,14 +462,14 @@ export default function InputClient({
       {/* Desktop: master-detail dua kolom (tinggi terkunci viewport, halaman tak scroll) */}
       <div className="hidden min-h-0 flex-1 gap-4 lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
         <div className="card min-h-0 p-3">
-          <SantriList items={items} selectedId={santriId} onSelect={setSantriId} />
+          <SantriList items={items} selectedId={santriId} onSelect={setSantriId} total={totalAmalan} />
         </div>
         <div className="min-h-0 min-w-0">{panel}</div>
       </div>
 
       {/* Mobile: daftar penuh */}
       <div className="card p-3 lg:hidden">
-        <SantriList items={items} selectedId={santriId} onSelect={selectSantri} />
+        <SantriList items={items} selectedId={santriId} onSelect={selectSantri} total={totalAmalan} />
       </div>
 
       {/* Mobile: slide-over panel */}
