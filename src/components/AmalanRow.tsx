@@ -15,9 +15,11 @@ interface Props {
   value: CellValue;
   onChange: (next: CellValue) => void;
   saving?: boolean;
+  /** Mode padat (PC, >19 kategori): tinggi sel tetap, tanpa keterangan. */
+  compact?: boolean;
 }
 
-export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
+export default function AmalanRow({ amalan, value, onChange, saving, compact }: Props) {
   const isRakaat = amalan.value_type === "rakaat";
   const isFardhu = amalan.value_type === "fardhu";
   const filled = isRakaat
@@ -27,7 +29,10 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
   return (
     <div
       className={
-        "amalan-cell flex h-[58px] flex-col justify-between rounded-lg border px-2 py-1 transition-colors md:h-[38px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 lg:h-auto lg:min-h-0 lg:max-h-[58px] lg:flex-1 lg:py-0.5 " +
+        "amalan-cell flex h-[58px] flex-col justify-between rounded-lg border px-2 py-1 transition-colors md:h-[38px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 " +
+        (compact
+          ? "lg:h-[40px] lg:min-h-[40px] lg:max-h-[40px] lg:flex-none lg:py-0.5 "
+          : "lg:h-auto lg:min-h-0 lg:max-h-[58px] lg:flex-1 lg:py-0.5 ") +
         (filled
           ? "border-accent/30 bg-accent-soft/60"
           : "border-line bg-surface") +
@@ -42,18 +47,30 @@ export default function AmalanRow({ amalan, value, onChange, saving }: Props) {
           <span className="truncate text-[11px] font-medium text-ink md:hidden">
             {amalan.short}
           </span>
-          <span className="hidden truncate text-sm font-medium text-ink md:block lg:whitespace-normal lg:line-clamp-2 lg:leading-tight">
+          <span
+            className={
+              "hidden truncate text-sm font-medium text-ink md:block " +
+              (compact
+                ? ""
+                : "lg:whitespace-normal lg:line-clamp-2 lg:leading-tight")
+            }
+          >
             {amalan.nama}
           </span>
         </div>
-        {amalan.keterangan && (
+        {amalan.keterangan && !compact && (
           <div className="amalan-ket hidden pl-6 text-xs text-faint">
             {amalan.keterangan}
           </div>
         )}
       </div>
 
-      <div className="w-full shrink-0 self-stretch md:w-[200px] xl:w-[210px]">
+      <div
+        className={
+          "w-full shrink-0 self-stretch md:w-[200px] " +
+          (compact ? "" : "xl:w-[210px]")
+        }
+      >
         {isRakaat ? (
           <RakaatStepper
             value={(value as number | null) ?? null}

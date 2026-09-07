@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
-import { ADAB_IDS } from "@/lib/amalan";
 import { monthLabel, bagianJakarta } from "@/lib/dates";
 import PctBarChart from "@/components/PctBarChart";
 import ExportButtons from "@/components/ExportButtons";
@@ -118,7 +117,7 @@ export default async function RaportPage({
             Persentase Rutinitas per Amalan
           </h2>
           <PctBarChart
-            height={m.kategori.length > 19 ? 176 : 240}
+            height={240}
             data={m.kategori.map((k) => ({
               id: k.amalan_id,
               nama: k.nama,
@@ -127,33 +126,9 @@ export default async function RaportPage({
           />
         </div>
 
-        {m.kategori.length > 19 ? (
-          <div className="mt-3 grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-                Ibadah Harian
-              </h3>
-              <Tabel
-                rows={m.kategori.filter((k) => !ADAB_IDS.has(k.amalan_id))}
-                terukur={m.terukur}
-              />
-            </div>
-            <div>
-              <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-                Adab Sehari-hari
-              </h3>
-              <Tabel
-                rows={m.kategori.filter((k) => ADAB_IDS.has(k.amalan_id))}
-                terukur={m.terukur}
-                haidCount={m.haidCount}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="mt-3">
-            <Tabel rows={m.kategori} terukur={m.terukur} />
-          </div>
-        )}
+        <div className="mt-4">
+          <Tabel rows={m.kategori} terukur={m.terukur} haidCount={m.haidCount} />
+        </div>
       </div>
     </div>
   );

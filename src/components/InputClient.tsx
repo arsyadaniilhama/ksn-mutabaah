@@ -273,6 +273,7 @@ export default function InputClient({
         value={values[a.id] ?? null}
         onChange={(next) => handleChange(a.id, next)}
         saving={savingId === a.id}
+        compact={totalAmalan > 19}
       />
     ));
   const colLeft = amalanList.slice(0, splitIdx);
