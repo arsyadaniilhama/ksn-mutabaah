@@ -27,7 +27,7 @@ export const AMALAN: AmalanKategori[] = [
   { id: 18, nama: "Puasa", short: "Puasa", keterangan: null, value_type: "binary", urut: 18 },
   { id: 19, nama: "Sunnah Sebelum Tidur", short: "Sunnah Tidur", keterangan: "3 Qul dan Doa Sebelum Tidur", value_type: "binary", urut: 19 },
   // --- Adab, khusus PI IMSHUS (santriwati) ---
-  { id: 20, nama: "Makan/Minum Tidak Berdiri", short: "Makan berdiri", keterangan: null, value_type: "binary", urut: 20, institusi: "PI IMSHUS" },
+  { id: 20, nama: "Makan/Minum Tidak Berdiri", short: "Tdk makan berdiri", keterangan: null, value_type: "binary", urut: 20, institusi: "PI IMSHUS" },
   { id: 21, nama: "Menjaga Suara", short: "Menjaga suara", keterangan: null, value_type: "binary", urut: 21, institusi: "PI IMSHUS" },
   { id: 22, nama: "Membantu Ustadzah/Teman", short: "Membantu", keterangan: null, value_type: "binary", urut: 22, institusi: "PI IMSHUS" },
   { id: 23, nama: "Memaafkan Kesalahan Orang Lain", short: "Memaafkan", keterangan: null, value_type: "binary", urut: 23, institusi: "PI IMSHUS" },
@@ -35,7 +35,7 @@ export const AMALAN: AmalanKategori[] = [
   { id: 25, nama: "Memanggil Teman Sesuai Nama", short: "Panggil nama", keterangan: null, value_type: "binary", urut: 25, institusi: "PI IMSHUS" },
   { id: 26, nama: "Tidak Mengejek/Menertawakan Teman", short: "Tidak mengejek", keterangan: null, value_type: "binary", urut: 26, institusi: "PI IMSHUS" },
   { id: 27, nama: "Tidak Mengghasab Barang Orang Lain", short: "Tidak ghasab", keterangan: null, value_type: "binary", urut: 27, institusi: "PI IMSHUS" },
-  { id: 28, nama: "Tidak Berkata Kotor", short: "Kata kotor", keterangan: null, value_type: "binary", urut: 28, institusi: "PI IMSHUS" },
+  { id: 28, nama: "Tidak Berkata Kotor", short: "Tdk berkata kotor", keterangan: null, value_type: "binary", urut: 28, institusi: "PI IMSHUS" },
   { id: 29, nama: "Tidak Mencela Makanan", short: "Tidak mencela", keterangan: null, value_type: "binary", urut: 29, institusi: "PI IMSHUS" },
   { id: 30, nama: "Tidak Merusak Inventaris Asrama/Sekolah", short: "Tidak merusak", keterangan: null, value_type: "binary", urut: 30, institusi: "PI IMSHUS" },
 ];
