@@ -116,6 +116,7 @@ export default async function SantriDetailPage({
             <tr className="border-b border-line text-left text-xs text-faint">
               <th className="px-5 py-2.5 font-medium">Amalan</th>
               <th className="px-4 py-2.5 text-right font-medium">Tercapai</th>
+              <th className="px-4 py-2.5 font-medium">Keterangan</th>
               <th className="px-5 py-2.5 font-medium">Progres</th>
             </tr>
           </thead>
@@ -125,8 +126,12 @@ export default async function SantriDetailPage({
                 <td className="px-5 py-2.5 text-ink">{k.nama}</td>
                 <td className="tnum px-4 py-2.5 text-right text-muted">
                   {k.done}/{k.total}
-                  {k.rakaatTotal ? ` · ${k.rakaatTotal} rk` : ""}
-                  {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
+                </td>
+                <td className="px-4 py-2.5 text-xs text-faint">
+                  {k.rakaatTotal ? `${k.rakaatTotal} rakaat` : ""}
+                  {k.tepat != null
+                    ? `Tepat ${k.tepat} · Masbuq ${k.masbuq} · Sendiri ${k.sendiri}`
+                    : ""}
                 </td>
                 <td className="px-5 py-2.5">
                   {m.terukur ? (

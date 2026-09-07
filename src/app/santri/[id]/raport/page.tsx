@@ -8,7 +8,26 @@ import ExportButtons from "@/components/ExportButtons";
 import type { KategoriMetric } from "@/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Raport" };
+
+/** Judul = "Nama — Bulan Tahun" (absolute, tanpa template) → jadi nama file default saat Save as PDF. */
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ month?: string; year?: string }>;
+}) {
+  const { id } = await params;
+  const sp = await searchParams;
+  const jkt = bagianJakarta();
+  const year = Number(sp.year) || jkt.y;
+  const month = Number(sp.month) || jkt.m;
+  const santri = await getSantri(id);
+  const judul = santri
+    ? `${santri.nama} — ${monthLabel(month, year)}`
+    : "Raport";
+  return { title: { absolute: judul } };
+}
 
 export default async function RaportPage({
   params,
@@ -147,10 +166,11 @@ function Tabel({
     <table className="w-full border-collapse text-[10px]">
       <thead>
         <tr className="bg-zinc-100 text-center">
-          <th className="border border-zinc-200 px-1.5 py-1">No</th>
-          <th className="border border-zinc-200 px-1.5 py-1">Amalan</th>
-          <th className="border border-zinc-200 px-1.5 py-1">Tercapai</th>
-          <th className="border border-zinc-200 px-1.5 py-1">%</th>
+          <th className="w-[6%] border border-zinc-200 px-1.5 py-1">No</th>
+          <th className="w-[40%] border border-zinc-200 px-1.5 py-1">Amalan</th>
+          <th className="w-[12%] border border-zinc-200 px-1.5 py-1">Tercapai</th>
+          <th className="w-[30%] border border-zinc-200 px-1.5 py-1">Keterangan</th>
+          <th className="w-[12%] border border-zinc-200 px-1.5 py-1">%</th>
         </tr>
       </thead>
       <tbody>
@@ -162,8 +182,10 @@ function Tabel({
             <td className="border border-zinc-200 px-1.5 py-0.5 text-left">{k.nama}</td>
             <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center">
               {k.done}/{k.total}
-              {k.rakaatTotal ? ` (${k.rakaatTotal} rk)` : ""}
-              {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
+            </td>
+            <td className="border border-zinc-200 px-1.5 py-0.5 text-left text-zinc-500">
+              {k.rakaatTotal ? `${k.rakaatTotal} rakaat` : ""}
+              {k.tepat != null ? `Tepat ${k.tepat} · Masbuq ${k.masbuq} · Sendiri ${k.sendiri}` : ""}
             </td>
             <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center font-semibold">
               {terukur ? `${k.pct}%` : "—"}
@@ -178,6 +200,9 @@ function Tabel({
             </td>
             <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center">
               {haidCount} hari
+            </td>
+            <td className="border border-zinc-200 px-1.5 py-0.5 text-left text-zinc-500">
+              tidak dihitung dalam persentase sholat/dzikir
             </td>
             <td className="border border-zinc-200 px-1.5 py-0.5 text-center">—</td>
           </tr>
