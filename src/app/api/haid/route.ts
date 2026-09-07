@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getHaidDates, listSantri, setHaid } from "@/lib/data";
+import { getHaidDates, setHaid } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { z } from "zod";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -10,8 +11,13 @@ async function guardPi(santriId: string): Promise<{ error?: string; status?: num
   if (!cu) return { error: "unauthorized", status: 401 };
   if (cu.institusi !== "PI IMSHUS")
     return { error: "fitur haid hanya untuk PI IMSHUS", status: 403 };
-  const ids = new Set((await listSantri(undefined, true, "PI IMSHUS")).map((s) => s.id));
-  if (!ids.has(santriId)) return { error: "forbidden", status: 403 };
+  const { data: santri } = await createAdminClient()
+    .from("santri")
+    .select("institusi")
+    .eq("id", santriId)
+    .maybeSingle();
+  if (!santri || santri.institusi !== "PI IMSHUS")
+    return { error: "forbidden", status: 403 };
   return {};
 }
 

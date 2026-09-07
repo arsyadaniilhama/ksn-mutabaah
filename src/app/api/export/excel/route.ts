@@ -83,19 +83,18 @@ export async function GET(request: Request) {
     let total = 0;
     for (let day = 1; day <= dim; day++) {
       const e = idx.get(`${a.id}:${day}`);
-      const haid = haidSet.has(isoOf(day));
       if (a.value_type === "rakaat") {
         const r = e?.rakaat ?? 0;
-        if (r > 0 && !haid) total += r;
+        if (r > 0) total += r;
         cells.push(r && r > 0 ? r : null);
       } else if (a.value_type === "fardhu") {
         const map: Record<string, string> = { tepat: "T", masbuq: "M", sendiri: "S" };
         const v = e?.status ? (map[e.status] ?? null) : null;
-        if (v && !haid) total += 1;
+        if (v) total += 1;
         cells.push(v);
       } else {
         const v = e?.status === "done" ? "V" : e?.status === "miss" ? "X" : null;
-        if (v === "V" && !haid) total += 1;
+        if (v === "V") total += 1;
         cells.push(v);
       }
     }

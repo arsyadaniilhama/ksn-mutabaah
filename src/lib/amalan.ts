@@ -35,6 +35,13 @@ export const FARDHU_OPTIONS: { value: FardhuStatus; label: string; short: string
   { value: "sendiri", label: "Sendiri", short: "S" },
 ];
 
+/**
+ * Amalan yang TETAP dinilai penuh saat santriwati haid
+ * (bukan ibadah yang gugur karena haid): Infaq Shubuh, Dzikir Pagi,
+ * Dzikir Petang, Sunnah Sebelum Tidur.
+ */
+export const HAID_TETAP_IDS = new Set([5, 6, 12, 19]);
+
 export const AMALAN_BY_ID: Record<number, AmalanKategori> = Object.fromEntries(
   AMALAN.map((a) => [a.id, a]),
 );

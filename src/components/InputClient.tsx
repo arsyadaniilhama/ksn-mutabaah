@@ -76,6 +76,7 @@ export default function InputClient({
   const labelLc = label.toLowerCase();
   const canHaid = institusi === "PI IMSHUS";
   const [haidDates, setHaidDates] = useState<Set<string>>(new Set());
+  const [haidSaving, setHaidSaving] = useState(false);
   const [kelas, setKelas] = useState<Kelas>(initialKelas);
   const [date, setDate] = useState<string>(initialDate);
   const kelasList = useMemo(
@@ -176,23 +177,23 @@ export default function InputClient({
   // Ambil tanggal haid santriwati terpilih (bulannya mengikuti tanggal aktif)
   useEffect(() => {
     if (!canHaid || !santriId) return;
+    const [hy, hm] = ym.split("-");
     (async () => {
       try {
-        const res = await fetch(
-          `/api/haid?santri_id=${santriId}&year=${dt.getFullYear()}&month=${dt.getMonth() + 1}`,
-        );
+        const res = await fetch(`/api/haid?santri_id=${santriId}&year=${hy}&month=${hm}`);
         const json = await res.json();
         setHaidDates(new Set(json.dates ?? []));
       } catch {
         /* noop */
       }
     })();
-  }, [canHaid, santriId, ym, dt]);
+  }, [canHaid, santriId, ym]);
 
   const isHaidToday = haidDates.has(date);
   const toggleHaid = async () => {
-    if (!canHaid || !santriId) return;
+    if (!canHaid || !santriId || haidSaving) return;
     const on = !isHaidToday;
+    setHaidSaving(true);
     setHaidDates((s) => {
       const n = new Set(s);
       if (on) n.add(date);
@@ -215,6 +216,8 @@ export default function InputClient({
       });
       setToast("Gagal menyimpan status haid.");
       setToastTone("err");
+    } finally {
+      setHaidSaving(false);
     }
   };
 
@@ -326,10 +329,12 @@ export default function InputClient({
                 <button
                   type="button"
                   onClick={toggleHaid}
+                  disabled={haidSaving}
                   aria-pressed={isHaidToday}
-                  title="Tandai hari ini sebagai haid (tidak dihitung dalam persentase)"
+                  title="Tandai hari ini sebagai haid (amalan selain dzikir/infaq/sunnah tidur tidak dihitung)"
                   className={
                     "chip transition-colors " +
+                    (haidSaving ? "opacity-60 " : "") +
                     (isHaidToday
                       ? "bg-danger text-white"
                       : "border border-line bg-surface text-muted hover:text-ink")
@@ -349,7 +354,10 @@ export default function InputClient({
           </div>
           {canHaid && isHaidToday && (
             <p className="mb-2 rounded-lg bg-danger-soft px-3 py-1.5 text-xs text-danger">
-              Hari ini ditandai <b>haid</b> — tidak dihitung dalam persentase.
+              Hari ini ditandai <b>haid</b> — sholat &amp; dzikir sekitar sholat tidak dihitung.{" "}
+              <span className="text-muted">
+                Infaq shubuh, dzikir pagi/petang &amp; sunnah sebelum tidur tetap dinilai.
+              </span>
             </p>
           )}
           {/* HP/tablet: 2 kolom compact, urutan per-kolom (1-10 | 11-19) */}

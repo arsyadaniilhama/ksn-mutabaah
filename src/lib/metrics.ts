@@ -1,4 +1,4 @@
-import { AMALAN } from "@/lib/amalan";
+import { AMALAN, HAID_TETAP_IDS } from "@/lib/amalan";
 import { daysInMonth, hariBerjalan, parseISO } from "@/lib/dates";
 import type {
   KategoriMetric,
@@ -29,8 +29,10 @@ export function entriesForMonth(
 /**
  * Hitung metrik bulanan satu santri.
  * `entries` boleh berisi banyak santri; akan difilter per santri.
- * `haid` = Set tanggal ISO hari haid -> dikeluarkan dari penyebut (D_eff);
- * streak tidak terputus oleh hari haid.
+ * `haid` = Set tanggal ISO hari haid:
+ *  - 4 amalan (infaq shubuh, dzikir pagi/petang, sunnah tidur) tetap dinilai penuh;
+ *  - amalan lain: hari haid keluar dari penyebut, tapi entri yang diisi tetap dihitung poin;
+ *  - streak tidak terputus oleh hari haid.
  */
 export function computeSantriMetrics(
   santri: Santri,
@@ -56,13 +58,16 @@ export function computeSantriMetrics(
   }
 
   const kategori: KategoriMetric[] = AMALAN.map((a) => {
+    const tetap = HAID_TETAP_IDS.has(a.id);
+    // Infaq/Dzikir pagi-petang/Sunnah tidur: penyebut penuh (hari haid tetap wajib).
+    // Amalan lain: hari haid keluar dari penyebut, tapi entri yang tetap diisi dihitung.
+    const denom = tetap ? D : D_eff;
     let done = 0;
     let rakaatTotal = 0;
     let tepat = 0;
     let masbuq = 0;
     let sendiri = 0;
     for (let day = 1; day <= D; day++) {
-      if (isHaid(day)) continue; // hari dibebaskan, tidak dinilai
       const e = byDayAmal.get(`${a.id}:${day}`);
       if (!e) continue;
       if (a.value_type === "rakaat") {
@@ -81,13 +86,13 @@ export function computeSantriMetrics(
         done++;
       }
     }
-    const pct = D_eff > 0 ? Math.round((done / D_eff) * 100) : 0;
+    const pct = denom > 0 ? Math.min(100, Math.round((done / denom) * 100)) : 0;
     return {
       amalan_id: a.id,
       nama: a.nama,
       value_type: a.value_type,
       done,
-      total: D_eff,
+      total: denom,
       pct,
       ...(a.value_type === "rakaat" ? { rakaatTotal } : {}),
       ...(a.value_type === "fardhu" ? { tepat, masbuq, sendiri } : {}),
