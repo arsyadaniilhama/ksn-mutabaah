@@ -233,6 +233,79 @@ export async function listRecentEntries(
   return (data ?? []) as unknown as RecentActivity[];
 }
 
+/** Tanggal haid satu santriwati pada satu bulan. */
+export async function getHaidDates(
+  santriId: string,
+  year: number,
+  month: number,
+): Promise<string[]> {
+  const supabase = createAdminClient();
+  const start = `${year}-${String(month).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const end = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  const { data, error } = await supabase
+    .from("haid_entries")
+    .select("tanggal")
+    .eq("santri_id", santriId)
+    .gte("tanggal", start)
+    .lte("tanggal", end);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => r.tanggal as string);
+}
+
+/** Peta santri_id -> Set(tanggal haid) untuk satu bulan (opsional per institusi). */
+export async function listHaidForMonth(
+  year: number,
+  month: number,
+  institusi?: string,
+): Promise<Map<string, Set<string>>> {
+  const supabase = createAdminClient();
+  const start = `${year}-${String(month).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const end = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  let rows = await fetchAll<{ santri_id: string; tanggal: string }>((from, to) =>
+    supabase
+      .from("haid_entries")
+      .select("santri_id,tanggal")
+      .gte("tanggal", start)
+      .lte("tanggal", end)
+      .order("santri_id")
+      .range(from, to),
+  );
+  if (institusi) {
+    const ids = new Set((await listSantri(undefined, true, institusi)).map((s) => s.id));
+    rows = rows.filter((r) => ids.has(r.santri_id));
+  }
+  const map = new Map<string, Set<string>>();
+  for (const r of rows) {
+    if (!map.has(r.santri_id)) map.set(r.santri_id, new Set());
+    map.get(r.santri_id)!.add(r.tanggal);
+  }
+  return map;
+}
+
+/** Tandai/batalkan hari haid. */
+export async function setHaid(
+  santriId: string,
+  tanggal: string,
+  on: boolean,
+): Promise<void> {
+  const supabase = createAdminClient();
+  if (on) {
+    const { error } = await supabase
+      .from("haid_entries")
+      .upsert({ santri_id: santriId, tanggal }, { onConflict: "santri_id,tanggal" });
+    if (error) throw new Error(error.message);
+  } else {
+    const { error } = await supabase
+      .from("haid_entries")
+      .delete()
+      .eq("santri_id", santriId)
+      .eq("tanggal", tanggal);
+    if (error) throw new Error(error.message);
+  }
+}
+
 /** Upsert massal; konflik pada (santri_id, amalan_id, entry_date). */
 export async function upsertEntries(
   entries: {

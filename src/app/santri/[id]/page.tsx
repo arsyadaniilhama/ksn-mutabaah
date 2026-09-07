@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IconFilter as Filter, IconPdf as FilePdf } from "@tabler/icons-react";
-import { getSantri, listEntries } from "@/lib/data";
+import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { monthLabel, bagianJakarta } from "@/lib/dates";
@@ -43,7 +43,11 @@ export default async function SantriDetailPage({
   if (user && santri.institusi !== user.institusi) notFound();
 
   const entries = await listEntries({ year, month, santriId: santri.id });
-  const m = computeSantriMetrics(santri, entries, year, month);
+  const haidDates =
+    santri.institusi === "PI IMSHUS"
+      ? new Set(await getHaidDates(santri.id, year, month))
+      : undefined;
+  const m = computeSantriMetrics(santri, entries, year, month, haidDates);
 
   return (
     <div className="space-y-6">
@@ -62,9 +66,14 @@ export default async function SantriDetailPage({
           <div className="truncate text-base font-semibold text-ink">
             {santri.nama}
           </div>
-          <div className="mt-1 flex items-center gap-2">
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             <Badge tone="accent">{santri.kelas}</Badge>
             <span className="tnum text-xs text-faint">NIS {santri.nis}</span>
+            {m.haidCount > 0 && (
+              <Badge tone="danger">
+                {m.haidCount} hari haid · dihitung dari {m.hariTerhitung} hari
+              </Badge>
+            )}
           </div>
         </div>
       </div>
@@ -73,9 +82,15 @@ export default async function SantriDetailPage({
         <KpiCard
           icon={Gauge}
           label="Indeks Rutinitas"
-          value={`${m.indeksRutinitas}%`}
+          value={m.terukur ? `${m.indeksRutinitas}%` : "—"}
           tone={toneFor(m.indeksRutinitas) as never}
-          sub={<ProgressBar value={m.indeksRutinitas} />}
+          sub={
+            m.terukur ? (
+              <ProgressBar value={m.indeksRutinitas} />
+            ) : (
+              "seluruh hari berjalan adalah haid"
+            )
+          }
         />
         <KpiCard icon={CalendarCheck} label="Total Poin" value={m.totalPoin} sub="V + rakaat bulan ini" />
         <KpiCard icon={Flame} label="Streak Terbaik" value={`${m.streak} hari`} sub="hari lengkap berturut-turut" tone="warn" />
@@ -114,12 +129,16 @@ export default async function SantriDetailPage({
                   {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
                 </td>
                 <td className="px-5 py-2.5">
-                  <div className="flex items-center gap-2">
-                    <ProgressBar value={k.pct} className="w-28" />
-                    <span className="tnum w-9 text-right text-xs font-semibold text-ink">
-                      {k.pct}%
-                    </span>
-                  </div>
+                  {m.terukur ? (
+                    <div className="flex items-center gap-2">
+                      <ProgressBar value={k.pct} className="w-28" />
+                      <span className="tnum w-9 text-right text-xs font-semibold text-ink">
+                        {k.pct}%
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-faint">—</span>
+                  )}
                 </td>
               </tr>
             ))}

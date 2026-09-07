@@ -29,14 +29,23 @@ export function entriesForMonth(
 /**
  * Hitung metrik bulanan satu santri.
  * `entries` boleh berisi banyak santri; akan difilter per santri.
+ * `haid` = Set tanggal ISO hari haid -> dikeluarkan dari penyebut (D_eff);
+ * streak tidak terputus oleh hari haid.
  */
 export function computeSantriMetrics(
   santri: Santri,
   entries: MutabaahEntry[],
   year: number,
   month: number,
+  haid?: Set<string>,
 ): SantriMonthlyMetrics {
   const D = hariBerjalan(year, month);
+  const iso = (d: number) =>
+    `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  const isHaid = (d: number) => !!haid?.has(iso(d));
+  let haidCount = 0;
+  for (let d = 1; d <= D; d++) if (isHaid(d)) haidCount++;
+  const D_eff = Math.max(0, D - haidCount);
   const monthEntries = entriesForMonth(entries, santri.id, year, month);
 
   // indeks cepat: (amalan_id, day) -> entry
@@ -53,6 +62,7 @@ export function computeSantriMetrics(
     let masbuq = 0;
     let sendiri = 0;
     for (let day = 1; day <= D; day++) {
+      if (isHaid(day)) continue; // hari dibebaskan, tidak dinilai
       const e = byDayAmal.get(`${a.id}:${day}`);
       if (!e) continue;
       if (a.value_type === "rakaat") {
@@ -71,13 +81,13 @@ export function computeSantriMetrics(
         done++;
       }
     }
-    const pct = D > 0 ? Math.round((done / D) * 100) : 0;
+    const pct = D_eff > 0 ? Math.round((done / D_eff) * 100) : 0;
     return {
       amalan_id: a.id,
       nama: a.nama,
       value_type: a.value_type,
       done,
-      total: D,
+      total: D_eff,
       pct,
       ...(a.value_type === "rakaat" ? { rakaatTotal } : {}),
       ...(a.value_type === "fardhu" ? { tepat, masbuq, sendiri } : {}),
@@ -89,7 +99,7 @@ export function computeSantriMetrics(
     kategori.reduce((s, k) => s + (k.rakaatTotal ?? 0), 0);
   const totalRakaat = kategori.reduce((s, k) => s + (k.rakaatTotal ?? 0), 0);
 
-  // streak: hari berturut-turut "lengkap"
+  // streak: hari berturut-turut "lengkap"; hari haid dilewati tanpa memutus
   const wajibBinary = AMALAN.filter((a) => a.value_type === "binary").map((a) => a.id);
   const wajibRakaat = AMALAN.filter((a) => a.value_type === "rakaat").map((a) => a.id);
   const wajibFardhu = AMALAN.filter((a) => a.value_type === "fardhu").map((a) => a.id);
@@ -109,6 +119,7 @@ export function computeSantriMetrics(
   let streak = 0;
   let cur = 0;
   for (let day = 1; day <= D; day++) {
+    if (isHaid(day)) continue;
     if (isDayComplete(day)) {
       cur++;
       streak = Math.max(streak, cur);
@@ -117,8 +128,9 @@ export function computeSantriMetrics(
     }
   }
 
+  const terukur = D_eff > 0;
   const indeksRutinitas =
-    kategori.length > 0
+    terukur && kategori.length > 0
       ? Math.round(kategori.reduce((s, k) => s + k.pct, 0) / kategori.length)
       : 0;
 
@@ -129,6 +141,9 @@ export function computeSantriMetrics(
     bulan: month,
     tahun: year,
     hariBerjalan: D,
+    hariTerhitung: D_eff,
+    haidCount,
+    terukur,
     kategori,
     totalPoin,
     totalRakaat,
@@ -137,14 +152,16 @@ export function computeSantriMetrics(
   };
 }
 
-/** Rata-rata % per kategori untuk sekumpulan santri (benchmark kelas) */
+/** Rata-rata % per kategori untuk sekumpulan santri (benchmark kelas). */
 export function computeKategoriBenchmark(
   metricsList: SantriMonthlyMetrics[],
 ): Record<number, number> {
+  const terukurList = metricsList.filter((m) => m.terukur);
   const out: Record<number, number> = {};
   for (const a of AMALAN) {
-    const vals = metricsList
-      .map((m) => m.kategori.find((k) => k.amalan_id === a.id)?.pct ?? 0);
+    const vals = terukurList.map(
+      (m) => m.kategori.find((k) => k.amalan_id === a.id)?.pct ?? 0,
+    );
     out[a.id] = vals.length
       ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length)
       : 0;

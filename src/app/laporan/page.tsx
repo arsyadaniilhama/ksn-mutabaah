@@ -3,7 +3,7 @@ import {
   IconDownload as Download,
   IconPdf as FilePdf,
 } from "@tabler/icons-react";
-import { listSantri, listEntries } from "@/lib/data";
+import { listSantri, listEntries, listHaidForMonth } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { BULAN_ID, monthLabel, bagianJakarta } from "@/lib/dates";
@@ -29,9 +29,10 @@ export default async function LaporanPage({
   const institusi = user?.institusi ?? "PA IMSHUS";
   const label = institusi === "PI IMSHUS" ? "santriwati" : "santri";
 
-  const [allSantri, entries] = await Promise.all([
+  const [allSantri, entries, haidMap] = await Promise.all([
     listSantri(undefined, false, institusi),
     listEntries({ year: Number(sp.year) || jkt.y, month: Number(sp.month) || jkt.m, institusi }),
+    listHaidForMonth(Number(sp.year) || jkt.y, Number(sp.month) || jkt.m, institusi),
   ]);
   const adaKelas = KELAS_ORDER.filter((k) =>
     allSantri.some((s) => s.kelas === k),
@@ -43,7 +44,7 @@ export default async function LaporanPage({
 
   const santri = allSantri.filter((s) => s.kelas === kelas);
   const metrics = santri
-    .map((s) => computeSantriMetrics(s, entries, year, month))
+    .map((s) => computeSantriMetrics(s, entries, year, month, haidMap.get(s.id)))
     .sort((a, b) => b.indeksRutinitas - a.indeksRutinitas);
 
   const href = (m: number, k: Kelas = kelas) =>
@@ -122,12 +123,16 @@ export default async function LaporanPage({
                   </Link>
                 </td>
                 <td className="px-4 py-2.5">
-                  <div className="flex items-center gap-2">
-                    <ProgressBar value={m.indeksRutinitas} className="w-20" />
-                    <span className="tnum text-xs font-semibold text-ink">
-                      {m.indeksRutinitas}%
-                    </span>
-                  </div>
+                  {m.terukur ? (
+                    <div className="flex items-center gap-2">
+                      <ProgressBar value={m.indeksRutinitas} className="w-20" />
+                      <span className="tnum text-xs font-semibold text-ink">
+                        {m.indeksRutinitas}%
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-faint">— haid</span>
+                  )}
                 </td>
                 <td className="tnum hidden px-4 py-2.5 text-right text-muted sm:table-cell">
                   {m.totalPoin}

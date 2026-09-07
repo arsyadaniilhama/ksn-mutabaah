@@ -61,6 +61,9 @@ export interface SantriMonthlyMetrics {
   bulan: number; // 1..12
   tahun: number;
   hariBerjalan: number; // D
+  hariTerhitung: number; // D_eff = D - hari haid
+  haidCount: number;
+  terukur: boolean; // D_eff > 0
   kategori: KategoriMetric[];
   totalPoin: number;
   totalRakaat: number;

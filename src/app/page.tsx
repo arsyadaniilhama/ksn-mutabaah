@@ -7,7 +7,13 @@ import {
   IconTrendingDown as TrendingDown,
   IconUsers as Users,
 } from "@tabler/icons-react";
-import { listSantri, listEntries, listRecentEntries, getDayProgress } from "@/lib/data";
+import {
+  listSantri,
+  listEntries,
+  listRecentEntries,
+  getDayProgress,
+  listHaidForMonth,
+} from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics, computeKategoriBenchmark } from "@/lib/metrics";
 import { AMALAN_BY_ID } from "@/lib/amalan";
@@ -49,16 +55,22 @@ export default async function DashboardPage() {
   const label = institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
   const labelLc = institusi === "PI IMSHUS" ? "santriwati" : "santri";
 
-  const [santri, entries, recent, progressToday] = await Promise.all([
+  const [santri, entries, recent, progressToday, haidMap] = await Promise.all([
     listSantri(undefined, false, institusi),
     listEntries({ year, month, institusi }),
     listRecentEntries(8, institusi),
     getDayProgress(today),
+    listHaidForMonth(year, month, institusi),
   ]);
 
-  const metrics = santri.map((s) => computeSantriMetrics(s, entries, year, month));
-  const avg = metrics.length
-    ? Math.round(metrics.reduce((a, m) => a + m.indeksRutinitas, 0) / metrics.length)
+  const metrics = santri.map((s) =>
+    computeSantriMetrics(s, entries, year, month, haidMap.get(s.id)),
+  );
+  const terukurList = metrics.filter((m) => m.terukur);
+  const avg = terukurList.length
+    ? Math.round(
+        terukurList.reduce((a, m) => a + m.indeksRutinitas, 0) / terukurList.length,
+      )
     : 0;
   const benchmark = computeKategoriBenchmark(metrics);
   const perKelas = santri.reduce<Record<string, number>>((acc, s) => {
@@ -69,8 +81,10 @@ export default async function DashboardPage() {
   const terisiHariIni = Object.entries(progressToday).filter(
     ([id, n]) => idsInst.has(id) && n > 0,
   ).length;
+  const haidHariIni = santri.filter((s) => haidMap.get(s.id)?.has(today)).length;
+  const penyebutHariIni = Math.max(0, santri.length - haidHariIni);
   const sorted = [...metrics].sort((a, b) => b.indeksRutinitas - a.indeksRutinitas);
-  const perlu = sorted.filter((m) => m.indeksRutinitas < 50).slice(0, 5);
+  const perlu = sorted.filter((m) => m.terukur && m.indeksRutinitas < 50).slice(0, 5);
   const kosong = entries.length === 0;
 
   return (
@@ -133,11 +147,15 @@ export default async function DashboardPage() {
             <span>
               {terisiHariIni}
               <span className="text-base font-medium text-faint">
-                /{santri.length}
+                /{penyebutHariIni}
               </span>
             </span>
           }
-          sub={<ProgressBar value={santri.length ? (terisiHariIni / santri.length) * 100 : 0} />}
+          sub={
+            <ProgressBar
+              value={penyebutHariIni ? (terisiHariIni / penyebutHariIni) * 100 : 0}
+            />
+          }
           tone="accent"
         />
         <KpiCard
@@ -247,6 +265,7 @@ export default async function DashboardPage() {
           kelas: m.kelas,
           indeks: m.indeksRutinitas,
           streak: m.streak,
+          terukur: m.terukur,
         }))}
       />
     </div>

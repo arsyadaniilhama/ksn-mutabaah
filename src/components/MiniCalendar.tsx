@@ -9,6 +9,7 @@ interface Props {
   selected: string; // ISO
   today: string; // ISO
   marked: Set<string>; // tanggal dengan data
+  haid?: Set<string>; // tanggal haid (santriwati terpilih)
   onSelect: (iso: string) => void;
   onClose: () => void;
 }
@@ -23,6 +24,7 @@ export default function MiniCalendar({
   selected,
   today,
   marked,
+  haid,
   onSelect,
   onClose,
 }: Props) {
@@ -75,7 +77,15 @@ export default function MiniCalendar({
               }
             >
               {d}
-              {marked.has(iso) && !isSel && (
+              {haid?.has(iso) && (
+                <span
+                  className={
+                    "absolute bottom-1 size-1 rounded-full " +
+                    (isSel ? "bg-white" : "bg-danger")
+                  }
+                />
+              )}
+              {marked.has(iso) && !haid?.has(iso) && !isSel && (
                 <span className="absolute bottom-1 size-1 rounded-full bg-accent" />
               )}
             </button>

@@ -24,6 +24,7 @@ interface Props {
   initialProgress: Record<string, number>;
   initialCoverage: string[];
   label?: string;
+  institusi?: string;
 }
 
 const KELAS_ORDER: Kelas[] = ["Kelas 1", "Kelas 2", "Kelas 3"];
@@ -70,8 +71,11 @@ export default function InputClient({
   initialProgress,
   initialCoverage,
   label = "Santri",
+  institusi,
 }: Props) {
   const labelLc = label.toLowerCase();
+  const canHaid = institusi === "PI IMSHUS";
+  const [haidDates, setHaidDates] = useState<Set<string>>(new Set());
   const [kelas, setKelas] = useState<Kelas>(initialKelas);
   const [date, setDate] = useState<string>(initialDate);
   const kelasList = useMemo(
@@ -168,6 +172,51 @@ export default function InputClient({
       }
     })();
   }, [ym, dt]);
+
+  // Ambil tanggal haid santriwati terpilih (bulannya mengikuti tanggal aktif)
+  useEffect(() => {
+    if (!canHaid || !santriId) return;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/haid?santri_id=${santriId}&year=${dt.getFullYear()}&month=${dt.getMonth() + 1}`,
+        );
+        const json = await res.json();
+        setHaidDates(new Set(json.dates ?? []));
+      } catch {
+        /* noop */
+      }
+    })();
+  }, [canHaid, santriId, ym, dt]);
+
+  const isHaidToday = haidDates.has(date);
+  const toggleHaid = async () => {
+    if (!canHaid || !santriId) return;
+    const on = !isHaidToday;
+    setHaidDates((s) => {
+      const n = new Set(s);
+      if (on) n.add(date);
+      else n.delete(date);
+      return n;
+    });
+    try {
+      const res = await fetch("/api/haid", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ santri_id: santriId, date, on }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setHaidDates((s) => {
+        const n = new Set(s);
+        if (on) n.delete(date);
+        else n.add(date);
+        return n;
+      });
+      setToast("Gagal menyimpan status haid.");
+      setToastTone("err");
+    }
+  };
 
   const handleChange = useCallback(
     async (amalanId: number, next: CellValue) => {
@@ -273,6 +322,22 @@ export default function InputClient({
               <span className="tnum chip bg-surface2 text-muted">
                 {items.find((i) => i.id === current.id)?.filled ?? 0}/19
               </span>
+              {canHaid && (
+                <button
+                  type="button"
+                  onClick={toggleHaid}
+                  aria-pressed={isHaidToday}
+                  title="Tandai hari ini sebagai haid (tidak dihitung dalam persentase)"
+                  className={
+                    "chip transition-colors " +
+                    (isHaidToday
+                      ? "bg-danger text-white"
+                      : "border border-line bg-surface text-muted hover:text-ink")
+                  }
+                >
+                  Haid
+                </button>
+              )}
               <button
                 onClick={goNext}
                 className="btn-primary hidden h-7 px-2.5 text-xs lg:inline-flex"
@@ -282,6 +347,11 @@ export default function InputClient({
               </button>
             </div>
           </div>
+          {canHaid && isHaidToday && (
+            <p className="mb-2 rounded-lg bg-danger-soft px-3 py-1.5 text-xs text-danger">
+              Hari ini ditandai <b>haid</b> — tidak dihitung dalam persentase.
+            </p>
+          )}
           {/* HP/tablet: 2 kolom compact, urutan per-kolom (1-10 | 11-19) */}
           <div className="flex flex-1 gap-1.5 overflow-y-auto pr-1 lg:hidden">
             <div className="flex-1 space-y-1">{rowsFor(colLeft)}</div>
@@ -359,6 +429,7 @@ export default function InputClient({
               selected={date}
               today={todayISO()}
               marked={coverage}
+              haid={canHaid ? haidDates : undefined}
               onSelect={setDate}
               onClose={() => setCalOpen(false)}
             />

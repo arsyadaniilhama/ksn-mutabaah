@@ -43,6 +43,7 @@ export default async function InputPage() {
           <InputClient
             santriList={santriList}
             label={label}
+            institusi={institusi}
             initialKelas={first?.kelas ?? kelas}
             initialDate={date}
             initialValues={initialValues}

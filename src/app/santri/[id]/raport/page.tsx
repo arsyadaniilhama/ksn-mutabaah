@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getSantri, listEntries } from "@/lib/data";
+import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { monthLabel, bagianJakarta } from "@/lib/dates";
@@ -28,7 +28,19 @@ export default async function RaportPage({
   if (user && santri.institusi !== user.institusi) notFound();
 
   const entries = await listEntries({ year, month, santriId: santri.id });
-  const m = computeSantriMetrics(santri, entries, year, month);
+  const haidDates =
+    santri.institusi === "PI IMSHUS"
+      ? new Set(await getHaidDates(santri.id, year, month))
+      : undefined;
+  const m = computeSantriMetrics(santri, entries, year, month, haidDates);
+  const tiles: { l: string; v: string | number }[] = [
+    { l: "Indeks Rutinitas", v: m.terukur ? `${m.indeksRutinitas}%` : "—" },
+    { l: "Total Poin", v: m.totalPoin },
+    { l: "Streak", v: `${m.streak} hr` },
+    { l: "Total Rakaat", v: m.totalRakaat },
+  ];
+  if (m.haidCount > 0)
+    tiles.push({ l: "Hari Dihitung", v: `${m.hariTerhitung}/${m.hariBerjalan}` });
 
   return (
     <div className="space-y-4">
@@ -85,13 +97,11 @@ export default async function RaportPage({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-          {[
-            { l: "Indeks Rutinitas", v: `${m.indeksRutinitas}%` },
-            { l: "Total Poin", v: m.totalPoin },
-            { l: "Streak", v: `${m.streak} hr` },
-            { l: "Total Rakaat", v: m.totalRakaat },
-          ].map((s) => (
+        <div
+          className="mt-4 grid gap-2 text-center"
+          style={{ gridTemplateColumns: `repeat(${tiles.length}, 1fr)` }}
+        >
+          {tiles.map((s) => (
             <div key={s.l} className="rounded-lg border border-zinc-200 bg-zinc-50 py-2">
               <div className="text-[10px] uppercase tracking-wide text-zinc-500">
                 {s.l}
@@ -136,10 +146,22 @@ export default async function RaportPage({
                   {k.tepat != null ? ` · T${k.tepat} M${k.masbuq} S${k.sendiri}` : ""}
                 </td>
                 <td className="tnum border border-zinc-200 px-2 py-1 text-center font-semibold">
-                  {k.pct}%
+                  {m.terukur ? `${k.pct}%` : "—"}
                 </td>
               </tr>
             ))}
+            {m.haidCount > 0 && (
+              <tr>
+                <td className="border border-zinc-200 px-2 py-1 text-center">—</td>
+                <td className="border border-zinc-200 px-2 py-1 text-left">
+                  Haid (dibebaskan)
+                </td>
+                <td className="tnum border border-zinc-200 px-2 py-1 text-center">
+                  {m.haidCount} hari
+                </td>
+                <td className="border border-zinc-200 px-2 py-1 text-center">—</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

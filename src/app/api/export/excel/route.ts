@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
-import { getSantri, listEntries } from "@/lib/data";
+import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { AMALAN } from "@/lib/amalan";
 import { bulanName, daysInMonth } from "@/lib/dates";
@@ -29,7 +29,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const entries = await listEntries({ year, month, santriId });
+  const haidSet =
+    santri.institusi === "PI IMSHUS"
+      ? new Set(await getHaidDates(santriId, year, month))
+      : new Set<string>();
   const dim = daysInMonth(year, month);
+  const isoOf = (d: number) =>
+    `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
   // indeks (amalan_id, day) -> entry
   const idx = new Map<string, MutabaahEntry>();
@@ -77,18 +83,19 @@ export async function GET(request: Request) {
     let total = 0;
     for (let day = 1; day <= dim; day++) {
       const e = idx.get(`${a.id}:${day}`);
+      const haid = haidSet.has(isoOf(day));
       if (a.value_type === "rakaat") {
-        const r = e?.rakaat ?? null;
-        if (r && r > 0) total += r;
+        const r = e?.rakaat ?? 0;
+        if (r > 0 && !haid) total += r;
         cells.push(r && r > 0 ? r : null);
       } else if (a.value_type === "fardhu") {
         const map: Record<string, string> = { tepat: "T", masbuq: "M", sendiri: "S" };
         const v = e?.status ? (map[e.status] ?? null) : null;
-        if (v) total += 1;
+        if (v && !haid) total += 1;
         cells.push(v);
       } else {
         const v = e?.status === "done" ? "V" : e?.status === "miss" ? "X" : null;
-        if (v === "V") total += 1;
+        if (v === "V" && !haid) total += 1;
         cells.push(v);
       }
     }
@@ -107,6 +114,29 @@ export async function GET(request: Request) {
     const totalCell = row.getCell(3 + dim + 1);
     totalCell.font = { bold: true };
   });
+
+  // Baris Haid (khusus PI, hanya bila ada)
+  if (haidSet.size > 0) {
+    const haidRow = ws.getRow(7 + AMALAN.length);
+    const hcells: (string | number | null)[] = [];
+    let hcount = 0;
+    for (let day = 1; day <= dim; day++) {
+      const on = haidSet.has(isoOf(day));
+      if (on) hcount++;
+      hcells.push(on ? "H" : null);
+    }
+    haidRow.values = ["—", "Haid (dibebaskan)", "", ...hcells, `${hcount} hr`];
+    haidRow.eachCell((c) => {
+      c.border = {
+        top: { style: "hair" },
+        bottom: { style: "hair" },
+        left: { style: "hair" },
+        right: { style: "hair" },
+      };
+    });
+    haidRow.getCell(2).alignment = { horizontal: "left" };
+    haidRow.font = { italic: true };
+  }
 
   ws.getColumn(2).width = 26;
   ws.getColumn(3).width = 22;

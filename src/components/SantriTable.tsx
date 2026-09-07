@@ -19,6 +19,7 @@ export interface SantriRow {
   kelas: string;
   indeks: number;
   streak: number;
+  terukur?: boolean;
 }
 
 type SortKey = "nama" | "indeks" | "streak";
@@ -175,12 +176,16 @@ export default function SantriTable({ rows, label = "Santri" }: Props) {
                 <Badge>{r.kelas}</Badge>
               </td>
               <td className="px-4 py-2.5">
-                <div className="flex items-center gap-2">
-                  <ProgressBar value={r.indeks} className="w-20 sm:w-28" />
-                  <span className="tnum text-xs font-semibold text-ink">
-                    {r.indeks}%
-                  </span>
-                </div>
+                {r.terukur === false ? (
+                  <span className="text-xs text-faint">—</span>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <ProgressBar value={r.indeks} className="w-20 sm:w-28" />
+                    <span className="tnum text-xs font-semibold text-ink">
+                      {r.indeks}%
+                    </span>
+                  </div>
+                )}
               </td>
               <td className="tnum hidden px-4 py-2.5 text-right text-muted sm:table-cell">
                 {r.streak} hari
