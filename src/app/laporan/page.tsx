@@ -46,6 +46,7 @@ export default async function LaporanPage({
   const metrics = santri
     .map((s) => computeSantriMetrics(s, entries, year, month, haidMap.get(s.id)))
     .sort((a, b) => b.indeksRutinitas - a.indeksRutinitas);
+  const tanpaData = metrics.length > 0 && metrics.every((x) => x.totalPoin === 0);
 
   const href = (m: number, k: Kelas = kelas) =>
     `/laporan?${new URLSearchParams({ kelas: k, month: String(m), year: String(year) })}`;
@@ -56,6 +57,12 @@ export default async function LaporanPage({
         title="Laporan Bulanan"
         description={`${kelas} · ${monthLabel(month, year)} · ${santri.length} ${label}`}
       />
+
+      {tanpaData && (
+        <p className="-mt-2 text-xs text-faint">
+          Belum ada data mutabaah terisi pada periode ini.
+        </p>
+      )}
 
       <div className="card flex flex-wrap items-center gap-2 p-3">
         <div className="flex rounded-lg border border-line bg-canvas p-0.5">
@@ -97,7 +104,9 @@ export default async function LaporanPage({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line text-left text-xs text-faint">
-              <th className="px-4 py-2.5 font-medium">Santri</th>
+              <th className="px-4 py-2.5 font-medium">
+                {label.charAt(0).toUpperCase() + label.slice(1)}
+              </th>
               <th className="px-4 py-2.5 font-medium">Indeks</th>
               <th className="hidden px-4 py-2.5 text-right font-medium sm:table-cell">
                 Poin
@@ -115,7 +124,10 @@ export default async function LaporanPage({
                 className="border-b border-line last:border-0 hover:bg-surface2/60"
               >
                 <td className="px-4 py-2.5">
-                  <Link href={`/santri/${m.santri_id}`} className="flex items-center gap-3 group">
+                  <Link
+                    href={`/santri/${m.santri_id}?month=${month}&year=${year}`}
+                    className="flex items-center gap-3 group"
+                  >
                     <Avatar name={m.nama} size="sm" />
                     <span className="truncate font-medium text-ink group-hover:text-accent">
                       {m.nama}
@@ -130,8 +142,12 @@ export default async function LaporanPage({
                         {m.indeksRutinitas}%
                       </span>
                     </div>
-                  ) : (
+                  ) : m.hariBerjalan > 0 && m.haidCount >= m.hariBerjalan ? (
                     <span className="text-xs text-faint">— haid</span>
+                  ) : m.hariBerjalan > 0 ? (
+                    <span className="text-xs text-faint">—</span>
+                  ) : (
+                    <span className="text-xs text-faint">— belum berjalan</span>
                   )}
                 </td>
                 <td className="tnum hidden px-4 py-2.5 text-right text-muted sm:table-cell">
