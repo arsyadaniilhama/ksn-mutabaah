@@ -139,6 +139,15 @@ export default function Shell({
 
   useEffect(() => setOpen(false), [pathname]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   if (isLogin) return <>{children}</>;
 
   return (
@@ -152,44 +161,49 @@ export default function Shell({
         <UserFooter email={email} institusi={institusi} />
       </aside>
 
-      {/* Header mobile */}
+      {/* Header mobile: hamburger kiri, Brand hanya di drawer */}
       <header className="no-print sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur lg:hidden">
-        <Brand institusi={institusi} />
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-          <button
-            aria-label="Buka menu"
-            onClick={() => setOpen(true)}
-            className="btn-ghost size-9 p-0"
-          >
-            <Menu2 size={20} stroke={1.75} />
-          </button>
-        </div>
+        <button
+          aria-label="Buka menu"
+          aria-expanded={open}
+          onClick={() => setOpen(true)}
+          className="btn-ghost size-9 p-0"
+        >
+          <Menu2 size={20} stroke={1.75} />
+        </button>
+        <ThemeToggle />
       </header>
 
-      {/* Drawer mobile */}
-      {open && (
-        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal>
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setOpen(false)}
-          />
-          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-line bg-surface shadow-2xl">
-            <div className="flex h-16 items-center justify-between border-b border-line px-5">
-              <Brand institusi={institusi} />
-              <button
-                aria-label="Tutup menu"
-                onClick={() => setOpen(false)}
-                className="btn-ghost size-8 p-0"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <Nav onNavigate={() => setOpen(false)} santriLabel={santriLabel} />
-            <UserFooter email={email} institusi={institusi} />
-          </aside>
-        </div>
-      )}
+      {/* Drawer mobile: selalu terpasang agar bisa animasi slide buka/tutup */}
+      <div
+        className={`fixed inset-0 z-40 lg:hidden ${open ? "" : "pointer-events-none"}`}
+        role="dialog"
+        aria-modal="true"
+        aria-hidden={!open}
+      >
+        <div
+          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
+          onClick={() => setOpen(false)}
+        />
+        <aside
+          className={`absolute inset-y-0 left-0 flex w-64 flex-col border-r border-line bg-surface shadow-2xl transition-transform duration-300 ease-out ${
+            open ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex h-16 items-center justify-between border-b border-line px-5">
+            <Brand institusi={institusi} />
+            <button
+              aria-label="Tutup menu"
+              onClick={() => setOpen(false)}
+              className="btn-ghost size-8 p-0"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <Nav onNavigate={() => setOpen(false)} santriLabel={santriLabel} />
+          <UserFooter email={email} institusi={institusi} />
+        </aside>
+      </div>
 
       <div className="lg:pl-64">
         <main
