@@ -87,8 +87,12 @@ export default async function SantriDetailPage({
           sub={
             m.terukur ? (
               <ProgressBar value={m.indeksRutinitas} />
-            ) : (
+            ) : m.hariBerjalan === 0 ? (
+              "periode belum berjalan"
+            ) : m.haidCount >= m.hariBerjalan ? (
               "seluruh hari berjalan adalah haid"
+            ) : (
+              "belum ada data terisi"
             )
           }
         />
