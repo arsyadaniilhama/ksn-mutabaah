@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { signIn, type AuthState } from "./actions";
+import { BookLogo } from "@/components/icons/BookLogo";
 
 const initialState: AuthState = {};
 
@@ -19,9 +20,7 @@ export default function LoginPage() {
         className="card relative w-full max-w-sm space-y-5 p-7"
       >
         <div className="flex flex-col items-center gap-3 text-center">
-          <span className="grid size-11 place-items-center rounded-xl bg-accent text-lg font-bold text-accent-fg">
-            K
-          </span>
+          <BookLogo className="size-11" />
           <div>
             <h1 className="text-base font-semibold text-ink">Mutabaah KSN</h1>
             <p className="mt-0.5 text-sm text-muted">
