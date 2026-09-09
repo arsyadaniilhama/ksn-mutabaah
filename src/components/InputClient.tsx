@@ -65,6 +65,14 @@ const fmtTanggal = (iso: string) =>
     year: "numeric",
   }).format(parseISO(iso));
 
+/** Versi ringkas untuk toolbar laptop kecil (<1280px), cegah wrap. */
+const fmtTanggalShort = (iso: string) =>
+  new Intl.DateTimeFormat("id-ID", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(parseISO(iso));
+
 export default function InputClient({
   santriList,
   initialKelas,
@@ -321,13 +329,11 @@ export default function InputClient({
                 <div className="truncate text-sm font-semibold text-ink">
                   {current.nama}
                 </div>
-                <div className="tnum text-xs text-faint">
-                  NIS {current.nis} · {fmtTanggal(date)}
-                </div>
+                <div className="tnum truncate text-xs text-faint">NIS {current.nis}</div>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              {loading && <span className="text-xs text-faint">memuat…</span>}
+              {loading && <span className="hidden whitespace-nowrap text-xs text-faint xl:inline">memuat…</span>}
               <span className="tnum chip bg-surface2 text-muted">
                 {items.find((i) => i.id === current.id)?.filled ?? 0}/{totalAmalan}
               </span>
@@ -351,10 +357,11 @@ export default function InputClient({
               )}
               <button
                 onClick={goNext}
-                className="btn-primary hidden h-7 px-2.5 text-xs lg:inline-flex"
+                title={`${label} berikutnya`}
+                className="btn-primary hidden h-7 shrink-0 items-center gap-1 whitespace-nowrap px-2 text-xs lg:inline-flex"
               >
-                {label} berikutnya
-                <ChevronRight size={13} stroke={2} />
+                <span className="hidden xl:inline">{label} berikutnya</span>
+                <ChevronRight size={14} stroke={2} />
               </button>
             </div>
           </div>
@@ -383,7 +390,12 @@ export default function InputClient({
           </div>
         </>
       ) : (
-        <p className="text-sm text-muted">Pilih {labelLc} dulu.</p>
+        <div className="m-auto flex max-w-xs flex-col items-center gap-1 px-6 text-center">
+          <p className="text-sm font-medium text-muted">Pilih {labelLc} dulu.</p>
+          <p className="text-xs text-faint">
+            Klik salah satu {labelLc} di daftar sebelah kiri untuk mengisi amalan.
+          </p>
+        </div>
       )}
     </div>
   );
@@ -392,7 +404,7 @@ export default function InputClient({
     <div className="space-y-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:space-y-3 lg:overflow-hidden">
       {/* Toolbar */}
       <div className="card flex shrink-0 flex-wrap items-center justify-between gap-3 p-3">
-        <div className="flex rounded-lg border border-line bg-canvas p-0.5">
+        <div className="flex shrink-0 rounded-lg border border-line bg-canvas p-0.5">
           {kelasList.map((k) => (
             <button
               key={k}
@@ -408,34 +420,38 @@ export default function InputClient({
             </button>
           ))}
         </div>
-        <div className="relative flex items-center gap-1.5">
+        <div className="relative flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <button
             onClick={() => shiftDate(-1)}
             aria-label="Hari sebelumnya"
-            className="btn-outline size-8 p-0"
+            className="btn-outline size-8 shrink-0 p-0"
           >
             <ChevronLeft size={14} stroke={2} />
           </button>
           <button
             onClick={() => setCalOpen((o) => !o)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-surface2 px-3 py-1.5 text-xs font-semibold text-ink hover:bg-line"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-surface2 px-3 py-1.5 text-xs font-semibold text-ink hover:bg-line"
             aria-haspopup="dialog"
             aria-expanded={calOpen}
           >
-            <CalendarDue size={14} stroke={1.75} className="text-accent" />
-            {fmtTanggal(date)}
+            <CalendarDue size={14} stroke={1.75} className="shrink-0 text-accent" />
+            <span className="xl:hidden">{fmtTanggalShort(date)}</span>
+            <span className="hidden xl:inline">{fmtTanggal(date)}</span>
           </button>
           <button
             onClick={() => shiftDate(1)}
             aria-label="Hari berikutnya"
-            className="btn-outline size-8 p-0"
+            className="btn-outline size-8 shrink-0 p-0"
           >
             <ChevronRight size={14} stroke={2} />
           </button>
-          <button onClick={() => setDate(todayISO())} className="btn-ghost h-8 px-2 text-xs">
+          <button
+            onClick={() => setDate(todayISO())}
+            className="btn-ghost h-8 whitespace-nowrap px-2 text-xs"
+          >
             Hari ini
           </button>
-          <span className="tnum chip ml-1 hidden bg-accent-soft text-accent lg:inline-flex">
+          <span className="tnum chip ml-1 hidden whitespace-nowrap bg-accent-soft text-accent lg:inline-flex">
             Terisi {terisi}/{santriInKelas.length}
           </span>
           {calOpen && (
@@ -453,24 +469,35 @@ export default function InputClient({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center justify-between px-1 lg:hidden">
-        <span className="tnum text-xs text-muted">
-          Terisi hari ini: {terisi}/{santriInKelas.length} {labelLc}
-        </span>
+      <div className="flex shrink-0 items-center justify-end px-1 lg:hidden">
         <span className="text-xs text-faint lg:hidden">ketuk {labelLc} untuk mengisi</span>
       </div>
 
       {/* Desktop: master-detail dua kolom (tinggi terkunci viewport, halaman tak scroll) */}
-      <div className="hidden min-h-0 flex-1 gap-4 lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
-        <div className="card min-h-0 p-3">
-          <SantriList items={items} selectedId={santriId} onSelect={setSantriId} total={totalAmalan} />
+      <div className="hidden min-h-0 flex-1 gap-4 lg:grid lg:grid-cols-[minmax(204px,248px)_minmax(0,1fr)] 2xl:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="card min-h-0 min-w-0 p-3">
+          <SantriList
+            items={items}
+            selectedId={santriId}
+            onSelect={setSantriId}
+            total={totalAmalan}
+            label={label}
+            terisi={terisi}
+          />
         </div>
         <div className="min-h-0 min-w-0">{panel}</div>
       </div>
 
       {/* Mobile: daftar penuh */}
       <div className="card p-3 lg:hidden">
-        <SantriList items={items} selectedId={santriId} onSelect={selectSantri} total={totalAmalan} />
+        <SantriList
+          items={items}
+          selectedId={santriId}
+          onSelect={selectSantri}
+          total={totalAmalan}
+          label={label}
+          terisi={terisi}
+        />
       </div>
 
       {/* Mobile: slide-over panel */}

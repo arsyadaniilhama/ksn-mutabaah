@@ -16,9 +16,20 @@ interface Props {
   selectedId: string;
   onSelect: (id: string) => void;
   total?: number;
+  /** Judul panel, mis. "Santri" / "Santriwati". */
+  label?: string;
+  /** Jumlah terisi hari ini; chip hanya tampil bila dikasih. */
+  terisi?: number;
 }
 
-export default function SantriList({ items, selectedId, onSelect, total = 19 }: Props) {
+export default function SantriList({
+  items,
+  selectedId,
+  onSelect,
+  total = 19,
+  label = "Santri",
+  terisi,
+}: Props) {
   const [q, setQ] = useState("");
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -30,6 +41,14 @@ export default function SantriList({ items, selectedId, onSelect, total = 19 }: 
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      <div className="mb-2 flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+        <h2 className="min-w-0 truncate text-sm font-semibold text-ink">Pilih {label}</h2>
+        {typeof terisi === "number" && (
+          <span className="tnum chip shrink-0 whitespace-nowrap bg-accent-soft text-accent">
+            Terisi {terisi}/{items.length}
+          </span>
+        )}
+      </div>
       <div className="relative mb-2 shrink-0">
         <Search
           size={15}
@@ -41,7 +60,7 @@ export default function SantriList({ items, selectedId, onSelect, total = 19 }: 
           onChange={(e) => setQ(e.target.value)}
           placeholder="Cari nama / NIS…"
           aria-label="Cari santri"
-          className="input pl-9"
+          className="input w-full min-w-0 pl-9"
         />
       </div>
       <ul className="-mx-1 flex-1 space-y-1 overflow-y-auto px-1 pb-2">
@@ -53,7 +72,7 @@ export default function SantriList({ items, selectedId, onSelect, total = 19 }: 
               <button
                 onClick={() => onSelect(s.id)}
                 className={
-                  "flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition " +
+                  "flex w-full min-w-0 items-center gap-2 rounded-xl border px-2.5 py-2.5 text-left transition md:gap-3 md:px-3 " +
                   (active
                     ? "border-accent/50 bg-accent-soft"
                     : "border-transparent hover:bg-surface2")
@@ -84,7 +103,9 @@ export default function SantriList({ items, selectedId, onSelect, total = 19 }: 
         })}
         {filtered.length === 0 && (
           <li className="px-3 py-8 text-center text-sm text-faint">
-            Tidak ada santri cocok.
+            {items.length === 0
+              ? "Belum ada santri di kelas ini."
+              : "Tidak ada santri cocok."}
           </li>
         )}
       </ul>

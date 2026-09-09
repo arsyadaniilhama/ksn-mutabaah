@@ -208,7 +208,7 @@ export default function Shell({
       <div className="lg:pl-64">
         <main
           className={
-            "mx-auto w-full px-4 py-6 lg:px-8 lg:py-8 " +
+            "mx-auto w-full px-4 py-6 lg:px-4 lg:py-6 2xl:px-8 2xl:py-8 " +
             (pathname.startsWith("/input") ? "max-w-[1600px]" : "max-w-6xl")
           }
         >

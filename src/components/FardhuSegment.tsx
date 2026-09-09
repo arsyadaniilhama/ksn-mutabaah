@@ -41,13 +41,13 @@ export default function FardhuSegment({ value, onChange, disabled }: Props) {
             aria-label={o.label}
             title={o.label}
             onClick={() => set(o.value)}
-            className={
-              "flex-1 rounded-full px-1 py-0.5 whitespace-nowrap transition-colors xl:px-2 xl:py-1 " +
-              (active ? activeBg[o.value] : "text-muted hover:text-ink")
-            }
-          >
-            <span className="xl:hidden">{o.short}</span>
-            <span className="hidden xl:inline">{o.label}</span>
+          className={
+            "flex-1 rounded-full px-1 py-0.5 whitespace-nowrap transition-colors 2xl:px-2 2xl:py-1 " +
+            (active ? activeBg[o.value] : "text-muted hover:text-ink")
+          }
+        >
+          <span className="2xl:hidden">{o.short}</span>
+          <span className="hidden 2xl:inline">{o.label}</span>
           </button>
         );
       })}
