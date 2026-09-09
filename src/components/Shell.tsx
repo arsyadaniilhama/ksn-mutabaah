@@ -15,6 +15,7 @@ import {
 import { signOut } from "@/app/login/actions";
 import Avatar from "@/components/Avatar";
 import ThemeToggle from "@/components/ThemeToggle";
+import { SantriIcon, SantriwatiIcon } from "@/components/icons/InstitusiIcon";
 
 const GROUPS: {
   label: string;
@@ -35,11 +36,14 @@ const GROUPS: {
 ];
 
 function Brand({ institusi }: { institusi?: string | null }) {
+  const pi = institusi === "PI IMSHUS";
   return (
     <Link href="/" className="flex items-center gap-2.5">
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent text-sm font-bold text-accent-fg">
-        K
-      </span>
+      {pi ? (
+        <SantriwatiIcon className="h-8 w-auto shrink-0 text-accent" />
+      ) : (
+        <SantriIcon className="size-8 shrink-0" />
+      )}
       <span className="leading-tight">
         <span className="block text-sm font-semibold text-ink">Mutabaah KSN</span>
         <span className="block text-[11px] text-faint">{institusi ?? "PA IMSHUS"}</span>
@@ -57,7 +61,7 @@ function Nav({
 }) {
   const pathname = usePathname();
   return (
-    <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+    <nav className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-3 py-5">
       {GROUPS.map((g) => (
         <div key={g.label}>
           <div className="px-2.5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-faint">
@@ -141,11 +145,16 @@ export default function Shell({
 
   useEffect(() => {
     if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   if (isLogin) return <>{children}</>;
@@ -182,7 +191,7 @@ export default function Shell({
         aria-hidden={!open}
       >
         <div
-          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 touch-none bg-black/50 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
           onClick={() => setOpen(false)}
         />
         <aside

@@ -157,26 +157,56 @@ export async function listEntries(params: {
   const start = `${params.year}-${String(params.month).padStart(2, "0")}-01`;
   const lastDay = new Date(params.year, params.month, 0).getDate();
   const end = `${params.year}-${String(params.month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  const COLS = "santri_id,amalan_id,entry_date,status,rakaat";
 
-  const rows = await fetchAll<MutabaahEntry>((from, to) => {
+  // Filter institusi/kelas dikerjakan di server (IN list id), bukan menarik semua lalu disaring
+  let idFilter: string[] | null = null;
+  if (params.kelas || params.institusi) {
+    const santri = await listSantri(params.kelas, true, params.institusi);
+    idFilter = santri.map((s) => s.id);
+    if (idFilter.length === 0) return [];
+  }
+
+  // 1x count lalu ambil semua halaman paralel (hemat round-trip serial)
+  let cq = supabase
+    .from("mutabaah_entries")
+    .select(COLS, { count: "exact", head: true })
+    .gte("entry_date", start)
+    .lte("entry_date", end);
+  if (params.santriId) {
+    cq = cq.eq("santri_id", params.santriId);
+  } else if (idFilter) {
+    cq = cq.in("santri_id", idFilter);
+  }
+  const { count, error: cntErr } = await cq;
+  if (cntErr) throw new Error(cntErr.message);
+  const total = count ?? 0;
+  const pageSize = 1000;
+
+  const fetchRange = async (from: number, to: number): Promise<MutabaahEntry[]> => {
     let q = supabase
       .from("mutabaah_entries")
-      .select("*")
+      .select(COLS)
       .gte("entry_date", start)
       .lte("entry_date", end)
       .order("id")
       .range(from, to);
-    if (params.santriId) q = q.eq("santri_id", params.santriId);
-    return q;
-  });
-  let result = rows;
+    if (params.santriId) {
+      q = q.eq("santri_id", params.santriId);
+    } else if (idFilter) {
+      q = q.in("santri_id", idFilter);
+    }
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+    return (data ?? []) as MutabaahEntry[];
+  };
 
-  if (params.kelas || params.institusi) {
-    const santri = await listSantri(params.kelas, true, params.institusi);
-    const ids = new Set(santri.map((s) => s.id));
-    result = result.filter((r) => ids.has(r.santri_id));
-  }
-  return result;
+  if (total <= pageSize) return fetchRange(0, Math.max(0, total - 1));
+  const ranges: [number, number][] = [];
+  for (let from = 0; from < total; from += pageSize)
+    ranges.push([from, Math.min(total - 1, from + pageSize - 1)]);
+  const parts = await Promise.all(ranges.map(([f, t]) => fetchRange(f, t)));
+  return parts.flat();
 }
 
 /** Nilai 19 amalan untuk satu santri pada satu tanggal (untuk UI input). */
