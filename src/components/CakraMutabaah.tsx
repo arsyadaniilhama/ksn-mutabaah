@@ -53,7 +53,7 @@ export default function CakraMutabaah({
 
   return (
     <div className="report-cakra grid items-center gap-5 sm:grid-cols-[260px_1fr]">
-      <div className="mx-auto w-full max-w-[260px]">
+      <div className="report-cakra-visual mx-auto w-full max-w-[260px]">
         <svg
           viewBox="0 0 300 300"
           role="img"

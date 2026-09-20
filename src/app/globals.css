@@ -118,9 +118,10 @@
   }
 }
 
+/* PDF: baseline Letter portrait (paling pendek), sehingga A4/F4/Legal tetap satu halaman. */
 @media print {
   @page {
-    size: A4 portrait;
+    size: auto;
     margin: 0;
   }
   .no-print {
@@ -137,27 +138,97 @@
     color: #18181b !important;
   }
   .report-header {
-    padding: 11mm 13mm 7mm !important;
+    padding: 6mm 8mm 3mm !important;
+  }
+  .report-header img {
+    width: 8mm !important;
+    height: 8mm !important;
+  }
+  .report-header h1 {
+    font-size: 11px !important;
+  }
+  .report-header p,
+  .report-header .text-sm {
+    font-size: 7px !important;
   }
   .report-body {
-    padding: 0 13mm 10mm !important;
+    padding: 0 8mm 4mm !important;
   }
-  .report-identity,
-  .report-metrics,
-  .report-section > div {
-    break-inside: avoid;
-    page-break-inside: avoid;
+  .report-identity {
+    gap: 1mm 5mm !important;
+    padding: 1.5mm 2mm !important;
+    font-size: 7px !important;
+    line-height: 1.2 !important;
+  }
+  .report-identity span {
+    font-size: 6px !important;
+  }
+  .report-metrics {
+    margin-top: 2mm !important;
+  }
+  .report-metrics > div {
+    padding: 1.5mm 1mm !important;
+  }
+  .report-metrics .text-xl {
+    margin-top: 0.5mm !important;
+    font-size: 13px !important;
+    line-height: 1 !important;
+  }
+  .report-metrics .text-\[9px\] {
+    font-size: 6px !important;
+  }
+  .report-section {
+    margin-top: 3mm !important;
+  }
+  .report-section > div:first-child {
+    margin-bottom: 1mm !important;
+    padding-bottom: 1mm !important;
+  }
+  .report-section h2 {
+    font-size: 8px !important;
+  }
+  .report-section > div:first-child span {
+    font-size: 6px !important;
+  }
+  .report-cakra {
+    display: block !important;
+  }
+  .report-cakra-visual {
+    width: 76mm !important;
+    max-width: 76mm !important;
+  }
+  .report-cakra > div:nth-child(2) {
+    display: none !important;
+  }
+  .report-table {
+    font-size: 7px !important;
+    line-height: 1.08 !important;
+  }
+  .report-table th {
+    padding: 0.7mm !important;
+    font-size: 6.5px !important;
+    line-height: 1.1 !important;
+  }
+  .report-table td {
+    padding: 0.55mm 0.7mm !important;
+    font-size: 7px !important;
+    line-height: 1.08 !important;
   }
   .report-table thead {
     display: table-header-group;
   }
-  .report-table tr {
+  .report-table tr,
+  .report-identity,
+  .report-metrics,
+  .report-section,
+  .report-footer {
     break-inside: avoid;
     page-break-inside: avoid;
   }
   .report-footer {
-    break-inside: avoid;
-    page-break-inside: avoid;
+    margin-top: 2mm !important;
+    padding-top: 1.5mm !important;
+    font-size: 6px !important;
   }
   body {
     background: #fff;
