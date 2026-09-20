@@ -238,8 +238,15 @@
 /* PDF: dua halaman elegan. Ukuran kertas mengikuti pilihan browser (A4/F4/Letter/Legal). */
 @media print {
   @page {
-    size: auto;
+    size: A4;
     margin: 0;
+  }
+  /* Kunci ukuran teks: matikan font boosting HP agar identik dengan PC. */
+  html,
+  body,
+  * {
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
   }
   .no-print {
     display: none !important;
@@ -270,13 +277,13 @@
     box-shadow: none !important;
     background: #fff !important;
     color: #18181b !important;
+    overflow: visible !important;
   }
-  /* Tiap halaman mengisi penuh tinggi kertas (100vh = tinggi page box saat print,
-     mengikuti pilihan kertas browser: A4/F4/Letter/Legal). Konten didistribusi flex
-     agar tidak ada ruang kosong. */
+  /* Tiap halaman mengisi penuh tinggi kertas A4 (297mm). Tinggi mm tetap agar
+     tidak bergantung viewport (vh) perangkat saat print dari HP. */
   .report-page {
     position: relative;
-    height: 100vh;
+    height: 296.5mm;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -342,6 +349,7 @@
     padding-top: 6mm !important;
   }
   .report-identity {
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 3mm 10mm !important;
     padding: 3mm 3mm !important;
     font-size: 12px !important;
@@ -378,26 +386,6 @@
   }
   .report-section > div:first-child span {
     font-size: 9.5px !important;
-  }
-  .report-cakra {
-    gap: 6mm !important;
-    grid-template-columns: 52mm 1fr !important;
-  }
-  .report-cakra-visual {
-    width: 52mm !important;
-    max-width: 52mm !important;
-  }
-  .report-cakra p {
-    font-size: 8px !important;
-  }
-  .report-cakra > div:nth-child(2) > p {
-    font-size: 6.5px !important;
-    line-height: 1.35 !important;
-  }
-  .report-cakra > div:nth-child(2) .grid {
-    margin-top: 2mm !important;
-    gap: 1.5mm !important;
-    font-size: 6px !important;
   }
   .report-table {
     font-size: 11px !important;
