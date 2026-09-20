@@ -53,10 +53,10 @@ export default async function RaportPage({
       ? new Set(await getHaidDates(santri.id, year, month))
       : undefined;
   const m = computeSantriMetrics(santri, entries, year, month, haidDates);
+  const sebutan = santri.institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
   const tiles: { l: string; v: string | number }[] = [
     { l: "Indeks Rutinitas", v: m.terukur ? `${m.indeksRutinitas}%` : "—" },
     { l: "Total Poin", v: m.totalPoin },
-    { l: "Streak", v: `${m.streak} hr` },
     { l: "Total Rakaat", v: m.totalRakaat },
   ];
   if (m.haidCount > 0)
@@ -74,81 +74,113 @@ export default async function RaportPage({
         <ExportButtons santriId={santri.id} month={month} year={year} />
       </div>
 
-      {/* Dokumen: selalu light agar konsisten saat dicetak */}
-      <div className="print-area mx-auto max-w-[210mm] rounded-xl border border-zinc-200 bg-white p-6 text-zinc-900 shadow-sm lg:p-8">
-        <div className="flex items-center justify-between border-b-2 border-zinc-800 pb-3">
-          <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-imshus.png"
-              alt="Logo IMSHUS"
-              className="size-10 shrink-0 rounded-full"
-            />
-            <div>
-              <h1 className="text-lg font-bold uppercase tracking-wide">
-                Laporan Mutabaah Santri
-              </h1>
-              <p className="text-sm text-zinc-500">
-                Bagian Kesantrian IMSHUS
-              </p>
-            </div>
-          </div>
-          <div className="text-right text-sm">
-            <div className="font-semibold">{monthLabel(m.bulan, m.tahun)}</div>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
-          <div className="flex gap-2">
-            <span className="w-16 shrink-0 text-zinc-500">Nama</span>
-            <b>{m.nama}</b>
-          </div>
-          <div className="flex gap-2">
-            <span className="w-16 shrink-0 text-zinc-500">Kelas</span>
-            <b>{m.kelas}</b>
-          </div>
-          <div className="flex gap-2">
-            <span className="w-16 shrink-0 text-zinc-500">NIS</span>
-            <b className="tnum">{santri.nis}</b>
-          </div>
-          <div className="flex gap-2">
-            <span className="w-16 shrink-0 text-zinc-500">Periode</span>
-            <b>{monthLabel(m.bulan, m.tahun)}</b>
-          </div>
-        </div>
-
-        <div
-          className="mt-4 grid gap-2 text-center"
-          style={{ gridTemplateColumns: `repeat(${tiles.length}, 1fr)` }}
-        >
-          {tiles.map((s) => (
-            <div key={s.l} className="rounded-lg border border-zinc-200 bg-zinc-50 py-2">
-              <div className="text-[10px] uppercase tracking-wide text-zinc-500">
-                {s.l}
+        <div className="print-area report-document mx-auto max-w-[210mm] overflow-hidden rounded-xl border border-zinc-200 bg-white text-zinc-900 shadow-sm">
+          <div className="report-header px-6 pb-5 pt-6 lg:px-8 lg:pt-8">
+            <div className="flex items-start justify-between gap-5">
+              <div className="flex min-w-0 items-center gap-3.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logo-imshus.png"
+                  alt="Logo IMSHUS"
+                  className="size-11 shrink-0 rounded-full bg-white p-0.5"
+                />
+                <div className="min-w-0">
+                  <h1 className="text-base font-bold uppercase tracking-[0.14em] text-zinc-950 sm:text-lg">
+                    Laporan Mutabaah {sebutan}
+                  </h1>
+                  <p className="mt-1 text-xs font-medium tracking-wide text-emerald-800">
+                    Bagian Kesantrian IMSHUS
+                  </p>
+                </div>
               </div>
-              <div className="tnum mt-0.5 text-base font-bold">{s.v}</div>
+              <div className="shrink-0 border-l border-emerald-900/20 pl-4 text-right">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-800">
+                  Periode Laporan
+                </p>
+                <p className="mt-1 text-sm font-bold text-zinc-900">
+                  {monthLabel(m.bulan, m.tahun)}
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <div className="mt-4">
-          <h2 className="mb-1 text-sm font-semibold">
-            Persentase Rutinitas per Amalan
-          </h2>
-          <PctBarChart
-            height={240}
-            data={m.kategori.map((k) => ({
-              id: k.amalan_id,
-              nama: k.nama,
-              pct: k.pct,
-            }))}
-          />
-        </div>
+          <div className="report-body px-6 pb-6 lg:px-8 lg:pb-8">
+            <div className="report-identity grid grid-cols-1 gap-x-8 gap-y-2 px-4 py-3 text-sm sm:grid-cols-2">
+              <Info label="Nama" value={m.nama} />
+              <Info label="Kelas" value={m.kelas} />
+              <Info label="NIS" value={santri.nis} numeric />
+              <Info label="Periode" value={monthLabel(m.bulan, m.tahun)} />
+            </div>
 
-        <div className="mt-4">
-          <Tabel rows={m.kategori} terukur={m.terukur} haidCount={m.haidCount} />
+            <div
+              className="report-metrics mt-5 grid gap-px overflow-hidden border border-zinc-200 bg-zinc-200 text-center"
+              style={{ gridTemplateColumns: `repeat(${tiles.length}, 1fr)` }}
+            >
+              {tiles.map((s) => (
+                <div key={s.l} className="bg-white px-2 py-3">
+                  <div className="text-[9px] font-semibold uppercase tracking-[0.13em] text-zinc-500">
+                    {s.l}
+                  </div>
+                  <div className="tnum mt-1 text-xl font-bold tracking-tight text-zinc-950">
+                    {s.v}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <section className="report-section mt-6">
+              <div className="mb-3 flex items-end justify-between gap-4 border-b border-zinc-200 pb-2">
+                <h2 className="text-sm font-bold text-zinc-900">
+                  Persentase Rutinitas per Amalan
+                </h2>
+                <span className="text-[10px] text-zinc-500">Target maksimal 100%</span>
+              </div>
+              <PctBarChart
+                height={240}
+                report
+                data={m.kategori.map((k) => ({
+                  id: k.amalan_id,
+                  nama: k.nama,
+                  pct: k.pct,
+                }))}
+              />
+            </section>
+
+            <section className="report-section mt-6">
+              <div className="mb-3 flex items-end justify-between gap-4 border-b border-zinc-200 pb-2">
+                <h2 className="text-sm font-bold text-zinc-900">Rincian Pencapaian</h2>
+                <span className="text-[10px] text-zinc-500">Rekap periode berjalan</span>
+              </div>
+              <Tabel rows={m.kategori} terukur={m.terukur} haidCount={m.haidCount} />
+            </section>
+
+            <footer className="report-footer mt-6 flex items-center justify-between border-t border-zinc-200 pt-3 text-[9px] text-zinc-500">
+              <span>Dokumen laporan mutabaah IMSHUS</span>
+              <span>Diterbitkan untuk pemantauan pembinaan</span>
+            </footer>
+          </div>
         </div>
-      </div>
+    </div>
+  );
+}
+
+function Info({
+  label,
+  value,
+  numeric = false,
+}: {
+  label: string;
+  value: string | number;
+  numeric?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline gap-3">
+      <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+        {label}
+      </span>
+      <span className={"min-w-0 font-semibold text-zinc-900 " + (numeric ? "tnum" : "")}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -163,48 +195,46 @@ function Tabel({
   haidCount?: number;
 }) {
   return (
-    <table className="w-full border-collapse text-[10px]">
+    <table className="report-table w-full border-collapse text-[10px]">
       <thead>
-        <tr className="bg-zinc-100 text-center">
-          <th className="w-[6%] border border-zinc-200 px-1.5 py-1">No</th>
-          <th className="w-[40%] border border-zinc-200 px-1.5 py-1">Amalan</th>
-          <th className="w-[12%] border border-zinc-200 px-1.5 py-1">Tercapai</th>
-          <th className="w-[30%] border border-zinc-200 px-1.5 py-1">Keterangan</th>
-          <th className="w-[12%] border border-zinc-200 px-1.5 py-1">%</th>
+        <tr className="bg-emerald-950 text-center text-white">
+          <th className="w-[6%] px-1.5 py-1.5 font-semibold">No</th>
+          <th className="w-[40%] px-1.5 py-1.5 text-left font-semibold">Amalan</th>
+          <th className="w-[12%] px-1.5 py-1.5 font-semibold">Tercapai</th>
+          <th className="w-[30%] px-1.5 py-1.5 text-left font-semibold">Keterangan</th>
+          <th className="w-[12%] px-1.5 py-1.5 font-semibold">%</th>
         </tr>
       </thead>
       <tbody>
-        {rows.map((k) => (
-          <tr key={k.amalan_id}>
-            <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center">
+        {rows.map((k, index) => (
+          <tr key={k.amalan_id} className={index % 2 ? "bg-zinc-50" : "bg-white"}>
+            <td className="tnum border-b border-zinc-200 px-1.5 py-1 text-center text-zinc-500">
               {k.amalan_id}
             </td>
-            <td className="border border-zinc-200 px-1.5 py-0.5 text-left">{k.nama}</td>
-            <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center">
+            <td className="border-b border-zinc-200 px-1.5 py-1 text-left font-medium text-zinc-900">
+              {k.nama}
+            </td>
+            <td className="tnum border-b border-zinc-200 px-1.5 py-1 text-center text-zinc-700">
               {k.done}/{k.total}
             </td>
-            <td className="border border-zinc-200 px-1.5 py-0.5 text-left text-zinc-500">
+            <td className="border-b border-zinc-200 px-1.5 py-1 text-left text-zinc-500">
               {k.rakaatTotal ? `${k.rakaatTotal} rakaat` : ""}
               {k.tepat != null ? `Tepat ${k.tepat} · Masbuq ${k.masbuq} · Sendiri ${k.sendiri}` : ""}
             </td>
-            <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center font-semibold">
+            <td className="tnum border-b border-zinc-200 px-1.5 py-1 text-center font-bold text-zinc-900">
               {terukur ? `${k.pct}%` : "—"}
             </td>
           </tr>
         ))}
         {haidCount != null && haidCount > 0 && (
-          <tr>
-            <td className="border border-zinc-200 px-1.5 py-0.5 text-center">—</td>
-            <td className="border border-zinc-200 px-1.5 py-0.5 text-left">
-              Haid (dibebaskan)
-            </td>
-            <td className="tnum border border-zinc-200 px-1.5 py-0.5 text-center">
-              {haidCount} hari
-            </td>
-            <td className="border border-zinc-200 px-1.5 py-0.5 text-left text-zinc-500">
+          <tr className="bg-rose-50">
+            <td className="px-1.5 py-1 text-center text-rose-700">—</td>
+            <td className="px-1.5 py-1 text-left font-medium text-rose-900">Haid (dibebaskan)</td>
+            <td className="tnum px-1.5 py-1 text-center text-rose-800">{haidCount} hari</td>
+            <td className="px-1.5 py-1 text-left text-rose-700">
               tidak dihitung dalam persentase sholat/dzikir
             </td>
-            <td className="border border-zinc-200 px-1.5 py-0.5 text-center">—</td>
+            <td className="px-1.5 py-1 text-center text-rose-700">—</td>
           </tr>
         )}
       </tbody>

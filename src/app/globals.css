@@ -118,11 +118,9 @@
   }
 }
 
-/* Print / PDF raport: selalu light, bersih */
 @media print {
-  /* F4 210x330mm; margin 0 -> browser tidak mencetak header/footer (tanggal, judul, URL) */
   @page {
-    size: 210mm 330mm;
+    size: A4 portrait;
     margin: 0;
   }
   .no-print {
@@ -132,12 +130,34 @@
     width: 210mm;
     max-width: none !important;
     margin: 0 !important;
-    padding: 12mm 14mm !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: #fff !important;
     color: #18181b !important;
+  }
+  .report-header {
+    padding: 11mm 13mm 7mm !important;
+  }
+  .report-body {
+    padding: 0 13mm 10mm !important;
+  }
+  .report-identity,
+  .report-metrics,
+  .report-section > div {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .report-table thead {
+    display: table-header-group;
+  }
+  .report-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .report-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
   body {
     background: #fff;
