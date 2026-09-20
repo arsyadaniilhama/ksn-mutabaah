@@ -75,88 +75,99 @@ export default async function RaportPage({
       </div>
 
         <div className="print-area report-document mx-auto max-w-[210mm] overflow-hidden rounded-xl border border-zinc-200 bg-white text-zinc-900 shadow-sm">
-          <div className="report-header px-6 pb-5 pt-6 lg:px-8 lg:pt-8">
-            <div className="flex items-start justify-between gap-5">
-              <div className="flex min-w-0 items-center gap-3.5">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/logo-imshus.png"
-                  alt="Logo IMSHUS"
-                  className="size-11 shrink-0 rounded-full bg-white p-0.5"
-                />
-                <div className="min-w-0">
-                  <h1 className="text-base font-bold uppercase tracking-[0.14em] text-zinc-950 sm:text-lg">
-                    Laporan Mutabaah {sebutan}
-                  </h1>
-                  <p className="mt-1 text-xs font-medium tracking-wide text-emerald-800">
-                    Bagian Kesantrian IMSHUS
+          <section className="report-page report-page-summary">
+            <div className="report-header px-6 pb-5 pt-6 lg:px-8 lg:pt-8">
+              <div className="flex items-start justify-between gap-5">
+                <div className="flex min-w-0 items-center gap-3.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/logo-imshus.png"
+                    alt="Logo IMSHUS"
+                    className="size-11 shrink-0 rounded-full bg-white p-0.5"
+                  />
+                  <div className="min-w-0">
+                    <h1 className="text-base font-bold uppercase tracking-[0.14em] text-zinc-950 sm:text-lg">
+                      Laporan Mutabaah {sebutan}
+                    </h1>
+                    <p className="mt-1 text-xs font-medium tracking-wide text-emerald-800">
+                      Bagian Kesantrian IMSHUS
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0 border-l border-emerald-900/20 pl-4 text-right">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-800">
+                    Periode Laporan
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-zinc-900">
+                    {monthLabel(m.bulan, m.tahun)}
                   </p>
                 </div>
               </div>
-              <div className="shrink-0 border-l border-emerald-900/20 pl-4 text-right">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-800">
-                  Periode Laporan
-                </p>
-                <p className="mt-1 text-sm font-bold text-zinc-900">
-                  {monthLabel(m.bulan, m.tahun)}
-                </p>
+            </div>
+
+            <div className="report-body px-6 pb-6 lg:px-8 lg:pb-8">
+              <div className="report-identity grid grid-cols-1 gap-x-8 gap-y-2 px-4 py-3 text-sm sm:grid-cols-2">
+                <Info label="Nama" value={m.nama} />
+                <Info label="Kelas" value={m.kelas} />
+                <Info label="NIS" value={santri.nis} numeric />
+                <Info label="Periode" value={monthLabel(m.bulan, m.tahun)} />
               </div>
-            </div>
-          </div>
 
-          <div className="report-body px-6 pb-6 lg:px-8 lg:pb-8">
-            <div className="report-identity grid grid-cols-1 gap-x-8 gap-y-2 px-4 py-3 text-sm sm:grid-cols-2">
-              <Info label="Nama" value={m.nama} />
-              <Info label="Kelas" value={m.kelas} />
-              <Info label="NIS" value={santri.nis} numeric />
-              <Info label="Periode" value={monthLabel(m.bulan, m.tahun)} />
-            </div>
+              <div
+                className="report-metrics mt-5 grid gap-px overflow-hidden border border-zinc-200 bg-zinc-200 text-center"
+                style={{ gridTemplateColumns: `repeat(${tiles.length}, 1fr)` }}
+              >
+                {tiles.map((s) => (
+                  <div key={s.l} className="bg-white px-2 py-3">
+                    <div className="text-[9px] font-semibold uppercase tracking-[0.13em] text-zinc-500">
+                      {s.l}
+                    </div>
+                    <div className="tnum mt-1 text-xl font-bold tracking-tight text-zinc-950">
+                      {s.v}
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-            <div
-              className="report-metrics mt-5 grid gap-px overflow-hidden border border-zinc-200 bg-zinc-200 text-center"
-              style={{ gridTemplateColumns: `repeat(${tiles.length}, 1fr)` }}
-            >
-              {tiles.map((s) => (
-                <div key={s.l} className="bg-white px-2 py-3">
-                  <div className="text-[9px] font-semibold uppercase tracking-[0.13em] text-zinc-500">
-                    {s.l}
-                  </div>
-                  <div className="tnum mt-1 text-xl font-bold tracking-tight text-zinc-950">
-                    {s.v}
-                  </div>
+              <section className="report-section report-cakra-section mt-6">
+                <div className="mb-3 flex items-end justify-between gap-4 border-b border-zinc-200 pb-2">
+                  <h2 className="text-sm font-bold text-zinc-900">Peta Capaian Amalan</h2>
+                  <span className="text-[10px] text-zinc-500">Cakra Mutabaah periode berjalan</span>
                 </div>
-              ))}
+                <CakraMutabaah
+                  score={m.indeksRutinitas}
+                  measured={m.terukur}
+                  data={m.kategori.map((k) => ({
+                    id: k.amalan_id,
+                    nama: k.nama,
+                    pct: k.pct,
+                  }))}
+                />
+              </section>
+
+              <footer className="report-footer mt-6 flex items-center justify-between border-t border-zinc-200 pt-3 text-[9px] text-zinc-500">
+                <span>Dokumen laporan mutabaah IMSHUS</span>
+                <span>Halaman 1 · Ringkasan capaian</span>
+              </footer>
             </div>
+          </section>
 
-            <section className="report-section mt-6">
-              <div className="mb-3 flex items-end justify-between gap-4 border-b border-zinc-200 pb-2">
-                <h2 className="text-sm font-bold text-zinc-900">Peta Capaian Amalan</h2>
-                <span className="text-[10px] text-zinc-500">Cakra Mutabaah periode berjalan</span>
+          <section className="report-page report-page-detail">
+            <div className="report-detail-header flex items-center justify-between border-b-2 border-emerald-950 px-6 py-4 lg:px-8">
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-zinc-950">Rincian Pencapaian</h2>
+                <p className="mt-1 text-xs text-zinc-500">{m.nama} · {m.kelas} · {monthLabel(m.bulan, m.tahun)}</p>
               </div>
-              <CakraMutabaah
-                score={m.indeksRutinitas}
-                measured={m.terukur}
-                data={m.kategori.map((k) => ({
-                  id: k.amalan_id,
-                  nama: k.nama,
-                  pct: k.pct,
-                }))}
-              />
-            </section>
-
-            <section className="report-section mt-6">
-              <div className="mb-3 flex items-end justify-between gap-4 border-b border-zinc-200 pb-2">
-                <h2 className="text-sm font-bold text-zinc-900">Rincian Pencapaian</h2>
-                <span className="text-[10px] text-zinc-500">Rekap periode berjalan</span>
-              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-800">IMSHUS</span>
+            </div>
+            <div className="report-body px-6 pb-6 pt-5 lg:px-8 lg:pb-8">
               <Tabel rows={m.kategori} terukur={m.terukur} haidCount={m.haidCount} />
-            </section>
-
-            <footer className="report-footer mt-6 flex items-center justify-between border-t border-zinc-200 pt-3 text-[9px] text-zinc-500">
-              <span>Dokumen laporan mutabaah IMSHUS</span>
-              <span>Diterbitkan untuk pemantauan pembinaan</span>
-            </footer>
-          </div>
+              <footer className="report-footer mt-6 flex items-center justify-between border-t border-zinc-200 pt-3 text-[9px] text-zinc-500">
+                <span>Dokumen laporan mutabaah IMSHUS</span>
+                <span>Halaman 2 · Rincian pencapaian</span>
+              </footer>
+            </div>
+          </section>
         </div>
     </div>
   );
