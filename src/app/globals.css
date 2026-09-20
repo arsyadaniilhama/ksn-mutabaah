@@ -118,6 +118,108 @@
   }
 }
 
+/* Heatmap Mutabaah (halaman 1 rapor): grid amalan x tanggal. */
+.report-heatmap {
+  display: flex;
+  flex-direction: column;
+}
+.heatmap-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2mm;
+}
+.heatmap-legend {
+  display: flex;
+  gap: 0.75rem;
+}
+.heatmap-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 8px;
+  color: #52525b;
+}
+.heatmap-chip {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.heatmap-total {
+  font-size: 8px;
+  font-weight: 700;
+  color: #065f46;
+}
+.heatmap-days,
+.heatmap-row {
+  display: grid;
+  grid-template-columns: 34mm 1fr;
+  gap: 2mm;
+  align-items: center;
+}
+.heatmap-cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 1px;
+  flex: 1;
+}
+.heatmap-daynum {
+  font-size: 5.5px;
+  text-align: center;
+  color: #a1a1aa;
+  line-height: 1;
+}
+.heatmap-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.heatmap-row {
+  flex: 1;
+  min-height: 0;
+}
+.heatmap-name {
+  font-size: 6.5px;
+  color: #3f3f46;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.heatmap-cell {
+  aspect-ratio: 1 / 1;
+  min-height: 4px;
+  border-radius: 1.5px;
+}
+.heatmap-done { background: #047857; }
+.heatmap-empty { background: #e4e4e7; }
+.heatmap-haid { background: #fecdd3; }
+.heatmap-future { background: #fafafa; }
+
+@media print {
+  .heatmap-key,
+  .heatmap-total {
+    font-size: 6.5px;
+  }
+  .heatmap-name {
+    font-size: 6.5px;
+  }
+  .heatmap-daynum {
+    font-size: 5.5px;
+  }
+  .heatmap-days,
+  .heatmap-row {
+    grid-template-columns: 30mm 1fr;
+    gap: 1.5mm;
+  }
+  .heatmap-body {
+    flex: 1;
+    min-height: 0;
+    justify-content: space-between;
+  }
+}
+
 /* PDF: dua halaman elegan. Ukuran kertas mengikuti pilihan browser (A4/F4/Letter/Legal). */
 @media print {
   @page {
@@ -126,6 +228,23 @@
   }
   .no-print {
     display: none !important;
+  }
+  /* Netralkan rangka Shell agar tinggi halaman benar-benar = tinggi kertas. */
+  .lg\:pl-64 {
+    padding-left: 0 !important;
+  }
+  main {
+    max-width: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  aside,
+  header {
+    display: none !important;
+  }
+  .space-y-4 > * + * {
+    margin-top: 0 !important;
   }
   .print-area {
     width: 210mm;
@@ -153,37 +272,21 @@
     break-before: page;
     page-break-before: always;
   }
-  .report-page > *:not(.report-ornament) {
+  .report-page > * {
     position: relative;
     z-index: 1;
   }
 
-  /* Ornamen geometris Islami + aksen emas, sangat halus agar dokumen tetap elegan. */
-  .report-ornament {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-image:
-      radial-gradient(circle at 100% 0, rgba(6, 78, 59, 0.06), rgba(6, 78, 59, 0) 46%),
-      radial-gradient(circle at 0 100%, rgba(180, 140, 40, 0.1), rgba(180, 140, 40, 0) 44%);
-  }
-  .report-ornament::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 100 100'><g fill='none' stroke='%23065f46' stroke-width='0.5' opacity='0.16'><path d='M50 6 61 27 84 20 77 43 98 50 77 57 84 80 61 73 50 94 39 73 16 80 23 57 2 50 23 43 16 20 39 27Z'/><circle cx='50' cy='50' r='30'/><circle cx='50' cy='50' r='15'/></g></svg>");
-    background-size: 34mm 34mm;
-    background-position: center;
-    opacity: 0.55;
-  }
-
   /* Distribusi vertikal: footer selalu menempel dasar kertas. */
-  .report-page-summary .report-cakra-section {
+  .report-page-summary .report-visual-section {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    min-height: 0;
+  }
+  .report-page-summary .report-visual-section > .report-heatmap {
+    flex: 1;
+    min-height: 0;
   }
   .report-page-detail .report-body {
     flex: 1;

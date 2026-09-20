@@ -3,7 +3,7 @@ import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { monthLabel, bagianJakarta } from "@/lib/dates";
-import CakraMutabaah from "@/components/CakraMutabaah";
+import HeatmapMutabaah from "@/components/HeatmapMutabaah";
 import ExportButtons from "@/components/ExportButtons";
 import type { KategoriMetric } from "@/types";
 
@@ -76,7 +76,6 @@ export default async function RaportPage({
 
         <div className="print-area report-document mx-auto max-w-[210mm] overflow-hidden rounded-xl border border-zinc-200 bg-white text-zinc-900 shadow-sm">
           <section className="report-page report-page-summary">
-            <div className="report-ornament" aria-hidden="true" />
             <div className="report-header px-6 pb-5 pt-6 lg:px-8 lg:pt-8">
               <div className="flex items-start justify-between gap-5">
                 <div className="flex min-w-0 items-center gap-3.5">
@@ -130,19 +129,20 @@ export default async function RaportPage({
                 ))}
               </div>
 
-              <section className="report-section report-cakra-section mt-6">
+              <section className="report-section report-visual-section mt-6">
                 <div className="mb-3 flex items-end justify-between gap-4 border-b border-zinc-200 pb-2">
-                  <h2 className="text-sm font-bold text-zinc-900">Peta Capaian Amalan</h2>
-                  <span className="text-[10px] text-zinc-500">Cakra Mutabaah periode berjalan</span>
+                  <h2 className="text-sm font-bold text-zinc-900">Heatmap Mutabaah Harian</h2>
+                  <span className="text-[10px] text-zinc-500">
+                    Indeks rutinitas {m.terukur ? `${m.indeksRutinitas}%` : "—"} · {m.hariTerhitung}/{m.hariBerjalan} hari dinilai
+                  </span>
                 </div>
-                <CakraMutabaah
-                  score={m.indeksRutinitas}
-                  measured={m.terukur}
-                  data={m.kategori.map((k) => ({
-                    id: k.amalan_id,
-                    nama: k.nama,
-                    pct: k.pct,
-                  }))}
+                <HeatmapMutabaah
+                  rows={m.kategori}
+                  entries={entries}
+                  year={year}
+                  month={month}
+                  hariBerjalan={m.hariBerjalan}
+                  haidDates={haidDates}
                 />
               </section>
 
@@ -154,7 +154,6 @@ export default async function RaportPage({
           </section>
 
           <section className="report-page report-page-detail">
-            <div className="report-ornament" aria-hidden="true" />
             <div className="report-detail-header flex items-center justify-between border-b-2 border-emerald-950 px-6 py-4 lg:px-8">
               <div>
                 <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-zinc-950">Rincian Pencapaian</h2>
