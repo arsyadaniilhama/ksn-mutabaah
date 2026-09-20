@@ -137,9 +137,65 @@
     background: #fff !important;
     color: #18181b !important;
   }
+  /* Tiap halaman mengisi penuh tinggi kertas (100vh = tinggi page box saat print,
+     mengikuti pilihan kertas browser: A4/F4/Letter/Legal). Konten didistribusi flex
+     agar tidak ada ruang kosong. */
+  .report-page {
+    position: relative;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+  }
   .report-page-detail {
     break-before: page;
     page-break-before: always;
+  }
+  .report-page > *:not(.report-ornament) {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Ornamen geometris Islami + aksen emas, sangat halus agar dokumen tetap elegan. */
+  .report-ornament {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 100% 0, rgba(6, 78, 59, 0.06), rgba(6, 78, 59, 0) 46%),
+      radial-gradient(circle at 0 100%, rgba(180, 140, 40, 0.1), rgba(180, 140, 40, 0) 44%);
+  }
+  .report-ornament::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 100 100'><g fill='none' stroke='%23065f46' stroke-width='0.5' opacity='0.16'><path d='M50 6 61 27 84 20 77 43 98 50 77 57 84 80 61 73 50 94 39 73 16 80 23 57 2 50 23 43 16 20 39 27Z'/><circle cx='50' cy='50' r='30'/><circle cx='50' cy='50' r='15'/></g></svg>");
+    background-size: 34mm 34mm;
+    background-position: center;
+    opacity: 0.55;
+  }
+
+  /* Distribusi vertikal: footer selalu menempel dasar kertas. */
+  .report-page-summary .report-cakra-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .report-page-detail .report-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .report-table {
+    flex: 1;
+    height: 100%;
+  }
+  .report-footer {
+    margin-top: auto !important;
   }
   .report-header {
     padding: 10mm 12mm 6mm !important;
