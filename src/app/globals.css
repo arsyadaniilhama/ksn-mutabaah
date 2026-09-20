@@ -200,13 +200,13 @@
 @media print {
   .heatmap-key,
   .heatmap-total {
-    font-size: 8.5px;
+    font-size: 10px;
   }
   .heatmap-name {
-    font-size: 8.5px;
+    font-size: 11px;
   }
   .heatmap-daynum {
-    font-size: 7px;
+    font-size: 9px;
   }
   .heatmap-days,
   .heatmap-row {
@@ -293,6 +293,12 @@
   }
 
   /* Distribusi vertikal: footer selalu menempel dasar kertas. */
+  .report-page-summary .report-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
   .report-page-summary .report-visual-section {
     flex: 1;
     display: flex;
@@ -323,11 +329,11 @@
     height: 15mm !important;
   }
   .report-header h1 {
-    font-size: 19px !important;
+    font-size: 22px !important;
   }
   .report-header p,
   .report-header .text-sm {
-    font-size: 10px !important;
+    font-size: 11px !important;
   }
   .report-body {
     padding: 0 12mm 8mm !important;
@@ -338,24 +344,27 @@
   .report-identity {
     gap: 3mm 10mm !important;
     padding: 3mm 3mm !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     line-height: 1.35 !important;
   }
   .report-identity span {
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
   }
   .report-metrics {
     margin-top: 5mm !important;
+    gap: 2px !important;
+    background: #18181b !important;
+    border: 2px solid #18181b !important;
   }
   .report-metrics > div {
     padding: 3.5mm 1.5mm !important;
   }
   .report-metrics .text-xl {
-    font-size: 22px !important;
+    font-size: 26px !important;
     line-height: 1.05 !important;
   }
   .report-metrics .text-\[9px\] {
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
   }
   .report-section {
     margin-top: 6mm !important;
@@ -365,10 +374,10 @@
     padding-bottom: 2mm !important;
   }
   .report-section h2 {
-    font-size: 13px !important;
+    font-size: 15px !important;
   }
   .report-section > div:first-child span {
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
   }
   .report-cakra {
     gap: 6mm !important;
@@ -430,7 +439,7 @@
   .report-footer {
     margin-top: 6mm !important;
     padding-top: 2.5mm !important;
-    font-size: 8.5px !important;
+    font-size: 9px !important;
   }
   body {
     background: #fff;
