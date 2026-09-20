@@ -154,7 +154,7 @@ export default async function RaportPage({
           </section>
 
           <section className="report-page report-page-detail">
-            <div className="report-detail-header flex items-center justify-between border-b-2 border-emerald-950 px-6 py-4 lg:px-8">
+            <div className="report-detail-header flex items-center justify-between border-b border-emerald-800/30 px-6 py-4 lg:px-8">
               <div>
                 <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-zinc-950">Rincian Pencapaian</h2>
                 <p className="mt-1 text-xs text-zinc-500">{m.nama} · {m.kelas} · {monthLabel(m.bulan, m.tahun)}</p>
