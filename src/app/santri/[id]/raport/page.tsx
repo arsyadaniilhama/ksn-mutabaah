@@ -3,7 +3,7 @@ import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { monthLabel, bagianJakarta } from "@/lib/dates";
-import PctBarChart from "@/components/PctBarChart";
+import CakraMutabaah from "@/components/CakraMutabaah";
 import ExportButtons from "@/components/ExportButtons";
 import type { KategoriMetric } from "@/types";
 
@@ -130,14 +130,12 @@ export default async function RaportPage({
 
             <section className="report-section mt-6">
               <div className="mb-3 flex items-end justify-between gap-4 border-b border-zinc-200 pb-2">
-                <h2 className="text-sm font-bold text-zinc-900">
-                  Persentase Rutinitas per Amalan
-                </h2>
-                <span className="text-[10px] text-zinc-500">Target maksimal 100%</span>
+                <h2 className="text-sm font-bold text-zinc-900">Peta Capaian Amalan</h2>
+                <span className="text-[10px] text-zinc-500">Cakra Mutabaah periode berjalan</span>
               </div>
-              <PctBarChart
-                height={240}
-                report
+              <CakraMutabaah
+                score={m.indeksRutinitas}
+                measured={m.terukur}
                 data={m.kategori.map((k) => ({
                   id: k.amalan_id,
                   nama: k.nama,
