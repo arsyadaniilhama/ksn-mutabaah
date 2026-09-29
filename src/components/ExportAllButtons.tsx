@@ -20,8 +20,21 @@ interface Manifest {
 }
 
 /** Berapa santri dirender per panggilan server (aman untuk limit fungsi Hobby:
- *  ~10 × ±360 KB ≈ 3.6 MB < 4.5 MB respons, dan selesai < 60 dtk). */
+ *  ~10 × ±300 KB ≈ 3 MB < 4.5 MB respons, dan selesai < 60 dtk). */
 const BATCH_SIZE = 10;
+/** Berapa batch diunduh BERSAMAAN. Batch berurutan membuat tiap batch menanggung
+ *  cold-start Chromium (±2 dtk) secara serial; paralel memangkas total waktu besar.
+ *  Client-side saja (tiap request tetap fungsi serverless mandiri) → tidak melanggar
+ *  batas durasi per-fungsi. */
+const PARALLEL = 3;
+/** Halaman dirender paralel di dalam satu batch. */
+const CONCURRENCY = 6;
+/** Berapa kali ulang bila satu batch gagal (mis. cold-start/timeout). */
+const RETRY = 1;
+
+function batchUrl(month: number, year: number, offset: number) {
+  return `/api/export/pdf-batch?month=${month}&year=${year}&offset=${offset}&limit=${BATCH_SIZE}&concurrency=${CONCURRENCY}`;
+}
 
 type Phase = { label: string; done: number; total: number } | null;
 
@@ -77,32 +90,46 @@ export default function ExportAllButtons({ month, year, count }: Props) {
     const total = manifest.santri.length;
     if (total === 0) throw new Error("Belum ada santri aktif.");
 
-    // 2) Unduh tiap batch lalu gabung jadi 1 ZIP di browser
+    // 2) Unduh tiap batch secara PARALEL (pool) lalu gabung jadi 1 ZIP di browser
     const zip = new JSZip();
+    const offsets: number[] = [];
+    for (let offset = 0; offset < total; offset += BATCH_SIZE) offsets.push(offset);
+
     let done = 0;
     let failedBatches = 0;
-    const failedOffsets: number[] = [];
 
-    for (let offset = 0; offset < total; offset += BATCH_SIZE) {
-      setPhase({ label: "Membuat PDF", done, total });
-      try {
-        const res = await fetch(
-          `/api/export/pdf-batch?month=${month}&year=${year}&offset=${offset}&limit=${BATCH_SIZE}`,
-        );
-        if (!res.ok) throw new Error(`batch ${offset} gagal (${res.status})`);
-        const batchZip = await JSZip.loadAsync(await res.arrayBuffer());
-        const entries = Object.values(batchZip.files).filter((f) => !f.dir);
-        for (const entry of entries) {
-          zip.file(entry.name, await entry.async("uint8array"));
+    async function fetchBatch(offset: number): Promise<void> {
+      let lastErr: unknown;
+      for (let attempt = 0; attempt <= RETRY; attempt++) {
+        try {
+          const res = await fetch(batchUrl(month, year, offset));
+          if (!res.ok) throw new Error(`batch ${offset} gagal (${res.status})`);
+          const batchZip = await JSZip.loadAsync(await res.arrayBuffer());
+          const entries = Object.values(batchZip.files).filter((f) => !f.dir);
+          for (const entry of entries) {
+            zip.file(entry.name, await entry.async("uint8array"));
+          }
+          done += entries.length;
+          setPhase({ label: "Membuat PDF", done: Math.min(done, total), total });
+          return;
+        } catch (e) {
+          lastErr = e;
         }
-        done += entries.length;
-      } catch (e) {
-        failedBatches += 1;
-        failedOffsets.push(offset);
-        if (typeof console !== "undefined") console.error("PDF batch gagal", offset, e);
       }
-      setPhase({ label: "Membuat PDF", done: Math.min(done, total), total });
+      failedBatches += 1;
+      if (typeof console !== "undefined") console.error("PDF batch gagal", offset, lastErr);
     }
+
+    let cursor = 0;
+    await Promise.all(
+      Array.from({ length: Math.min(PARALLEL, offsets.length) }, async () => {
+        for (;;) {
+          const i = cursor++;
+          if (i >= offsets.length) return;
+          await fetchBatch(offsets[i]);
+        }
+      }),
+    );
 
     if (failedBatches > 0 && done === 0) {
       throw new Error("Semua batch PDF gagal. Coba lagi.");

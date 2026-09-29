@@ -32,6 +32,12 @@ export async function GET(request: Request) {
   const offset = Math.max(0, Number(searchParams.get("offset")) || 0);
   const rawLimit = Number(searchParams.get("limit")) || BATCH;
   const limit = Math.min(30, Math.max(CLAMP, rawLimit));
+  // Halaman dirender paralel di dalam satu panggilan (makin tinggi makin cepat,
+  // tapi makan CPU/memori). Di-clamp agar aman.
+  const concurrency = Math.min(
+    8,
+    Math.max(1, Number(searchParams.get("concurrency")) || 6),
+  );
   if (!month || !year)
     return NextResponse.json({ error: "month, year wajib" }, { status: 400 });
 
@@ -51,7 +57,7 @@ export async function GET(request: Request) {
       santri.map((s) => ({
         url: `${origin}/santri/${s.id}/raport?month=${month}&year=${year}`,
       })),
-      { cookie, concurrency: 4 },
+      { cookie, concurrency },
     );
   } catch (e) {
     return NextResponse.json(
