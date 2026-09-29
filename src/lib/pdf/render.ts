@@ -1,6 +1,11 @@
 import "server-only";
 import puppeteer, { type Browser } from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
+import { createReadStream, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createBrotliDecompress } from "node:zlib";
+import { extract as tarExtract } from "tar-fs";
 
 /**
  * Render halaman web (route raport yang sama dengan ekspor per santri) menjadi PDF
@@ -31,6 +36,39 @@ function isServerless(): boolean {
   );
 }
 
+const AL2023_LIB_DIR = join(tmpdir(), "al2023", "lib");
+let libsReady: Promise<void> | null = null;
+
+/**
+ * @sparticuz/chromium hanya mengekstrak `al2023.tar.br` (yang berisi libnss3.so dll.)
+ * bila mendeteksi Node 20/22 dari env AWS. Vercel memakai Node 24 → deteksi gagal dan
+ * Chromium crash ("libnss3.so: cannot open shared object"). Jadi kita ekstrak sendiri
+ * paket lib ke /tmp/al2023/lib dan set LD_LIBRARY_PATH.
+ * Idempoten (sekali per instance) dan aman di lokal (di-skip bila file tak ada).
+ */
+async function ensureChromiumLibs(): Promise<void> {
+  if (libsReady) return libsReady;
+  libsReady = (async () => {
+    if (existsSync(join(AL2023_LIB_DIR, "libnss3.so"))) return;
+    const candidates = [
+      join(process.cwd(), "node_modules", "@sparticuz", "chromium", "bin", "al2023.tar.br"),
+      join(process.cwd(), "node_modules", "@sparticuz", "chromium", "bin", "al2.tar.br"),
+    ];
+    const src = candidates.find((p) => existsSync(p));
+    if (!src) return; // lokal tanpa paket chromium → skip
+    // Alirkan brotli → tar (tar-fs yang membuat folder tujuan, seperti bawaan paket).
+    await new Promise<void>((resolve, reject) => {
+      const rs = createReadStream(src, { highWaterMark: 2 ** 23 });
+      const target = tarExtract(join(tmpdir(), "al2023"));
+      target.once("finish", resolve);
+      target.once("error", reject);
+      rs.once("error", reject);
+      rs.pipe(createBrotliDecompress({ chunkSize: 2 ** 21 })).pipe(target);
+    });
+  })();
+  return libsReady;
+}
+
 async function resolveExecutablePath(): Promise<string> {
   if (isServerless()) return chromium.executablePath();
   for (const p of LOCAL_CHROME_CANDIDATES) {
@@ -55,6 +93,14 @@ async function resolveExecutablePath(): Promise<string> {
 
 /** Luncurkan browser (satu instance untuk banyak halaman). */
 export async function launchBrowser(): Promise<Browser> {
+  if (isServerless()) {
+    await ensureChromiumLibs().catch(() => {});
+    // Pastikan loader menemukan lib yang kita ekstrak (libnss3 dll.).
+    const existing = process.env.LD_LIBRARY_PATH?.split(":") ?? [];
+    if (!existing.includes(AL2023_LIB_DIR)) {
+      process.env.LD_LIBRARY_PATH = [AL2023_LIB_DIR, ...existing].filter(Boolean).join(":");
+    }
+  }
   const executablePath = await resolveExecutablePath();
   const args = isServerless()
     ? chromium.args
