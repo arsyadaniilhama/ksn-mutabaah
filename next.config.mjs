@@ -11,6 +11,7 @@ const nextConfig = {
   // file .br sehingga render PDF gagal di Vercel.
   outputFileTracingIncludes: {
     "/api/export/pdf-batch/**": ["./node_modules/@sparticuz/chromium/bin/**"],
+    "/api/export/pdf-kelas/**": ["./node_modules/@sparticuz/chromium/bin/**"],
   },
 };
 
