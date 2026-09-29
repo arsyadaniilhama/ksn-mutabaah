@@ -68,13 +68,14 @@ Dua jalur ekspor, keduanya memakai sumber yang sama sehingga hasilnya **identik*
 - **Per kelas (1 klik)** — tombol **Export PDF (Kelas X)** / **Export Excel (Kelas X)** di header
   `/laporan`. Cakupannya = **kelas yang sedang aktif** di tab (mis. buka tab *Kelas 2* → ekspor
   semua Kelas 2).
-  - **PDF** → membuka **`/laporan/cetak?kelas=&month=&year=`**: satu halaman berisi raport semua
-    santri kelas itu (2 halaman A4 per santri, komponen `RaportSantri` + CSS cetak yang sama
-    dengan `/santri/[id]/raport` → **identik**). Klik **Cetak** → dialog browser *Save as PDF*.
-    Cepat (±1-3 detik) karena dirender mesin browser user, bukan server.
+  - **PDF** → 1 klik langsung mengunduh **ZIP berisi 1 file PDF per nama santri** (`Raport_<Nama>_<Bulan><Tahun>.pdf`).
+    Arsitektur hybrid: server merender gabungan kelas via `GET /api/export/pdf-kelas` dalam satu pass Chrome
+    (~2.5-3.5s), lalu browser memotong (slice) PDF per santri di memori via `pdf-lib` (~0.4s) dan mengompresi
+    ZIP via `JSZip` (~0.2s). **Total selesai ~3.5 - 4.5 detik**, tanpa dialog browser, dan 100% aman dari batas payload Vercel Hobby.
   - **Excel** → `GET /api/export/excel-all?month=&year=&kelas=` → **satu ZIP berisi 1 file .xlsx
-    per santri** (tiap file identik dengan ekspor Excel per santri).
-  - Semua endpoint menerima param `kelas` (Kelas 1/2/3); tanpa param = seluruh institusi.
+    per santri** (tiap file identik dengan ekspor Excel per santri, ~1-2 detik).
+  - **Cetak** → tombol kecil di sebelah tombol ekspor untuk membuka tampilan print preview langsung di tab baru
+    (`/laporan/cetak?kelas=...`) bila ingin dicetak fisik di atas kertas.
 
 ### Alternatif lama: ZIP PDF server-side (masih tersedia)
 
