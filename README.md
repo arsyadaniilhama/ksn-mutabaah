@@ -65,23 +65,29 @@ Dua jalur ekspor, keduanya memakai sumber yang sama sehingga hasilnya **identik*
 - **Per santri** — tombol di `/laporan` tiap baris.
   - PDF: `/santri/[id]/raport` → tombol *Cetak / Simpan PDF* (`window.print()`).
   - Excel: `GET /api/export/excel?santri_id=&month=&year=`.
-- **Per kelas (1 klik)** — tombol **Export PDF Semua** / **Export Excel Semua** di header `/laporan`.
-  Cakupannya = **kelas yang sedang aktif** di tab (mis. buka tab *Kelas 2* → ekspor semua Kelas 2).
-  - **PDF** → `GET /api/export/pdf-manifest` (daftar santri) lalu `GET /api/export/pdf-batch`
-    beberapa kali (offset bergeser). Server merender tiap santri dari route
-    `/santri/[id]/raport` yang sama memakai headless Chrome (`src/lib/pdf/render.ts`) +
-    CSS cetak yang sama, jadi **tampilannya sama persis** dengan ekspor per santri.
-    Browser menggabungkan setiap batch menjadi **satu ZIP** (JSZip).
+- **Per kelas (1 klik)** — tombol **Export PDF (Kelas X)** / **Export Excel (Kelas X)** di header
+  `/laporan`. Cakupannya = **kelas yang sedang aktif** di tab (mis. buka tab *Kelas 2* → ekspor
+  semua Kelas 2).
+  - **PDF** → membuka **`/laporan/cetak?kelas=&month=&year=`**: satu halaman berisi raport semua
+    santri kelas itu (2 halaman A4 per santri, komponen `RaportSantri` + CSS cetak yang sama
+    dengan `/santri/[id]/raport` → **identik**). Klik **Cetak** → dialog browser *Save as PDF*.
+    Cepat (±1-3 detik) karena dirender mesin browser user, bukan server.
   - **Excel** → `GET /api/export/excel-all?month=&year=&kelas=` → **satu ZIP berisi 1 file .xlsx
     per santri** (tiap file identik dengan ekspor Excel per santri).
   - Semua endpoint menerima param `kelas` (Kelas 1/2/3); tanpa param = seluruh institusi.
 
+### Alternatif lama: ZIP PDF server-side (masih tersedia)
+
+`GET /api/export/pdf-manifest` + `GET /api/export/pdf-batch?offset=&limit=&kelas=` merender
+raport per batch via headless Chrome dan klien menggabungkannya jadi ZIP. Ini dipakai bila
+butuh **file PDF terpisah per santri otomatis** tanpa dialog cetak (lebih lambat, ±15-25 dtk
+per kelas).
+
 ### Catatan mesin PDF (headless Chrome) — patuh Vercel Hobby
 
-Fungsi serverless Hobby dibatasi **60 dtk** dan **respons 4.5 MB**. Karena itu PDF dirender
-**per batch 8 santri** (PDF PI terbesar ±476 KB → ±3.8 MB, selesai < 60 dtk) dan batch diunduh
-**paralel** lalu digabung di browser — **tanpa perlu plan Pro**. Bila batch gagal sebagian,
-tombol memberi tahu dan bisa diulang.
+Fungsi serverless Hobby dibatasi **60 dtk** dan **respons 4.5 MB**. Karena itu (bila pakai jalur
+ZIP) PDF dirender **per batch 8 santri** (PDF PI terbesar ±476 KB → ±3.8 MB, selesai < 60 dtk)
+dan batch diunduh **paralel** lalu digabung di browser — **tanpa perlu plan Pro**.
 
 - Di **Vercel** memakai [`@sparticuz/chromium`](https://github.com/Sparticuz/chromium) (bundled).
   Disarankan set **Memory** fungsi `pdf-batch` (Settings → Functions) ke **≥1024 MB**.
