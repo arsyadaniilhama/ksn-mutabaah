@@ -56,7 +56,37 @@ Skrip mencetak jumlah dan **mem-flag** nama/nilai tak cocok (tanpa menghentikan 
 | `/santri` | Daftar + kelola santri (tambah, ubah, nonaktifkan) |
 | `/santri/[id]` | Detail santri + grafik |
 | `/santri/[id]/raport` | Raport bulanan (Cetak/Simpan PDF) |
-| `/laporan` | Rekap per kelas + ekspor PDF/Excel |
+| `/laporan` | Rekap per kelas + ekspor PDF/Excel (per santri & semua santri 1 klik) |
+
+## Ekspor laporan
+
+Dua jalur ekspor, keduanya memakai sumber yang sama sehingga hasilnya **identik**:
+
+- **Per santri** — tombol di `/laporan` tiap baris.
+  - PDF: `/santri/[id]/raport` → tombol *Cetak / Simpan PDF* (`window.print()`).
+  - Excel: `GET /api/export/excel?santri_id=&month=&year=`.
+- **Semua santri (1 klik)** — tombol **Export PDF Semua** / **Export Excel Semua** di header `/laporan`.
+  - **PDF** → `GET /api/export/pdf-manifest` (daftar santri) lalu `GET /api/export/pdf-batch`
+    beberapa kali (offset bergeser). Server merender tiap santri dari route
+    `/santri/[id]/raport` yang sama memakai headless Chrome (`src/lib/pdf/render.ts`) +
+    CSS cetak yang sama, jadi **tampilannya sama persis** dengan ekspor per santri.
+    Browser menggabungkan setiap batch menjadi **satu ZIP** (JSZip).
+  - **Excel** → `GET /api/export/excel-all?month=&year=` → 1 workbook berisi **1 sheet per santri**
+    (nama sheet = nama santri), tiap sheet identik dengan ekspor per santri.
+  - Cakupan = seluruh santri **aktif** pada institusi user (PA/PI); kelas tidak difilter.
+
+### Catatan mesin PDF (headless Chrome) — patuh Vercel Hobby
+
+Fungsi serverless Hobby dibatasi **60 dtk** dan **respons 4.5 MB**, sedangkan 52 PDF ≈ 18 MB.
+Karena itu PDF dirender **per batch 10 santri** (≈ 3.6 MB, selesai < 60 dtk) dan digabung di
+browser — **tanpa perlu plan Pro**. Bila batch gagal sebagian, tombol memberi tahu dan bisa diulang.
+
+- Di **Vercel** memakai [`@sparticuz/chromium`](https://github.com/Sparticuz/chromium) (bundled).
+  Disarankan set **Memory** fungsi `pdf-batch` (Settings → Functions) ke **≥1024 MB**.
+- Di **lokal** pakai Chrome/Chromium sistem. Set bila tidak di lokasi standar:
+  ```bash
+  export CHROME_PATH="/usr/bin/google-chrome"   # atau path Chrome lokal
+  ```
 
 ## Build & Deploy Vercel
 
@@ -66,6 +96,9 @@ npm run build      # verifikasi produksi
 
 Push ke GitHub → import ke Vercel → set 3 environment variable (sama seperti `.env.local`)
 → Deploy. Setelah live, jalankan migration + importer sekali (bisa dari lokal).
+
+> Ekspor PDF semua sudah dirancang untuk **plan Hobby** (render per batch ≤ 60 dtk & ≤ 4.5 MB).
+> Disarankan tetap menaikkan **Memory** fungsi `pdf-batch` ke **≥1024 MB** agar Chromium lancar.
 
 ## Skrip
 

@@ -11,6 +11,7 @@ import PageHeader from "@/components/PageHeader";
 import Avatar from "@/components/Avatar";
 import Badge from "@/components/Badge";
 import ProgressBar from "@/components/ProgressBar";
+import ExportAllButtons from "@/components/ExportAllButtons";
 import type { Kelas } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -56,7 +57,9 @@ export default async function LaporanPage({
       <PageHeader
         title="Laporan Bulanan"
         description={`${kelas} · ${monthLabel(month, year)} · ${santri.length} ${label}`}
-      />
+      >
+        <ExportAllButtons month={month} year={year} count={allSantri.length} />
+      </PageHeader>
 
       {tanpaData && (
         <p className="-mt-2 text-xs text-faint">
