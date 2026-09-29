@@ -14,8 +14,8 @@ const BATCH = 10;
 const CLAMP = 1;
 
 /**
- * GET /api/export/pdf-batch?month=&year=&offset=&limit=
- * Render SEBAGIAN santri (default 12) menjadi ZIP kecil.
+ * GET /api/export/pdf-batch?month=&year=&offset=&limit=&kelas=
+ * Render SEBAGIAN santri (default 10) menjadi ZIP kecil.
  *
  * Kenapa per batch: fungsi Hobby dibatasi 60 dtk & respons 4.5 MB, sedangkan 52 PDF
  * bisa ~18 MB. Klien memanggil endpoint ini beberapa kali (offset bergeser) lalu
@@ -29,6 +29,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const month = Number(searchParams.get("month"));
   const year = Number(searchParams.get("year"));
+  const kelas = searchParams.get("kelas") ?? undefined;
   const offset = Math.max(0, Number(searchParams.get("offset")) || 0);
   const rawLimit = Number(searchParams.get("limit")) || BATCH;
   const limit = Math.min(30, Math.max(CLAMP, rawLimit));
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
   if (!month || !year)
     return NextResponse.json({ error: "month, year wajib" }, { status: 400 });
 
-  const all = await listSantri(undefined, false, cu.institusi);
+  const all = await listSantri(kelas, false, cu.institusi);
   const santri = all.slice(offset, offset + limit);
   if (santri.length === 0)
     return NextResponse.json({ error: "tidak ada santri di rentang ini" }, { status: 404 });

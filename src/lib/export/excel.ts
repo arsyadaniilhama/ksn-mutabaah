@@ -8,6 +8,11 @@ export function safeName(s: string) {
   return s.replace(/[^\w\-]+/g, "_").replace(/^_+|_+$/g, "");
 }
 
+/** Nama file .xlsx per santri (sama dengan unduhan per-santri). */
+export function santriFileName(santri: Santri, month: number, year: number) {
+  return `Mutabaah_${safeName(santri.nama)}_${bulanName(month)}${year}.xlsx`;
+}
+
 /**
  * Nama tab sheet Excel yang valid & unik.
  * Excel membatasi 31 karakter dan melarang karakter [ ] : * ? / \ serta nama ganda.

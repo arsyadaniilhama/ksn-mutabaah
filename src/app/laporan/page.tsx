@@ -58,7 +58,7 @@ export default async function LaporanPage({
         title="Laporan Bulanan"
         description={`${kelas} · ${monthLabel(month, year)} · ${santri.length} ${label}`}
       >
-        <ExportAllButtons month={month} year={year} count={allSantri.length} />
+        <ExportAllButtons month={month} year={year} count={santri.length} kelas={kelas} />
       </PageHeader>
 
       {tanpaData && (

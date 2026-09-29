@@ -12,6 +12,7 @@ interface Props {
   month: number;
   year: number;
   count: number;
+  kelas: string;
 }
 
 interface Manifest {
@@ -19,9 +20,9 @@ interface Manifest {
   santri: { id: string; nama: string; nis: number }[];
 }
 
-/** Berapa santri dirender per panggilan server (aman untuk limit fungsi Hobby:
- *  ~10 × ±300 KB ≈ 3 MB < 4.5 MB respons, dan selesai < 60 dtk). */
-const BATCH_SIZE = 10;
+/** Berapa santri dirender per panggilan server (aman untuk limit fungsi Hobby).
+ *  8 santri: PI ±476 KB/orang → ±3.8 MB < 4.5 MB respons; selesai < 60 dtk. */
+const BATCH_SIZE = 8;
 /** Berapa batch diunduh BERSAMAAN. Batch berurutan membuat tiap batch menanggung
  *  cold-start Chromium (±2 dtk) secara serial; paralel memangkas total waktu besar.
  *  Client-side saja (tiap request tetap fungsi serverless mandiri) → tidak melanggar
@@ -32,8 +33,12 @@ const CONCURRENCY = 6;
 /** Berapa kali ulang bila satu batch gagal (mis. cold-start/timeout). */
 const RETRY = 1;
 
-function batchUrl(month: number, year: number, offset: number) {
-  return `/api/export/pdf-batch?month=${month}&year=${year}&offset=${offset}&limit=${BATCH_SIZE}&concurrency=${CONCURRENCY}`;
+function kelasQuery(kelas: string) {
+  return kelas ? `&kelas=${encodeURIComponent(kelas)}` : "";
+}
+
+function batchUrl(month: number, year: number, offset: number, kelas: string) {
+  return `/api/export/pdf-batch?month=${month}&year=${year}&offset=${offset}&limit=${BATCH_SIZE}&concurrency=${CONCURRENCY}${kelasQuery(kelas)}`;
 }
 
 type Phase = { label: string; done: number; total: number } | null;
@@ -57,13 +62,13 @@ function saveBlob(blob: Blob, name: string) {
  * (JSZip) — tanpa server perlu menahan seluruh arsip. Tiap PDF tetap identik dengan
  * ekspor per santri (dirender dari /santri/[id]/raport yang sama).
  */
-export default function ExportAllButtons({ month, year, count }: Props) {
+export default function ExportAllButtons({ month, year, count, kelas }: Props) {
   const [busy, setBusy] = useState<"pdf" | "excel" | null>(null);
   const [phase, setPhase] = useState<Phase>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function downloadExcel() {
-    const url = `/api/export/excel-all?month=${month}&year=${year}`;
+    const url = `/api/export/excel-all?month=${month}&year=${year}${kelasQuery(kelas)}`;
     const res = await fetch(url);
     if (!res.ok) {
       let msg = `Gagal (${res.status})`;
@@ -82,7 +87,9 @@ export default function ExportAllButtons({ month, year, count }: Props) {
 
   async function downloadPdf() {
     // 1) Ambil daftar santri
-    const manRes = await fetch(`/api/export/pdf-manifest?month=${month}&year=${year}`);
+    const manRes = await fetch(
+      `/api/export/pdf-manifest?month=${month}&year=${year}${kelasQuery(kelas)}`,
+    );
     if (!manRes.ok) {
       throw new Error(manRes.status === 404 ? "Belum ada data santri aktif." : `Gagal memuat daftar (${manRes.status})`);
     }
@@ -102,7 +109,7 @@ export default function ExportAllButtons({ month, year, count }: Props) {
       let lastErr: unknown;
       for (let attempt = 0; attempt <= RETRY; attempt++) {
         try {
-          const res = await fetch(batchUrl(month, year, offset));
+          const res = await fetch(batchUrl(month, year, offset, kelas));
           if (!res.ok) throw new Error(`batch ${offset} gagal (${res.status})`);
           const batchZip = await JSZip.loadAsync(await res.arrayBuffer());
           const entries = Object.values(batchZip.files).filter((f) => !f.dir);
@@ -166,7 +173,7 @@ export default function ExportAllButtons({ month, year, count }: Props) {
     ? phase.total > 0
       ? `PDF ${phase.done}/${phase.total}…`
       : "Menyiapkan…"
-    : "Export PDF Semua";
+    : `Export PDF Semua (${kelas})`;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -175,7 +182,7 @@ export default function ExportAllButtons({ month, year, count }: Props) {
         onClick={() => download("pdf")}
         disabled={!!busy}
         className="btn-outline h-9"
-        title={`Ekspor raport PDF semua santri (${count}) dalam 1 file ZIP`}
+        title={`Ekspor raport PDF seluruh ${kelas} (${count} santri) dalam 1 file ZIP`}
       >
         {busy === "pdf" ? <Loader size={16} className="animate-spin" /> : <FilePdf size={16} stroke={1.75} />}
         {pdfLabel}
@@ -185,10 +192,10 @@ export default function ExportAllButtons({ month, year, count }: Props) {
         onClick={() => download("excel")}
         disabled={!!busy}
         className="btn-outline h-9"
-        title={`Ekspor Excel semua santri (${count}) — 1 sheet per santri`}
+        title={`Ekspor Excel seluruh ${kelas} (${count} santri) — ZIP, 1 file .xlsx per santri`}
       >
         {busy === "excel" ? <Loader size={16} className="animate-spin" /> : <FileXls size={16} stroke={1.75} />}
-        {busy === "excel" ? "Menyiapkan…" : "Export Excel Semua"}
+        {busy === "excel" ? "Menyiapkan…" : `Export Excel Semua (${kelas})`}
       </button>
       {error && <span className="text-xs text-danger">{error}</span>}
     </div>

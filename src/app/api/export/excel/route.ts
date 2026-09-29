@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
-import { bulanName } from "@/lib/dates";
-import { buildSantriSheet, safeName } from "@/lib/export/excel";
+import { buildSantriSheet, santriFileName } from "@/lib/export/excel";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +33,7 @@ export async function GET(request: Request) {
   buildSantriSheet(wb, santri, entries, haidSet, year, month);
 
   const buffer = await wb.xlsx.writeBuffer();
-  const filename = `Mutabaah_${safeName(santri.nama)}_${bulanName(month)}${year}.xlsx`;
+  const filename = santriFileName(santri, month, year);
 
   return new NextResponse(Buffer.from(buffer), {
     headers: {

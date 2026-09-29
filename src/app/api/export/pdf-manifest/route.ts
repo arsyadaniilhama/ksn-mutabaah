@@ -6,9 +6,9 @@ import { bulanName } from "@/lib/dates";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/export/pdf-manifest?month=&year=
- * Daftar santri aktif (institusi user) yang akan diekspor + nama file ZIP akhir.
- * Ringan (tanpa render PDF) supaya klien bisa mengunduh raport per batch.
+ * GET /api/export/pdf-manifest?month=&year=&kelas=
+ * Daftar santri aktif (institusi user, opsional per kelas) yang akan diekspor +
+ * nama file ZIP akhir. Ringan (tanpa render PDF) supaya klien bisa mengunduh per batch.
  */
 export async function GET(request: Request) {
   const cu = await getCurrentUser();
@@ -17,18 +17,21 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const month = Number(searchParams.get("month"));
   const year = Number(searchParams.get("year"));
+  const kelas = searchParams.get("kelas") ?? undefined;
   if (!month || !year)
     return NextResponse.json({ error: "month, year wajib" }, { status: 400 });
 
-  const santri = await listSantri(undefined, false, cu.institusi);
+  const santri = await listSantri(kelas, false, cu.institusi);
   const label = cu.institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
+  const scope = kelas ? kelas.replace(/\s+/g, "") : "Semua";
 
   return NextResponse.json({
     month,
     year,
+    kelas: kelas ?? null,
     institusi: cu.institusi,
     label,
-    namaFile: `Raport_Semua_${label}_${bulanName(month)}${year}.zip`,
+    namaFile: `Raport_${scope}_${label}_${bulanName(month)}${year}.zip`,
     santri: santri.map((s) => ({ id: s.id, nama: s.nama, nis: s.nis, kelas: s.kelas })),
   });
 }
