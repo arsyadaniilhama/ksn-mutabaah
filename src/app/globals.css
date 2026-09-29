@@ -279,6 +279,12 @@
     color: #18181b !important;
     overflow: visible !important;
   }
+  /* Bila beberapa report-document ditumpuk (cetak gabungan per kelas),
+     setiap santri berikutnya harus mulai di halaman baru. */
+  .print-area.report-document + .print-area.report-document {
+    break-before: page;
+    page-break-before: always;
+  }
   /* Tiap halaman mengisi penuh tinggi kertas A4 (297mm). Tinggi mm tetap agar
      tidak bergantung viewport (vh) perangkat saat print dari HP. */
   .report-page {
