@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import {
   listSantri,
-  getDayValues,
+  getDayValuesForSantriList,
   getDayProgress,
   getMonthCoverage,
 } from "@/lib/data";
@@ -28,8 +28,13 @@ export default async function InputPage() {
   ]);
   const kelasList = Array.from(new Set(santriList.map((s) => s.kelas))) as Kelas[];
   const kelas: Kelas = kelasList[0] ?? "Kelas 1";
-  const first = santriList.find((s) => s.kelas === kelas) ?? santriList[0];
-  const initialValues = first ? await getDayValues(first.id, date) : {};
+  const kelasSantri = santriList.filter((s) => s.kelas === kelas);
+  const first = kelasSantri[0] ?? santriList[0];
+  const initialDayCache = await getDayValuesForSantriList(
+    kelasSantri.map((s) => s.id),
+    date,
+  );
+  const initialValues = first ? (initialDayCache[first.id] ?? {}) : {};
 
   return (
     <div className="lg:flex lg:h-[calc(100dvh-64px)] lg:flex-col lg:overflow-hidden">
@@ -49,6 +54,7 @@ export default async function InputPage() {
             initialKelas={first?.kelas ?? kelas}
             initialDate={date}
             initialValues={initialValues}
+            initialDayCache={initialDayCache}
             initialProgress={progress}
             initialCoverage={coverage}
           />

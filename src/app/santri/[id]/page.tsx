@@ -4,7 +4,7 @@ import { IconFilter as Filter, IconPdf as FilePdf } from "@tabler/icons-react";
 import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
-import { monthLabel, bagianJakarta } from "@/lib/dates";
+import { BULAN_ID, monthLabel, bagianJakarta } from "@/lib/dates";
 import PageHeader from "@/components/PageHeader";
 import KpiCard from "@/components/KpiCard";
 import Avatar from "@/components/Avatar";
@@ -52,13 +52,41 @@ export default async function SantriDetailPage({
   return (
     <div className="space-y-6">
       <PageHeader title={santri.nama} description={`${santri.kelas} · NIS ${santri.nis} · ${monthLabel(month, year)}`}>
-        <Link
-          href={`/santri/${santri.id}/raport?month=${month}&year=${year}`}
-          className="btn-primary"
-        >
-          <FilePdf size={16} stroke={1.75} /> Raport
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/laporan"
+            className="btn-outline"
+          >
+            ← Laporan
+          </Link>
+          <Link
+            href={`/santri/${santri.id}/raport?month=${month}&year=${year}`}
+            className="btn-primary"
+          >
+            <FilePdf size={16} stroke={1.75} /> Raport
+          </Link>
+        </div>
       </PageHeader>
+
+      <div className="card flex flex-wrap items-center gap-2 p-3">
+        <span className="px-1 text-xs font-medium text-faint">Pilih Bulan:</span>
+        <div className="flex flex-wrap gap-1">
+          {BULAN_ID.map((b, i) => (
+            <Link
+              key={b}
+              href={`/santri/${santri.id}?month=${i + 1}&year=${year}`}
+              className={
+                "rounded-md px-2.5 py-1 text-xs font-medium transition " +
+                (i + 1 === month
+                  ? "bg-accent text-accent-fg font-semibold"
+                  : "text-muted hover:bg-surface2 hover:text-ink")
+              }
+            >
+              {b.slice(0, 3)}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       <div className="card flex items-center gap-4 p-5">
         <Avatar name={santri.nama} size="lg" />

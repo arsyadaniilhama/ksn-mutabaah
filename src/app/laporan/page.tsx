@@ -30,11 +30,7 @@ export default async function LaporanPage({
   const institusi = user?.institusi ?? "PA IMSHUS";
   const label = institusi === "PI IMSHUS" ? "santriwati" : "santri";
 
-  const [allSantri, entries, haidMap] = await Promise.all([
-    listSantri(undefined, false, institusi),
-    listEntries({ year: Number(sp.year) || jkt.y, month: Number(sp.month) || jkt.m, institusi }),
-    listHaidForMonth(Number(sp.year) || jkt.y, Number(sp.month) || jkt.m, institusi),
-  ]);
+  const allSantri = await listSantri(undefined, false, institusi);
   const adaKelas = KELAS_ORDER.filter((k) =>
     allSantri.some((s) => s.kelas === k),
   ) as Kelas[];
@@ -42,6 +38,12 @@ export default async function LaporanPage({
   const kelas = (KELAS_LIST.includes(sp.kelas as Kelas) ? sp.kelas : KELAS_LIST[0]) as Kelas;
   const month = Number(sp.month) || jkt.m;
   const year = Number(sp.year) || jkt.y;
+
+  // Hanya ambil entri untuk kelas yang aktif (menghemat 65% data & roundtrip)
+  const [entries, haidMap] = await Promise.all([
+    listEntries({ year, month, kelas, institusi }),
+    listHaidForMonth(year, month, institusi),
+  ]);
 
   const santri = allSantri.filter((s) => s.kelas === kelas);
   const metrics = santri

@@ -22,6 +22,7 @@ interface Props {
   initialKelas: Kelas;
   initialDate: string;
   initialValues: Record<number, CellValue>;
+  initialDayCache?: Record<string, Record<number, CellValue>>;
   initialProgress: Record<string, number>;
   initialCoverage: string[];
   label?: string;
@@ -78,6 +79,7 @@ export default function InputClient({
   initialKelas,
   initialDate,
   initialValues,
+  initialDayCache,
   initialProgress,
   initialCoverage,
   label = "Santri",
@@ -118,6 +120,28 @@ export default function InputClient({
   const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
   const firstMonth = useRef(ym);
 
+  // In-memory client cache untuk values amalan (santriId:date -> values).
+  // Menjadikan klik nama santri & "santri berikutnya" 0 ms INSTAN tanpa loading spinner.
+  const dayCache = useRef<Map<string, Record<number, CellValue>>>(new Map());
+  const haidCache = useRef<Map<string, Set<string>>>(new Map());
+  const progressCache = useRef<Map<string, Record<string, number>>>(new Map());
+  const coverageCache = useRef<Map<string, Set<string>>>(new Map());
+
+  // Inisialisasi cache awal dari SSR data
+  const initialized = useRef(false);
+  if (!initialized.current) {
+    initialized.current = true;
+    if (initialDayCache) {
+      for (const [sid, val] of Object.entries(initialDayCache)) {
+        dayCache.current.set(`${sid}:${initialDate}`, val);
+      }
+    } else if (santriInKelas[0]?.id) {
+      dayCache.current.set(`${santriInKelas[0].id}:${initialDate}`, initialValues);
+    }
+    progressCache.current.set(initialDate, initialProgress);
+    coverageCache.current.set(ym, new Set(initialCoverage));
+  }
+
   useEffect(() => {
     if (!santriInKelas.some((s) => s.id === santriId)) {
       setSantriId(santriInKelas[0]?.id ?? "");
@@ -136,11 +160,20 @@ export default function InputClient({
 
   const loadDay = useCallback(async (sid: string, d: string) => {
     if (!sid) return;
+    const cacheKey = `${sid}:${d}`;
+    const cached = dayCache.current.get(cacheKey);
+    if (cached) {
+      setValues(cached);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/entries?santri_id=${sid}&date=${d}`);
       const json = await res.json();
-      setValues(json.values ?? {});
+      const val = json.values ?? {};
+      dayCache.current.set(cacheKey, val);
+      setValues(val);
     } catch {
       setToast("Gagal memuat data.");
       setToastTone("err");
@@ -154,19 +187,56 @@ export default function InputClient({
       firstVal.current = false;
       return;
     }
-    loadDay(santriId, date);
+    const cacheKey = `${santriId}:${date}`;
+    if (dayCache.current.has(cacheKey)) {
+      setValues(dayCache.current.get(cacheKey)!);
+    } else {
+      loadDay(santriId, date);
+    }
   }, [santriId, date, loadDay]);
+
+  // Prefetch nilai seluruh santri di kelas aktif saat tanggal atau kelas berganti (~80ms 1x)
+  const prevDateKelas = useRef(`${initialDate}:${initialKelas}`);
+  useEffect(() => {
+    const cur = `${date}:${kelas}`;
+    if (prevDateKelas.current === cur) return;
+    prevDateKelas.current = cur;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/entries?kelas=${encodeURIComponent(kelas)}&date=${date}`);
+        const json = await res.json();
+        if (json.dayValues) {
+          for (const [sid, val] of Object.entries(json.dayValues)) {
+            dayCache.current.set(`${sid}:${date}`, val as Record<number, CellValue>);
+          }
+          if (santriId && json.dayValues[santriId]) {
+            setValues(json.dayValues[santriId] as Record<number, CellValue>);
+          }
+        }
+      } catch {
+        /* noop */
+      }
+    })();
+  }, [date, kelas, santriId]);
 
   useEffect(() => {
     if (firstProg.current) {
       firstProg.current = false;
       return;
     }
+    const cached = progressCache.current.get(date);
+    if (cached) {
+      setProgress(cached);
+      return;
+    }
     (async () => {
       try {
         const res = await fetch(`/api/progress?date=${date}`);
         const json = await res.json();
-        setProgress(json.progress ?? {});
+        const p = (json.progress ?? {}) as Record<string, number>;
+        progressCache.current.set(date, p);
+        setProgress(p);
       } catch {
         /* biarkan progress lama */
       }
@@ -176,26 +246,41 @@ export default function InputClient({
   useEffect(() => {
     if (firstMonth.current === ym) return;
     firstMonth.current = ym;
+    const cached = coverageCache.current.get(ym);
+    if (cached) {
+      setCoverage(cached);
+      return;
+    }
     (async () => {
       try {
         const res = await fetch(`/api/coverage?year=${dt.getFullYear()}&month=${dt.getMonth() + 1}`);
         const json = await res.json();
-        setCoverage(new Set(json.dates ?? []));
+        const c = new Set<string>(json.dates ?? []);
+        coverageCache.current.set(ym, c);
+        setCoverage(c);
       } catch {
         /* noop */
       }
     })();
   }, [ym, dt]);
 
-  // Ambil tanggal haid santriwati terpilih (bulannya mengikuti tanggal aktif)
+  // Ambil tanggal haid santriwati terpilih (dengan in-memory cache)
   useEffect(() => {
     if (!canHaid || !santriId) return;
     const [hy, hm] = ym.split("-");
+    const hKey = `${santriId}:${ym}`;
+    const cached = haidCache.current.get(hKey);
+    if (cached) {
+      setHaidDates(cached);
+      return;
+    }
     (async () => {
       try {
         const res = await fetch(`/api/haid?santri_id=${santriId}&year=${hy}&month=${hm}`);
         const json = await res.json();
-        setHaidDates(new Set(json.dates ?? []));
+        const set = new Set<string>(json.dates ?? []);
+        haidCache.current.set(hKey, set);
+        setHaidDates(set);
       } catch {
         /* noop */
       }
@@ -211,6 +296,7 @@ export default function InputClient({
       const n = new Set(s);
       if (on) n.add(date);
       else n.delete(date);
+      haidCache.current.set(`${santriId}:${ym}`, n);
       return n;
     });
     try {
@@ -225,6 +311,7 @@ export default function InputClient({
         const n = new Set(s);
         if (on) n.delete(date);
         else n.add(date);
+        haidCache.current.set(`${santriId}:${ym}`, n);
         return n;
       });
       setToast("Gagal menyimpan status haid.");
@@ -239,6 +326,7 @@ export default function InputClient({
       const prev = values[amalanId] ?? null;
       const newValues = { ...values, [amalanId]: next };
       setValues(newValues);
+      dayCache.current.set(`${santriId}:${date}`, newValues);
       setSavingId(amalanId);
       try {
         const entry = buildEntry(santriId, date, amalanId, next);
@@ -252,22 +340,31 @@ export default function InputClient({
           const v = newValues[a.id];
           return a.value_type === "rakaat" ? (v as number) > 0 : v != null;
         }).length;
-        setProgress((p) => ({ ...p, [santriId]: filled }));
+        setProgress((p) => {
+          const np = { ...p, [santriId]: filled };
+          progressCache.current.set(date, np);
+          return np;
+        });
         setCoverage((c) => {
           if (filled === 0) return c;
           const n = new Set(c);
           n.add(date);
+          coverageCache.current.set(ym, n);
           return n;
         });
       } catch {
-        setValues((v) => ({ ...v, [amalanId]: prev }));
+        setValues((v) => {
+          const rolled = { ...v, [amalanId]: prev };
+          dayCache.current.set(`${santriId}:${date}`, rolled);
+          return rolled;
+        });
         setToast("Gagal menyimpan. Coba lagi.");
         setToastTone("err");
       } finally {
         setSavingId(null);
       }
     },
-    [santriId, date, values, amalanList],
+    [santriId, date, values, amalanList, ym],
   );
 
   const currentIdx = santriInKelas.findIndex((s) => s.id === santriId);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDayValues, listSantri, upsertEntries } from "@/lib/data";
+import { getDayValues, getDayValuesForSantriList, listSantri, upsertEntries } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { bulkUpsertSchema } from "@/lib/validations";
 
@@ -14,9 +14,24 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const santriId = searchParams.get("santri_id");
+  const kelas = searchParams.get("kelas");
   const date = searchParams.get("date");
-  if (!santriId || !date)
-    return NextResponse.json({ error: "santri_id & date wajib" }, { status: 400 });
+  if (!date)
+    return NextResponse.json({ error: "date wajib" }, { status: 400 });
+
+  // Mode bulk per kelas: ambil seluruh santri di kelas tersebut dalam 1 query cepat (~80ms)
+  if (kelas) {
+    const santriList = await listSantri(kelas, false, cu.institusi);
+    const dayValues = await getDayValuesForSantriList(
+      santriList.map((s) => s.id),
+      date,
+    );
+    return NextResponse.json({ dayValues });
+  }
+
+  // Mode single santri (kompatibel dgn pemanggil sebelumnya)
+  if (!santriId)
+    return NextResponse.json({ error: "santri_id atau kelas wajib" }, { status: 400 });
 
   const ids = await allowedSantriIds(cu.institusi);
   if (!ids.has(santriId))

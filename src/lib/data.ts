@@ -3,11 +3,46 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { AMALAN_BY_ID } from "@/lib/amalan";
 import type { CellValue, EntryStatus, MutabaahEntry, Santri } from "@/types";
 
+/* ===== In-Memory Caches (per instance, TTL singkat) =====
+ * Menghindari roundtrip berulang ke Supabase saat navigasi tab/bulan.
+ * Otomatis di-invalidate saat data berubah (upsert/update/create/setHaid).
+ */
+const santriCache = new Map<string, { data: Santri[]; at: number }>();
+const entriesCache = new Map<string, { data: MutabaahEntry[]; at: number }>();
+const progressCache = new Map<string, { data: Record<string, number>; at: number }>();
+const coverageCache = new Map<string, { data: string[]; at: number }>();
+const haidDatesCache = new Map<string, { data: string[]; at: number }>();
+const haidMonthCache = new Map<string, { data: Map<string, Set<string>>; at: number }>();
+const classDayValuesCache = new Map<string, { data: Record<string, Record<number, CellValue>>; at: number }>();
+
+function invalidateMutation() {
+  entriesCache.clear();
+  progressCache.clear();
+  coverageCache.clear();
+  classDayValuesCache.clear();
+}
+
+function invalidateSantri() {
+  santriCache.clear();
+  entriesCache.clear();
+  classDayValuesCache.clear();
+}
+
+function invalidateHaid() {
+  haidDatesCache.clear();
+  haidMonthCache.clear();
+  entriesCache.clear();
+}
+
 export async function listSantri(
   kelas?: string,
   includeInactive = false,
   institusi?: string,
 ): Promise<Santri[]> {
+  const cacheKey = `${kelas ?? ""}:${includeInactive}:${institusi ?? ""}`;
+  const hit = santriCache.get(cacheKey);
+  if (hit && Date.now() - hit.at < 60_000) return hit.data;
+
   const supabase = createAdminClient();
   let q = supabase.from("santri").select("*").order("nis");
   if (kelas) q = q.eq("kelas", kelas);
@@ -15,7 +50,9 @@ export async function listSantri(
   if (institusi) q = q.eq("institusi", institusi);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
-  return (data ?? []) as Santri[];
+  const res = (data ?? []) as Santri[];
+  santriCache.set(cacheKey, { data: res, at: Date.now() });
+  return res;
 }
 
 export async function createSantri(input: {
@@ -43,6 +80,7 @@ export async function createSantri(input: {
     .select()
     .single();
   if (error) throw new Error(error.message);
+  invalidateSantri();
   return data as Santri;
 }
 
@@ -77,11 +115,15 @@ export async function updateSantri(
     .select()
     .single();
   if (error) throw new Error(error.message);
+  invalidateSantri();
   return data as Santri;
 }
 
 /** Jumlah amalan terisi per santri pada satu tanggal. */
 export async function getDayProgress(date: string): Promise<Record<string, number>> {
+  const hit = progressCache.get(date);
+  if (hit && Date.now() - hit.at < 30_000) return hit.data;
+
   const supabase = createAdminClient();
   const rows = await fetchAll<{ santri_id: string }>((from, to) =>
     supabase
@@ -89,11 +131,12 @@ export async function getDayProgress(date: string): Promise<Record<string, numbe
       .select("santri_id")
       .eq("entry_date", date)
       .or("status.not.is.null,rakaat.gt.0")
-      .order("id")
+      .order("entry_date")
       .range(from, to),
   );
   const out: Record<string, number> = {};
   for (const r of rows) out[r.santri_id] = (out[r.santri_id] ?? 0) + 1;
+  progressCache.set(date, { data: out, at: Date.now() });
   return out;
 }
 
@@ -102,6 +145,10 @@ export async function getMonthCoverage(
   year: number,
   month: number,
 ): Promise<string[]> {
+  const cacheKey = `${year}:${month}`;
+  const hit = coverageCache.get(cacheKey);
+  if (hit && Date.now() - hit.at < 60_000) return hit.data;
+
   const supabase = createAdminClient();
   const start = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDay = new Date(year, month, 0).getDate();
@@ -113,10 +160,12 @@ export async function getMonthCoverage(
       .gte("entry_date", start)
       .lte("entry_date", end)
       .or("status.not.is.null,rakaat.gt.0")
-      .order("id")
+      .order("entry_date")
       .range(from, to),
   );
-  return [...new Set(rows.map((r) => r.entry_date))];
+  const res = [...new Set(rows.map((r) => r.entry_date))];
+  coverageCache.set(cacheKey, { data: res, at: Date.now() });
+  return res;
 }
 
 export async function getSantri(id: string): Promise<Santri | null> {
@@ -153,6 +202,10 @@ export async function listEntries(params: {
   santriId?: string;
   institusi?: string;
 }): Promise<MutabaahEntry[]> {
+  const cacheKey = `${params.year}:${params.month}:${params.kelas ?? ""}:${params.santriId ?? ""}:${params.institusi ?? ""}`;
+  const hit = entriesCache.get(cacheKey);
+  if (hit && Date.now() - hit.at < 30_000) return hit.data;
+
   const supabase = createAdminClient();
   const start = `${params.year}-${String(params.month).padStart(2, "0")}-01`;
   const lastDay = new Date(params.year, params.month, 0).getDate();
@@ -189,7 +242,7 @@ export async function listEntries(params: {
       .select(COLS)
       .gte("entry_date", start)
       .lte("entry_date", end)
-      .order("id")
+      .order("entry_date")
       .range(from, to);
     if (params.santriId) {
       q = q.eq("santri_id", params.santriId);
@@ -201,12 +254,19 @@ export async function listEntries(params: {
     return (data ?? []) as MutabaahEntry[];
   };
 
-  if (total <= pageSize) return fetchRange(0, Math.max(0, total - 1));
-  const ranges: [number, number][] = [];
-  for (let from = 0; from < total; from += pageSize)
-    ranges.push([from, Math.min(total - 1, from + pageSize - 1)]);
-  const parts = await Promise.all(ranges.map(([f, t]) => fetchRange(f, t)));
-  return parts.flat();
+  let res: MutabaahEntry[];
+  if (total <= pageSize) {
+    res = await fetchRange(0, Math.max(0, total - 1));
+  } else {
+    const ranges: [number, number][] = [];
+    for (let from = 0; from < total; from += pageSize)
+      ranges.push([from, Math.min(total - 1, from + pageSize - 1)]);
+    const parts = await Promise.all(ranges.map(([f, t]) => fetchRange(f, t)));
+    res = parts.flat();
+  }
+
+  entriesCache.set(cacheKey, { data: res, at: Date.now() });
+  return res;
 }
 
 /** Nilai 19 amalan untuk satu santri pada satu tanggal (untuk UI input). */
@@ -230,6 +290,46 @@ export async function getDayValues(
         ? (row.rakaat ?? null)
         : ((row.status as CellValue) ?? null);
   }
+  return out;
+}
+
+/**
+ * Nilai amalan untuk SEKELOMPOK santri (mis. satu kelas) pada satu tanggal dalam 1 query (~80ms).
+ * Mengembalikan: santri_id -> amalan_id -> CellValue.
+ * Sangat cepat untuk preloading / tab switching di /input.
+ */
+export async function getDayValuesForSantriList(
+  santriIds: string[],
+  date: string,
+): Promise<Record<string, Record<number, CellValue>>> {
+  if (santriIds.length === 0) return {};
+  const cacheKey = `${santriIds.slice().sort().join(",")}:${date}`;
+  const hit = classDayValuesCache.get(cacheKey);
+  if (hit && Date.now() - hit.at < 30_000) return hit.data;
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("mutabaah_entries")
+    .select("santri_id,amalan_id,status,rakaat")
+    .in("santri_id", santriIds)
+    .eq("entry_date", date);
+  if (error) throw new Error(error.message);
+
+  const out: Record<string, Record<number, CellValue>> = {};
+  for (const sid of santriIds) out[sid] = {};
+
+  for (const row of data ?? []) {
+    const a = AMALAN_BY_ID[row.amalan_id as number];
+    if (!a) continue;
+    const sid = row.santri_id as string;
+    if (!out[sid]) out[sid] = {};
+    out[sid][row.amalan_id as number] =
+      a.value_type === "rakaat"
+        ? (row.rakaat ?? null)
+        : ((row.status as CellValue) ?? null);
+  }
+
+  classDayValuesCache.set(cacheKey, { data: out, at: Date.now() });
   return out;
 }
 
@@ -269,6 +369,10 @@ export async function getHaidDates(
   year: number,
   month: number,
 ): Promise<string[]> {
+  const cacheKey = `${santriId}:${year}:${month}`;
+  const hit = haidDatesCache.get(cacheKey);
+  if (hit && Date.now() - hit.at < 60_000) return hit.data;
+
   const supabase = createAdminClient();
   const start = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDay = new Date(year, month, 0).getDate();
@@ -280,7 +384,9 @@ export async function getHaidDates(
     .gte("tanggal", start)
     .lte("tanggal", end);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((r) => r.tanggal as string);
+  const res = (data ?? []).map((r) => r.tanggal as string);
+  haidDatesCache.set(cacheKey, { data: res, at: Date.now() });
+  return res;
 }
 
 /** Peta santri_id -> Set(tanggal haid) untuk satu bulan (opsional per institusi). */
@@ -289,6 +395,10 @@ export async function listHaidForMonth(
   month: number,
   institusi?: string,
 ): Promise<Map<string, Set<string>>> {
+  const cacheKey = `${year}:${month}:${institusi ?? ""}`;
+  const hit = haidMonthCache.get(cacheKey);
+  if (hit && Date.now() - hit.at < 60_000) return hit.data;
+
   const supabase = createAdminClient();
   const start = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDay = new Date(year, month, 0).getDate();
@@ -311,6 +421,7 @@ export async function listHaidForMonth(
     if (!map.has(r.santri_id)) map.set(r.santri_id, new Set());
     map.get(r.santri_id)!.add(r.tanggal);
   }
+  haidMonthCache.set(cacheKey, { data: map, at: Date.now() });
   return map;
 }
 
@@ -334,6 +445,7 @@ export async function setHaid(
       .eq("tanggal", tanggal);
     if (error) throw new Error(error.message);
   }
+  invalidateHaid();
 }
 
 /** Upsert massal; konflik pada (santri_id, amalan_id, entry_date). */
@@ -361,4 +473,5 @@ export async function upsertEntries(
       onConflict: "santri_id,amalan_id,entry_date",
     });
   if (error) throw new Error(error.message);
+  invalidateMutation();
 }
