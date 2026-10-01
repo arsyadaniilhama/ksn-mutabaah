@@ -107,6 +107,9 @@ export default function RaportSantri({
                 <span className="inline-flex items-center gap-1.5">
                   <i className="inline-block size-2.5 rounded-[3px] bg-zinc-200" />Kosong
                 </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <i className="inline-block size-2.5 rounded-[3px] bg-neutral-100 shadow-[inset_0_0_0_1px_#ececef]" />Belum tiba
+                </span>
                 {haidDates && haidDates.size > 0 && (
                   <span className="inline-flex items-center gap-1.5">
                     <i className="inline-block size-2.5 rounded-[3px] bg-rose-200" />Haid

@@ -176,7 +176,7 @@
 .heatmap-done { background: rgb(var(--hm-done)); }
 .heatmap-empty { background: rgb(var(--hm-empty)); }
 .heatmap-haid { background: rgb(var(--hm-haid)); }
-.heatmap-future { background: #fafafa; }
+.heatmap-future { background: #fafafa; box-shadow: inset 0 0 0 1px #ececef; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
 /* ===== Raport Mode 2: Adab & Ibadah, satu halaman panjang ===== */
 .report-idn-head { text-align: center; padding: 8mm 12mm 4mm; }
@@ -246,9 +246,9 @@ table.idn-mini th {
   color: #68716B; text-align: left; padding: 2px 4px; vertical-align: bottom;
 }
 table.idn-mini th.barcol { text-align: center; }
-table.idn-mini th.num, table.idn-mini td.num { width: 13%; }
+table.idn-mini th.num, table.idn-mini td.num { width: 13%; text-align: center; }
 table.idn-mini td { padding: 3px 4px; border-top: 1px solid #DDE7DF; color: #39413C; vertical-align: middle; }
-table.idn-mini td.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.idn-mini td.num { font-variant-numeric: tabular-nums; }
 table.idn-mini th.c, table.idn-mini td.c,
 table.idn-det th.c, table.idn-det td.c { text-align: center; font-variant-numeric: tabular-nums; }
 table.idn-mini th.barcol, table.idn-det th.barcol { width: 46%; }
@@ -268,9 +268,9 @@ table.idn-det th {
   color: #68716B; text-align: left; padding: 2px 4px; border-bottom: 1px solid #D9E2DA; vertical-align: bottom;
 }
 table.idn-det th.barcol { text-align: center; }
-table.idn-det th.num, table.idn-det td.num { width: 11%; }
+table.idn-det th.num, table.idn-det td.num { width: 11%; text-align: center; }
 table.idn-det td { padding: 2.5px 4px; border-bottom: 1px solid #E9EFEA; color: #39413C; vertical-align: middle; }
-table.idn-det td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.idn-det td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .idn-ket {
   background: #EFF6F1; border-radius: 8px; padding: 7px 12px;
   font-size: 9.5px; color: #39413C; margin-top: 8px;

@@ -1,4 +1,5 @@
 import { HAID_TETAP_IDS } from "@/lib/amalan";
+import { daysInMonth } from "@/lib/dates";
 import { pctColor } from "@/lib/metrics";
 import type { KategoriMetric, MutabaahEntry } from "@/types";
 
@@ -29,7 +30,11 @@ export default function HeatmapMutabaah({
     byDayAmal.set(`${e.amalan_id}:${dayOf(e.entry_date)}`, e);
   }
 
-  const days = Array.from({ length: hariBerjalan }, (_, i) => i + 1);
+  // Tampilkan SELURUH kotak tanggal dalam bulan (dim), bukan hanya s/d hari ini (D),
+  // agar grid langsung penuh sejak awal bulan dan tidak "tambah 1 tiap hari".
+  // Persentase metrik tetap memakai hariBerjalan (D) — hanya tampilan yang penuh.
+  const dim = daysInMonth(year, month);
+  const days = Array.from({ length: dim }, (_, i) => i + 1);
 
   const stateOf = (amalanId: number, valueType: string, day: number): CellState => {
     if (day > hariBerjalan) return "future";
