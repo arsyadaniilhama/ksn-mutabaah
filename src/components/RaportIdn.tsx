@@ -163,15 +163,32 @@ function DailyChart({
   );
 }
 
-function PctBar({ pct }: { pct: number }) {
+function PctBar({ pct, align = "right" }: { pct: number; align?: "left" | "right" }) {
   const { color } = idnBand(pct);
   const t = `${String(Math.round(pct * 100) / 100).replace(".", ",")}%`;
+  const num = (
+    <span className="idn-pctnum" style={{ textAlign: align }}>
+      {t}
+    </span>
+  );
+  const bar = (
+    <span className="idn-track" aria-hidden>
+      <i style={{ width: `${Math.max(0, Math.min(100, pct))}%`, background: color }} />
+    </span>
+  );
   return (
-    <span className="idn-barcell">
-      <span className="idn-pctnum">{t}</span>
-      <span className="idn-track">
-        <i style={{ width: `${Math.max(0, Math.min(100, pct))}%`, background: color }} />
-      </span>
+    <span className="idn-barcell" data-align={align}>
+      {align === "right" ? (
+        <>
+          {num}
+          {bar}
+        </>
+      ) : (
+        <>
+          {bar}
+          {num}
+        </>
+      )}
     </span>
   );
 }

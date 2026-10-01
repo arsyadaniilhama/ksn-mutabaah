@@ -243,14 +243,18 @@
 table.idn-mini { width: 100%; border-collapse: collapse; font-size: 9.5px; table-layout: fixed; }
 table.idn-mini th {
   font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em;
-  color: #68716B; text-align: left; padding: 2px 4px;
+  color: #68716B; text-align: left; padding: 2px 4px; vertical-align: bottom;
 }
+table.idn-mini th.barcol { text-align: right; }
 table.idn-mini th.num, table.idn-mini td.num { width: 13%; }
-table.idn-mini td { padding: 3px 4px; border-top: 1px solid #DDE7DF; color: #39413C; }
+table.idn-mini td { padding: 3px 4px; border-top: 1px solid #DDE7DF; color: #39413C; vertical-align: middle; }
 table.idn-mini td.num { text-align: right; font-variant-numeric: tabular-nums; }
 table.idn-mini th.barcol, table.idn-det th.barcol { width: 46%; }
-.idn-barcell { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 6px; }
-.idn-pctnum { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #1C2320; white-space: nowrap; }
+.idn-barcell { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 0; min-height: 16px; }
+.idn-barcell[data-align="left"] { grid-template-columns: 1fr 52px; }
+.idn-pctnum { font-variant-numeric: tabular-nums; font-weight: 600; color: #1C2320; white-space: nowrap; line-height: 1.2; }
+.idn-barcell[data-align="right"] .idn-pctnum { text-align: right; padding-right: 6px; }
+.idn-barcell[data-align="left"] .idn-pctnum { text-align: left; padding-left: 6px; }
 .idn-track { height: 7px; border-radius: 4px; background: #D8E2DA; overflow: hidden; }
 .idn-track i { display: block; height: 100%; border-radius: 4px; }
 .idn-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -259,10 +263,11 @@ table.idn-mini th.barcol, table.idn-det th.barcol { width: 46%; }
 table.idn-det { width: 100%; border-collapse: collapse; font-size: 9px; table-layout: fixed; }
 table.idn-det th {
   font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.05em;
-  color: #68716B; text-align: left; padding: 2px 4px; border-bottom: 1px solid #D9E2DA;
+  color: #68716B; text-align: left; padding: 2px 4px; border-bottom: 1px solid #D9E2DA; vertical-align: bottom;
 }
+table.idn-det th.barcol { text-align: right; }
 table.idn-det th.num, table.idn-det td.num { width: 11%; }
-table.idn-det td { padding: 2.5px 4px; border-bottom: 1px solid #E9EFEA; color: #39413C; }
+table.idn-det td { padding: 2.5px 4px; border-bottom: 1px solid #E9EFEA; color: #39413C; vertical-align: middle; }
 table.idn-det td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .idn-ket {
   background: #EFF6F1; border-radius: 8px; padding: 7px 12px;
