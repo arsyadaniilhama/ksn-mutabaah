@@ -1,4 +1,5 @@
 import { HAID_TETAP_IDS } from "@/lib/amalan";
+import { pctColor } from "@/lib/metrics";
 import type { KategoriMetric, MutabaahEntry } from "@/types";
 
 type CellState = "done" | "empty" | "haid" | "future";
@@ -41,32 +42,8 @@ export default function HeatmapMutabaah({
     return e.status === "done" ? "done" : "empty";
   };
 
-  let terisi = 0;
-  let target = 0;
-  for (const r of rows) {
-    for (const d of days) {
-      const s = stateOf(r.amalan_id, r.value_type, d);
-      if (s === "haid") continue;
-      target++;
-      if (s === "done") terisi++;
-    }
-  }
-
   return (
     <div className="report-heatmap">
-      <div className="heatmap-head">
-        <div className="heatmap-legend">
-          <span className="heatmap-key"><i className="heatmap-chip heatmap-chip-done" />Terisi</span>
-          <span className="heatmap-key"><i className="heatmap-chip heatmap-chip-empty" />Kosong</span>
-          {haidDates && haidDates.size > 0 && (
-            <span className="heatmap-key"><i className="heatmap-chip heatmap-chip-haid" />Haid</span>
-          )}
-        </div>
-        <div className="heatmap-total tnum">
-          {terisi}/{target} sel terisi
-        </div>
-      </div>
-
       <div className="heatmap-days" aria-hidden="true">
         <span className="heatmap-name" />
         <div className="heatmap-cells">
@@ -74,18 +51,24 @@ export default function HeatmapMutabaah({
             <span key={d} className="heatmap-daynum">{d}</span>
           ))}
         </div>
+        <span className="heatmap-pct">%</span>
       </div>
 
       <div className="heatmap-body">
         {rows.map((r) => (
           <div key={r.amalan_id} className="heatmap-row">
-            <span className="heatmap-name" title={r.nama}>{r.nama}</span>
+            <span className="heatmap-name" title={r.nama}>
+              {r.amalan_id}. {r.nama}
+            </span>
             <div className="heatmap-cells">
               {days.map((d) => {
                 const s = stateOf(r.amalan_id, r.value_type, d);
                 return <span key={d} className={`heatmap-cell heatmap-${s}`} />;
               })}
             </div>
+            <span className="heatmap-pct tnum" style={{ color: pctColor(r.pct) }}>
+              {r.pct}%
+            </span>
           </div>
         ))}
       </div>

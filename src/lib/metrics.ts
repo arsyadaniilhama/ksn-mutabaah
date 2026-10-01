@@ -181,3 +181,23 @@ export function klasifikasi(pct: number): "tinggi" | "sedang" | "rendah" {
   if (pct >= 50) return "sedang";
   return "rendah";
 }
+
+// Skala persen khusus dokumen raport hijau: 0–50 merah · 51–74 emas · 75–100 hijau.
+// (Dipisah dari klasifikasi() agar dashboard & komponen UI lain tidak berubah.)
+export type RaLevel = "tinggi" | "sedang" | "rendah";
+export function raLevel(pct: number): RaLevel {
+  if (pct >= 75) return "tinggi";
+  if (pct >= 51) return "sedang";
+  return "rendah";
+}
+
+// Warna persen untuk dokumen raport hijau (hex eksak agar stabil saat print/PDF).
+export const PCT_COLORS: Record<RaLevel, string> = {
+  tinggi: "#0F6B4A",
+  sedang: "#9A7A26",
+  rendah: "#A9442F",
+};
+
+export function pctColor(pct: number): string {
+  return PCT_COLORS[raLevel(pct)];
+}

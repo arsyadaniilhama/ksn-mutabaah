@@ -21,6 +21,10 @@
   --warn: 217 119 6;
   --warn-soft: 255 251 235;
   --shadow-color: 24 24 27;
+  /* Heatmap raport hijau (light) */
+  --hm-done: 15 107 74;
+  --hm-empty: 237 239 233;
+  --hm-haid: 242 203 209;
 }
 
 .dark {
@@ -118,44 +122,15 @@
   }
 }
 
-/* Heatmap Mutabaah (halaman 1 rapor): grid amalan x tanggal. */
+/* Heatmap Mutabaah hijau (halaman 1 rapor): grid amalan x tanggal + kolom %. */
 .report-heatmap {
   display: flex;
   flex-direction: column;
 }
-.heatmap-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 2mm;
-}
-.heatmap-legend {
-  display: flex;
-  gap: 0.75rem;
-}
-.heatmap-key {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 8px;
-  color: #52525b;
-}
-.heatmap-chip {
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  display: inline-block;
-}
-.heatmap-total {
-  font-size: 8px;
-  font-weight: 700;
-  color: #065f46;
-}
 .heatmap-days,
 .heatmap-row {
   display: grid;
-  grid-template-columns: 34mm 1fr;
+  grid-template-columns: 44mm 1fr 10mm;
   gap: 2mm;
   align-items: center;
 }
@@ -187,30 +162,35 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.heatmap-pct {
+  font-size: 7.5px;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
 .heatmap-cell {
   aspect-ratio: 1 / 1;
   min-height: 4px;
   border-radius: 1.5px;
 }
-.heatmap-done { background: #047857; }
-.heatmap-empty { background: #e4e4e7; }
-.heatmap-haid { background: #fecdd3; }
+.heatmap-done { background: rgb(var(--hm-done)); }
+.heatmap-empty { background: rgb(var(--hm-empty)); }
+.heatmap-haid { background: rgb(var(--hm-haid)); }
 .heatmap-future { background: #fafafa; }
 
 @media print {
-  .heatmap-key,
-  .heatmap-total {
-    font-size: 10px;
-  }
   .heatmap-name {
-    font-size: 11px;
+    font-size: 8.5px;
   }
   .heatmap-daynum {
-    font-size: 9px;
+    font-size: 7px;
+  }
+  .heatmap-pct {
+    font-size: 8.5px;
   }
   .heatmap-days,
   .heatmap-row {
-    grid-template-columns: 40mm 1fr;
+    grid-template-columns: 44mm 1fr 10mm;
     gap: 2mm;
   }
   .heatmap-body {
@@ -312,13 +292,13 @@
     flex-direction: column;
     min-height: 0;
   }
-  .report-page-summary .report-visual-section {
+  .report-page-summary .report-hmpanel {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
   }
-  .report-page-summary .report-visual-section > .report-heatmap {
+  .report-page-summary .report-hmpanel > .report-heatmap {
     flex: 1;
     min-height: 0;
   }
@@ -334,106 +314,37 @@
   .report-footer {
     margin-top: auto !important;
   }
-  .report-header {
-    padding: 10mm 12mm 6mm !important;
-  }
-  .report-header img {
-    width: 15mm !important;
-    height: 15mm !important;
-  }
-  .report-header h1 {
-    font-size: 22px !important;
-  }
-  .report-header p,
-  .report-header .text-sm {
-    font-size: 11px !important;
-  }
-  .report-body {
-    padding: 0 12mm 8mm !important;
-  }
-  .report-page-detail .report-body {
-    padding-top: 6mm !important;
-  }
-  .report-identity {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 3mm 10mm !important;
-    padding: 3mm 3mm !important;
-    font-size: 12px !important;
-    line-height: 1.35 !important;
-  }
-  .report-identity span {
-    font-size: 9.5px !important;
-  }
-  .report-metrics {
-    margin-top: 5mm !important;
-    gap: 2px !important;
-    background: #18181b !important;
-    border: 2px solid #18181b !important;
-  }
-  .report-metrics > div {
-    padding: 3.5mm 1.5mm !important;
-  }
-  .report-metrics .text-xl {
-    font-size: 26px !important;
-    line-height: 1.05 !important;
-  }
-  .report-metrics .text-\[9px\] {
-    font-size: 9.5px !important;
-  }
-  .report-section {
-    margin-top: 6mm !important;
-  }
-  .report-section > div:first-child {
-    margin-bottom: 3mm !important;
-    padding-bottom: 2mm !important;
-  }
-  .report-section h2 {
-    font-size: 15px !important;
-  }
-  .report-section > div:first-child span {
-    font-size: 9.5px !important;
-  }
-  .report-table {
-    font-size: 11px !important;
-    line-height: 1.25 !important;
-  }
-  .report-table th {
-    padding: 1.6mm 1.4mm !important;
-    font-size: 9.5px !important;
-    line-height: 1.2 !important;
-  }
-  .report-table td {
-    padding: 1.5mm 1.4mm !important;
-    font-size: 11px !important;
-    line-height: 1.25 !important;
-  }
-  .report-table thead {
-    display: table-header-group;
-  }
-  .report-table tr,
-  .report-identity,
-  .report-metrics,
-  .report-section,
-  .report-footer {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-  .report-detail-header {
-    padding: 8mm 12mm 5mm !important;
-  }
-  .report-detail-header h2 {
-    font-size: 15px !important;
-  }
-  .report-detail-header p {
-    font-size: 9.5px !important;
-  }
-  .report-detail-header span {
-    font-size: 9px !important;
-  }
   .report-footer {
     margin-top: 6mm !important;
     padding-top: 2.5mm !important;
     font-size: 9px !important;
+  }
+  /* Pita hijau raport: jaga gradien + logo + ukuran teks saat print. */
+  .report-band {
+    padding: 7mm 12mm 5.5mm !important;
+  }
+  .report-band .report-logo {
+    width: 14mm !important;
+    height: 14mm !important;
+  }
+  .report-band h1,
+  .report-band h2 {
+    font-size: 17px !important;
+  }
+  .report-band .report-band-period {
+    font-size: 13px !important;
+  }
+  .report-name {
+    font-size: 26px !important;
+  }
+  .report-chip {
+    font-size: 10px !important;
+  }
+  .report-stat-value {
+    font-size: 22px !important;
+  }
+  .report-hmlegend {
+    font-size: 9.5px !important;
   }
   body {
     background: #fff;
