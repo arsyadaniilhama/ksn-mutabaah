@@ -1,6 +1,6 @@
 import type { KategoriMetric, MutabaahEntry, Santri, SantriMonthlyMetrics } from "@/types";
 
-/* ===== Mode 2 (gaya IDN): Adab vs Ibadah =====
+/* ===== Raport Mode 2: Adab vs Ibadah =====
  * PA (19 amalan): semuanya Ibadah, tidak ada Adab.
  * PI (30 amalan): id 1–19 = Ibadah, id 20–30 = Adab (11 adab).
  */

@@ -12,7 +12,7 @@ interface Props {
 
 const MODES: { value: RaportMode; label: string; title: string }[] = [
   { value: "m1", label: "Mode 1 · Hijau", title: "Raport hijau heatmap (2 halaman)" },
-  { value: "m2", label: "Adab & Ibadah", title: "Raport Adab & Ibadah gaya IDN (1 halaman)" },
+  { value: "m2", label: "Adab & Ibadah", title: "Raport Adab & Ibadah (1 halaman)" },
 ];
 
 export default function ExportButtons({ santriId, month, year, mode = "m1", onModeChange }: Props) {

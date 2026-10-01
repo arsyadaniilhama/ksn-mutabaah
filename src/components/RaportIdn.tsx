@@ -6,7 +6,7 @@ import type { KategoriMetric, MutabaahEntry, Santri, SantriMonthlyMetrics } from
 
 export type RaportMode = "m1" | "m2";
 
-/* ===== Mode 2 (gaya IDN): Adab vs Ibadah, satu halaman panjang ===== */
+/* ===== Raport Mode 2: Adab vs Ibadah, satu halaman panjang ===== */
 export default function RaportIdn({
   santri,
   metrics,
@@ -14,7 +14,6 @@ export default function RaportIdn({
   year,
   month,
   kelasAvg,
-  musyrif,
 }: {
   santri: Santri;
   metrics: SantriMonthlyMetrics;
@@ -22,7 +21,6 @@ export default function RaportIdn({
   year: number;
   month: number;
   kelasAvg?: { adab: number[]; ibadah: number[] };
-  musyrif?: string | null;
 }) {
   const data: IdnData = buildIdnData(santri, metrics, entries, year, month);
   const sebutan = santri.institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
@@ -31,24 +29,26 @@ export default function RaportIdn({
 
   return (
     <div className="print-area report-document report-idn mx-auto max-w-[210mm] overflow-hidden rounded-xl bg-white text-zinc-900 shadow-sm">
-      <div className="report-idn-head">
+      <div className="report-idn-head report-idn-head-row">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-imshus.png" alt="Logo IMSHUS" className="report-logo" />
-        <h1>LAPORAN BULANAN ADAB &amp; IBADAH</h1>
-        <p>Bagian Kesantrian IMSHUS</p>
+        <div className="report-idn-head-text">
+          <h1>LAPORAN BULANAN ADAB &amp; IBADAH</h1>
+          <p>Bagian Kesantrian IMSHUS</p>
+        </div>
       </div>
 
       <div className="report-idn-body">
         <div className="idn-info">
-          <Info k="Musyrif" v={musyrif ?? "—"} />
-          <Info k="Pilih Bulan" v={monthLabel(month, year)} />
+          <Info k="Nama" v={santri.nama} />
+          <Info k="Bulan" v={monthLabel(month, year)} />
           <Info k="Kelas" v={santri.kelas} />
-          <Info k={`Pilih ${sebutan}`} v={`${santri.nama} (NIS ${santri.nis})`} />
+          <Info k="NIS" v={String(santri.nis)} />
         </div>
 
-        <div className="idn-top">
+        <div className={"idn-top" + (data.isPI ? "" : " idn-top-single")}>
           <div className="idn-bigcards">
-            <BigCard title={data.isPI ? "Rata-rata Adab" : "Rata-rata Adab"} value={avgA} empty={!data.isPI} />
+            {data.isPI && <BigCard title="Rata-rata Adab" value={avgA} />}
             <BigCard title="Rata-rata Ibadah" value={avgI} />
           </div>
           <div className="idn-charts">
@@ -117,8 +117,8 @@ function Info({ k, v }: { k: string; v: string }) {
   );
 }
 
-function BigCard({ title, value, empty = false }: { title: string; value: number | null; empty?: boolean }) {
-  const txt = empty || value == null ? "–" : `${String(value).replace(".", ",")}%`;
+function BigCard({ title, value }: { title: string; value: number | null }) {
+  const txt = value == null ? "–" : `${String(value).replace(".", ",")}%`;
   return (
     <div className="idn-bigcard">
       <div className="idn-bigcard-t">{title}</div>
