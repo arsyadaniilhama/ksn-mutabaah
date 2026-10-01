@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * GET /api/export/pdf-kelas?kelas=&month=&year=
+ * GET /api/export/pdf-kelas?kelas=&month=&year=&mode=
  * Render halaman cetak gabungan satu kelas (/laporan/cetak) menjadi SATU file PDF
- * berhalaman ganda (2 halaman per santri) dalam satu pass headless Chrome.
+ * dalam satu pass headless Chrome (m1 = 2 hlm/santri, m2 = 1 hlm/santri).
  *
  * Super cepat (~2-3 detik) karena hanya 1 halaman web yang dibuka di Chrome,
  * lalu di-slice menjadi file PDF terpisah per santri di browser pengguna (pdf-lib).
@@ -22,6 +22,7 @@ export async function GET(request: Request) {
   const month = Number(searchParams.get("month"));
   const year = Number(searchParams.get("year"));
   const kelas = searchParams.get("kelas") ?? "Kelas 1";
+  const mode = searchParams.get("mode") === "m2" ? "m2" : "m1";
   if (!month || !year)
     return NextResponse.json({ error: "month, year wajib" }, { status: 400 });
 
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
   const origin = fwdHost ? `${fwdProto}://${fwdHost}` : new URL(request.url).origin;
   const cookie = request.headers.get("cookie");
 
-  const targetUrl = `${origin}/laporan/cetak?kelas=${encodeURIComponent(kelas)}&month=${month}&year=${year}`;
+  const targetUrl = `${origin}/laporan/cetak?kelas=${encodeURIComponent(kelas)}&month=${month}&year=${year}&mode=${mode}`;
 
   let pdfBuffer: Buffer;
   const browser = await launchBrowser();
@@ -71,7 +72,7 @@ export async function GET(request: Request) {
   return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="raport_${kelas}_${month}${year}.pdf"`,
+      "Content-Disposition": `inline; filename="raport_${kelas}_${mode}_${month}${year}.pdf"`,
       "x-santri-count": String(santri.length),
     },
   });

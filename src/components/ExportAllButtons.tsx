@@ -10,6 +10,7 @@ import {
   IconPrinter as Printer,
 } from "@tabler/icons-react";
 import { bulanName } from "@/lib/dates";
+import type { RaportMode } from "@/components/RaportIdn";
 
 interface Props {
   month: number;
@@ -29,6 +30,15 @@ function safeName(s: string) {
 
 function kelasQuery(kelas: string) {
   return kelas ? `&kelas=${encodeURIComponent(kelas)}` : "";
+}
+
+const MODES: { value: RaportMode; label: string; title: string }[] = [
+  { value: "m1", label: "Mode 1 · Hijau", title: "Raport hijau heatmap (2 halaman per santri)" },
+  { value: "m2", label: "Adab & Ibadah", title: "Raport Adab & Ibadah (1 halaman per santri)" },
+];
+
+function modeQuery(mode: RaportMode) {
+  return `&mode=${mode}`;
 }
 
 function saveBlob(blob: Blob, name: string) {
@@ -56,6 +66,7 @@ function saveBlob(blob: Blob, name: string) {
  */
 export default function ExportAllButtons({ month, year, count, kelas }: Props) {
   const [busy, setBusy] = useState<"pdf" | "excel" | null>(null);
+  const [mode, setMode] = useState<RaportMode>("m1");
   const [statusText, setStatusText] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
@@ -68,8 +79,8 @@ export default function ExportAllButtons({ month, year, count, kelas }: Props) {
     try {
       // 1. Ambil manifest santri & buat combined PDF secara paralel
       const [manifestRes, pdfRes] = await Promise.all([
-        fetch(`/api/export/pdf-manifest?month=${month}&year=${year}${kelasQuery(kelas)}`),
-        fetch(`/api/export/pdf-kelas?month=${month}&year=${year}${kelasQuery(kelas)}`),
+        fetch(`/api/export/pdf-manifest?month=${month}&year=${year}${kelasQuery(kelas)}${modeQuery(mode)}`),
+        fetch(`/api/export/pdf-kelas?month=${month}&year=${year}${kelasQuery(kelas)}${modeQuery(mode)}`),
       ]);
 
       if (!manifestRes.ok) {
@@ -96,22 +107,25 @@ export default function ExportAllButtons({ month, year, count, kelas }: Props) {
       const pdfBytes = await pdfRes.arrayBuffer();
 
       // 3. Potong (slice) PDF per santri menggunakan pdf-lib di memori browser
+      // m1 = 2 halaman/santri, m2 = 1 halaman/santri
+      const pagesPer = mode === "m2" ? 1 : 2;
       const combinedDoc = await PDFDocument.load(pdfBytes);
       const totalPages = combinedDoc.getPageCount();
-      const expectedPages = manifest.santri.length * 2;
 
       const zip = new JSZip();
       const usedNames = new Set<string>();
 
       for (let i = 0; i < manifest.santri.length; i++) {
         const s = manifest.santri[i];
-        const page1Idx = i * 2;
-        const page2Idx = i * 2 + 1;
-
-        if (page2Idx >= totalPages) break;
+        const idxs: number[] = [];
+        for (let k = 0; k < pagesPer; k++) {
+          const p = i * pagesPer + k;
+          if (p < totalPages) idxs.push(p);
+        }
+        if (idxs.length === 0) break;
 
         const subDoc = await PDFDocument.create();
-        const pages = await subDoc.copyPages(combinedDoc, [page1Idx, page2Idx]);
+        const pages = await subDoc.copyPages(combinedDoc, idxs);
         pages.forEach((p) => subDoc.addPage(p));
         const subBytes = await subDoc.save();
 
@@ -170,12 +184,30 @@ export default function ExportAllButtons({ month, year, count, kelas }: Props) {
   }
 
   function openPrintPage() {
-    const url = `/laporan/cetak?kelas=${encodeURIComponent(kelas)}&month=${month}&year=${year}`;
+    const url = `/laporan/cetak?kelas=${encodeURIComponent(kelas)}&month=${month}&year=${year}&mode=${mode}`;
     window.open(url, "_blank");
   }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <div className="flex rounded-lg border border-line bg-canvas p-0.5" role="tablist" aria-label="Mode raport">
+        {MODES.map((m) => (
+          <button
+            key={m.value}
+            type="button"
+            role="tab"
+            aria-selected={mode === m.value}
+            title={m.title}
+            onClick={() => setMode(m.value)}
+            className={
+              "rounded-md px-2.5 py-1.5 text-xs font-medium transition " +
+              (mode === m.value ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink")
+            }
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
       <button
         type="button"
         onClick={downloadPdf}

@@ -3,8 +3,8 @@ import { getSantri, listEntries, getHaidDates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { computeSantriMetrics } from "@/lib/metrics";
 import { monthLabel, bagianJakarta } from "@/lib/dates";
-import RaportSantri from "@/components/RaportSantri";
-import ExportButtons from "@/components/ExportButtons";
+import RaportView from "./RaportView";
+import type { RaportMode } from "@/components/RaportIdn";
 
 export const dynamic = "force-dynamic";
 
@@ -33,10 +33,11 @@ export default async function RaportPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ month?: string; year?: string }>;
+  searchParams: Promise<{ month?: string; year?: string; mode?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
+  const initialMode: RaportMode = sp.mode === "m2" ? "m2" : "m1";
   const jkt = bagianJakarta();
   const year = Number(sp.year) || jkt.y;
   const month = Number(sp.month) || jkt.m;
@@ -54,25 +55,14 @@ export default async function RaportPage({
   const m = computeSantriMetrics(santri, entries, year, month, haidDates);
 
   return (
-    <div className="space-y-4">
-      <div className="no-print flex flex-wrap items-center justify-between gap-2">
-        <a
-          href={`/santri/${santri.id}`}
-          className="text-sm text-muted hover:text-ink"
-        >
-          ← Kembali ke detail
-        </a>
-        <ExportButtons santriId={santri.id} month={month} year={year} />
-      </div>
-
-      <RaportSantri
-        santri={santri}
-        metrics={m}
-        entries={entries}
-        year={year}
-        month={month}
-        haidDates={haidDates}
-      />
-    </div>
+    <RaportView
+      santri={santri}
+      metrics={m}
+      entries={entries}
+      year={year}
+      month={month}
+      haidDates={haidDates}
+      initialMode={initialMode}
+    />
   );
 }

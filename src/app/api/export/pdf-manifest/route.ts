@@ -6,7 +6,7 @@ import { bulanName } from "@/lib/dates";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/export/pdf-manifest?month=&year=&kelas=
+ * GET /api/export/pdf-manifest?month=&year=&kelas=&mode=
  * Daftar santri aktif (institusi user, opsional per kelas) yang akan diekspor +
  * nama file ZIP akhir. Ringan (tanpa render PDF) supaya klien bisa mengunduh per batch.
  */
@@ -18,6 +18,7 @@ export async function GET(request: Request) {
   const month = Number(searchParams.get("month"));
   const year = Number(searchParams.get("year"));
   const kelas = searchParams.get("kelas") ?? undefined;
+  const mode = searchParams.get("mode") === "m2" ? "m2" : "m1";
   if (!month || !year)
     return NextResponse.json({ error: "month, year wajib" }, { status: 400 });
 
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
     kelas: kelas ?? null,
     institusi: cu.institusi,
     label,
-    namaFile: `Raport_${scope}_${label}_${bulanName(month)}${year}.zip`,
+    namaFile: `Raport_${scope}_${label}_${mode === "m2" ? "AdabIbadah_" : ""}${bulanName(month)}${year}.zip`,
     santri: santri.map((s) => ({ id: s.id, nama: s.nama, nis: s.nis, kelas: s.kelas })),
   });
 }
