@@ -55,11 +55,11 @@ export default async function RaportPage({
       : undefined;
   const m = computeSantriMetrics(santri, entries, year, month, haidDates);
 
-  // Rata-rata kelas per hari (bilah abu Mode 2): hitung dari sekelas santri ini.
-  // Hanya bila mode m2 agar halaman m1 tidak terbebani query tambahan.
+  // Rata-rata kelas per hari (bilah abu Mode 2): SELALU dihitung dari sekelas santri ini,
+  // agar bilah abu tetap muncul walau pengguna pindah mode m1 -> m2 via tombol client-side.
   // Memakai listHaidForMonth (1 query bulk) agar haid tiap santri tetap akurat.
   let kelasAvg: { adab: number[]; ibadah: number[] } | undefined;
-  if (initialMode === "m2") {
+  {
     try {
       const [sekelas, kelasEntries, haidMap] = await Promise.all([
         listSantri(santri.kelas, false, santri.institusi),
