@@ -200,8 +200,8 @@ function WeekPanel({ title, weeks }: { title: string; weeks: IdnWeek[] }) {
       <table className="idn-mini">
         <thead>
           <tr>
-            <th>No.</th>
-            <th>Pekan</th>
+            <th className="c">No.</th>
+            <th className="c">Pekan</th>
             <th className="num">Jumlah</th>
             <th className="barcol">% Capaian</th>
           </tr>
@@ -209,8 +209,8 @@ function WeekPanel({ title, weeks }: { title: string; weeks: IdnWeek[] }) {
         <tbody>
           {weeks.map((w, i) => (
             <tr key={w.label}>
-              <td>{i + 1}.</td>
-              <td>{w.label}</td>
+              <td className="c">{i + 1}.</td>
+              <td className="c">{w.label}</td>
               <td className="num">{w.jumlah}</td>
               <td>
                 <PctBar pct={w.pct} />
