@@ -292,6 +292,12 @@
     flex-direction: column;
     min-height: 0;
   }
+  /* Halaman 1 raport hijau: kartu ringkasan selalu penuh satu halaman. */
+  .report-page-summary .report-body > .report-stats,
+  .report-page-summary .report-body > .report-section {
+    flex: 1;
+    min-height: 0;
+  }
   .report-page-summary .report-hmpanel {
     flex: 1;
     display: flex;
