@@ -1,3 +1,4 @@
+import { AMALAN_BY_ID } from "@/lib/amalan";
 import type { KategoriMetric, MutabaahEntry, Santri, SantriMonthlyMetrics } from "@/types";
 
 /* ===== Raport Mode 2: Adab vs Ibadah =====
@@ -26,6 +27,8 @@ export function idnBand(pct: number): { label: IdnBand; color: string } {
 export interface IdnRow {
   no: number;
   nama: string;
+  /** Nama pendek khusus tabel raport putri (agar tidak menabrak kolom Jumlah). */
+  shortName?: string;
   jumlah: number;
   pct: number;
 }
@@ -108,6 +111,7 @@ export function buildIdnData(
   const toRow = (k: KategoriMetric): IdnRow => ({
     no: k.amalan_id,
     nama: k.nama,
+    shortName: AMALAN_BY_ID[k.amalan_id]?.short ?? k.nama,
     jumlah: k.done,
     pct: k.pct,
   });

@@ -230,18 +230,18 @@ function DetailPanel({ title, rows }: { title: string; rows: IdnRow[] }) {
       <table className="idn-det">
         <thead>
           <tr>
-            <th>No.</th>
+            <th className="c">No.</th>
             <th>Aktivitas</th>
-            <th className="num">Jml</th>
+            <th className="c">Jml</th>
             <th className="barcol">% Capaian</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.no}>
-              <td>{r.no}.</td>
-              <td>{r.nama}</td>
-              <td className="num">{r.jumlah}</td>
+              <td className="c">{r.no}.</td>
+              <td>{r.shortName ?? r.nama}</td>
+              <td className="c">{r.jumlah}</td>
               <td>
                 <PctBar pct={r.pct} />
               </td>

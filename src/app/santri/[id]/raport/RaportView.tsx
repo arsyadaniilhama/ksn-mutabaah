@@ -14,6 +14,7 @@ export default function RaportView({
   month,
   haidDates,
   initialMode = "m1",
+  kelasAvg,
 }: {
   santri: Santri;
   metrics: SantriMonthlyMetrics;
@@ -22,6 +23,7 @@ export default function RaportView({
   month: number;
   haidDates?: Set<string>;
   initialMode?: RaportMode;
+  kelasAvg?: { adab: number[]; ibadah: number[] };
 }) {
   const [mode, setMode] = useState<RaportMode>(initialMode);
   return (
@@ -36,7 +38,7 @@ export default function RaportView({
       {mode === "m1" ? (
         <RaportSantri santri={santri} metrics={metrics} entries={entries} year={year} month={month} haidDates={haidDates} />
       ) : (
-        <RaportIdn santri={santri} metrics={metrics} entries={entries} year={year} month={month} />
+        <RaportIdn santri={santri} metrics={metrics} entries={entries} year={year} month={month} kelasAvg={kelasAvg} />
       )}
     </div>
   );

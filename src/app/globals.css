@@ -179,7 +179,7 @@
 .heatmap-future { background: #fafafa; box-shadow: inset 0 0 0 1px #ececef; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
 /* ===== Raport Mode 2: Adab & Ibadah, satu halaman panjang ===== */
-.report-idn-head { text-align: center; padding: 8mm 12mm 4mm; }
+.report-idn-head { text-align: center; padding: 5mm 12mm 2.5mm; }
 .report-idn-head .report-logo {
   width: 20mm; height: 20mm; border-radius: 50%;
   background: #fff; border: 1px solid #D9E2DA; object-fit: contain;
@@ -205,8 +205,8 @@
 .idn-top-single .idn-bigcard { padding: 12px 8px; }
 .report-idn-body { padding: 0 12mm 8mm; }
 .idn-info {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1px 26px;
-  font-size: 11.5px; margin: 5mm 0 4mm;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px;
+  font-size: 10.5px; margin: 3mm 0 2.5mm;
 }
 .idn-info-row { display: flex; gap: 8px; padding: 2.5px 0; }
 .idn-k { width: 92px; flex: none; color: #68716B; }
@@ -226,21 +226,21 @@
 .idn-charts { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .idn-chartbox { border: 1px solid #E9EFEA; border-radius: 10px; padding: 7px 10px 5px; }
 .idn-chartbox h4 { margin: 0 0 5px; font-size: 10px; color: #1C2320; }
-.idn-daily { display: flex; align-items: flex-end; gap: 2px; height: 62px; }
+.idn-daily { display: flex; align-items: flex-end; gap: 2px; height: 48px; }
 .idn-d { flex: 1; display: flex; align-items: flex-end; gap: 1px; height: 100%; }
 .idn-d i { flex: 1; border-radius: 1.5px 1.5px 0 0; display: block; }
 .idn-d i.idn-a { background: #147A5B; }
 .idn-d i.idn-b { background: #C9D8CE; }
 .idn-x { display: flex; gap: 2px; font-size: 6px; color: #A3AAA4; margin-top: 2px; }
 .idn-x span { flex: 1; text-align: center; }
-.idn-scale { display: flex; gap: 5px; flex-wrap: wrap; font-size: 9px; margin: 7px 0; align-items: center; color: #1C2320; }
+.idn-scale { display: flex; gap: 4px; flex-wrap: wrap; font-size: 8.5px; margin: 5px 0; align-items: center; color: #1C2320; }
 .idn-scale b { font-weight: 600; }
 .idn-pill { color: #fff; border-radius: 4px; padding: 2px 7px; font-weight: 600; white-space: nowrap; }
 .idn-weeks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .idn-weeks:has(> :only-child) { grid-template-columns: 1fr; }
-.idn-panel { background: #EFF6F1; border-radius: 10px; padding: 8px 10px; }
+.idn-panel { background: #EFF6F1; border-radius: 10px; padding: 6px 8px; }
 .idn-panel h3 { text-align: center; font-size: 11.5px; margin: 0 0 6px; color: #1C2320; }
-table.idn-mini { width: 100%; border-collapse: collapse; font-size: 9.5px; table-layout: fixed; }
+table.idn-mini { width: 100%; border-collapse: collapse; font-size: 8.5px; table-layout: fixed; }
 table.idn-mini th {
   font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em;
   color: #68716B; text-align: left; padding: 2px 4px; vertical-align: bottom;
@@ -248,7 +248,7 @@ table.idn-mini th {
 table.idn-mini th.barcol { text-align: center; }
 table.idn-mini th.num, table.idn-mini td.num { width: 13%; text-align: center; }
 table.idn-mini td { padding: 3px 4px; border-top: 1px solid #DDE7DF; color: #39413C; vertical-align: middle; }
-table.idn-mini td.num { font-variant-numeric: tabular-nums; }
+table.idn-mini td.num { font-variant-numeric: tabular-nums; text-align: center; }
 table.idn-mini th.c, table.idn-mini td.c,
 table.idn-det th.c, table.idn-det td.c { text-align: center; font-variant-numeric: tabular-nums; }
 table.idn-mini th.barcol, table.idn-det th.barcol { width: 46%; }
@@ -261,8 +261,8 @@ table.idn-mini th.barcol, table.idn-det th.barcol { width: 46%; }
 .idn-track i { display: block; height: 100%; border-radius: 4px; }
 .idn-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 .idn-details:has(> :only-child) { grid-template-columns: 1fr; }
-.idn-dtitle { text-align: center; font-size: 11.5px; margin: 0 0 5px; color: #1C2320; }
-table.idn-det { width: 100%; border-collapse: collapse; font-size: 9px; table-layout: fixed; }
+.idn-dtitle { text-align: center; font-size: 10.5px; margin: 0 0 4px; color: #1C2320; }
+table.idn-det { width: 100%; border-collapse: collapse; font-size: 8px; table-layout: fixed; }
 table.idn-det th {
   font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.05em;
   color: #68716B; text-align: left; padding: 2px 4px; border-bottom: 1px solid #D9E2DA; vertical-align: bottom;
@@ -270,15 +270,15 @@ table.idn-det th {
 table.idn-det th.barcol { text-align: center; }
 table.idn-det th.num, table.idn-det td.num { width: 11%; text-align: center; }
 table.idn-det td { padding: 2.5px 4px; border-bottom: 1px solid #E9EFEA; color: #39413C; vertical-align: middle; }
-table.idn-det td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.idn-det td.num { font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; }
 .idn-ket {
-  background: #EFF6F1; border-radius: 8px; padding: 7px 12px;
-  font-size: 9.5px; color: #39413C; margin-top: 8px;
+  background: #EFF6F1; border-radius: 8px; padding: 5px 10px;
+  font-size: 8.5px; color: #39413C; margin-top: 6px;
 }
 .report-idn .report-footer {
   display: flex; justify-content: space-between;
-  font-size: 9px; color: #A3AAA4;
-  border-top: 1px solid #E9EFEA; margin-top: 10px; padding-top: 6px;
+  font-size: 8px; color: #A3AAA4;
+  border-top: 1px solid #E9EFEA; margin-top: 7px; padding-top: 4px;
 }
 
 @media print {
@@ -286,9 +286,9 @@ table.idn-det td.num { font-variant-numeric: tabular-nums; white-space: nowrap; 
   .report-idn-head .report-logo { width: 18mm !important; height: 18mm !important; }
   .report-idn-head h1 { font-size: 17px !important; }
   .report-idn-body { padding: 0 12mm 6mm !important; }
-  .idn-daily { height: 54px !important; }
+  .idn-daily { height: 42px !important; }
   .idn-bigcard-n { font-size: 20px !important; }
-  table.idn-det { font-size: 8.5px !important; }
+  table.idn-det { font-size: 7.5px !important; }
 }
 
 @media print {
