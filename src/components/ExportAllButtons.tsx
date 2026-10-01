@@ -1,16 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import JSZip from "jszip";
-import { PDFDocument } from "pdf-lib";
 import {
-  IconFileTypePdf as FilePdf,
   IconFileTypeXls as FileXls,
   IconLoader2 as Loader,
   IconPrinter as Printer,
 } from "@tabler/icons-react";
-import { bulanName } from "@/lib/dates";
-import type { RaportMode } from "@/components/RaportIdn";
 
 interface Props {
   month: number;
@@ -19,26 +14,8 @@ interface Props {
   kelas: string;
 }
 
-interface Manifest {
-  namaFile: string;
-  santri: { id: string; nama: string; nis: number }[];
-}
-
-function safeName(s: string) {
-  return s.replace(/[^\w\-]+/g, "_").replace(/^_+|_+$/g, "");
-}
-
 function kelasQuery(kelas: string) {
   return kelas ? `&kelas=${encodeURIComponent(kelas)}` : "";
-}
-
-const MODES: { value: RaportMode; label: string; title: string }[] = [
-  { value: "m1", label: "Mode 1 · Hijau", title: "Raport hijau heatmap (2 halaman per santri)" },
-  { value: "m2", label: "Adab & Ibadah", title: "Raport Adab & Ibadah (1 halaman per santri)" },
-];
-
-function modeQuery(mode: RaportMode) {
-  return `&mode=${mode}`;
 }
 
 function saveBlob(blob: Blob, name: string) {
@@ -53,108 +30,12 @@ function saveBlob(blob: Blob, name: string) {
 }
 
 /**
- * Ekspor per kelas dalam 1 klik (< 5 detik).
- *
- * PDF:
- * 1. Server merender gabungan kelas (/laporan/cetak) menjadi 1 PDF dalam satu pass Chrome (~2.5s).
- * 2. Browser memotong (slice) PDF tersebut menjadi file PDF individual per nama santri via pdf-lib (~0.5s).
- * 3. Browser mengompresi menjadi 1 file ZIP (JSZip, ~0.2s) dan otomatis mengunduhnya.
- * Hasil: file PDF terpisah per nama santri, 100% identik dengan cetak per santri, selesai dalam ~3-4 detik.
- *
- * Excel:
- * Mengunduh ZIP berisi 1 file .xlsx per santri (identik dengan ekspor per santri, ~1-2s).
+ * Ekspor per kelas: Excel (1 klik unduh ZIP berisi 1 file .xlsx per santri)
+ * + tombol Cetak (buka halaman cetak gabungan untuk Save as PDF / cetak langsung).
  */
 export default function ExportAllButtons({ month, year, count, kelas }: Props) {
-  const [busy, setBusy] = useState<"pdf" | "excel" | null>(null);
-  const [mode, setMode] = useState<RaportMode>("m1");
-  const [statusText, setStatusText] = useState<string>("");
+  const [busy, setBusy] = useState<"excel" | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  async function downloadPdf() {
-    if (busy) return;
-    setBusy("pdf");
-    setError(null);
-    setStatusText("Membuat PDF…");
-
-    try {
-      // 1. Ambil manifest santri & buat combined PDF secara paralel
-      const [manifestRes, pdfRes] = await Promise.all([
-        fetch(`/api/export/pdf-manifest?month=${month}&year=${year}${kelasQuery(kelas)}${modeQuery(mode)}`),
-        fetch(`/api/export/pdf-kelas?month=${month}&year=${year}${kelasQuery(kelas)}${modeQuery(mode)}`),
-      ]);
-
-      if (!manifestRes.ok) {
-        throw new Error("Gagal mengambil daftar santri.");
-      }
-      const manifest = (await manifestRes.json()) as Manifest;
-      if (!manifest.santri || manifest.santri.length === 0) {
-        throw new Error(`Tidak ada santri di ${kelas}.`);
-      }
-
-      if (!pdfRes.ok) {
-        let msg = `Gagal membuat PDF (${pdfRes.status})`;
-        try {
-          const j = await pdfRes.json();
-          msg = j.error ?? j.detail ?? msg;
-        } catch {
-          /* biarkan */
-        }
-        throw new Error(msg);
-      }
-
-      // 2. Ambil buffer PDF
-      setStatusText("Memisahkan per santri…");
-      const pdfBytes = await pdfRes.arrayBuffer();
-
-      // 3. Potong (slice) PDF per santri menggunakan pdf-lib di memori browser
-      // m1 = 2 halaman/santri, m2 = 1 halaman/santri
-      const pagesPer = mode === "m2" ? 1 : 2;
-      const combinedDoc = await PDFDocument.load(pdfBytes);
-      const totalPages = combinedDoc.getPageCount();
-
-      const zip = new JSZip();
-      const usedNames = new Set<string>();
-
-      for (let i = 0; i < manifest.santri.length; i++) {
-        const s = manifest.santri[i];
-        const idxs: number[] = [];
-        for (let k = 0; k < pagesPer; k++) {
-          const p = i * pagesPer + k;
-          if (p < totalPages) idxs.push(p);
-        }
-        if (idxs.length === 0) break;
-
-        const subDoc = await PDFDocument.create();
-        const pages = await subDoc.copyPages(combinedDoc, idxs);
-        pages.forEach((p) => subDoc.addPage(p));
-        const subBytes = await subDoc.save();
-
-        let baseName = safeName(s.nama || `santri_${i + 1}`);
-        if (usedNames.has(baseName.toLowerCase())) {
-          baseName = `${baseName}_${s.nis}`;
-        }
-        usedNames.add(baseName.toLowerCase());
-
-        const fileName = `Raport_${baseName}_${bulanName(month)}${year}.pdf`;
-        zip.file(fileName, subBytes);
-      }
-
-      // 4. Kompresi ZIP & unduh
-      setStatusText("Menyiapkan ZIP…");
-      const zipBlob = await zip.generateAsync({
-        type: "blob",
-        compression: "DEFLATE",
-        compressionOptions: { level: 6 },
-      });
-
-      saveBlob(zipBlob, manifest.namaFile);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Terjadi kesalahan saat ekspor PDF.");
-    } finally {
-      setBusy(null);
-      setStatusText("");
-    }
-  }
 
   async function downloadExcel() {
     if (busy) return;
@@ -184,41 +65,12 @@ export default function ExportAllButtons({ month, year, count, kelas }: Props) {
   }
 
   function openPrintPage() {
-    const url = `/laporan/cetak?kelas=${encodeURIComponent(kelas)}&month=${month}&year=${year}&mode=${mode}`;
+    const url = `/laporan/cetak?kelas=${encodeURIComponent(kelas)}&month=${month}&year=${year}`;
     window.open(url, "_blank");
   }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex rounded-lg border border-line bg-canvas p-0.5" role="tablist" aria-label="Mode raport">
-        {MODES.map((m) => (
-          <button
-            key={m.value}
-            type="button"
-            role="tab"
-            aria-selected={mode === m.value}
-            title={m.title}
-            onClick={() => setMode(m.value)}
-            className={
-              "rounded-md px-2.5 py-1.5 text-xs font-medium transition " +
-              (mode === m.value ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink")
-            }
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <button
-        type="button"
-        onClick={downloadPdf}
-        disabled={!!busy}
-        className="btn-outline h-9"
-        title={`Unduh ZIP raport PDF per santri seluruh ${kelas} (${count} file) — cepat < 5 detik`}
-      >
-        {busy === "pdf" ? <Loader size={16} className="animate-spin" /> : <FilePdf size={16} stroke={1.75} />}
-        {busy === "pdf" ? statusText || "Membuat PDF…" : `Export PDF (${kelas})`}
-      </button>
-
       <button
         type="button"
         onClick={downloadExcel}

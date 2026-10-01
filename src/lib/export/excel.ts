@@ -71,7 +71,10 @@ export function buildSantriSheet(
   ws.getRow(2).values = ["Nama", santri.nama];
   ws.getRow(3).values = ["Kelas", santri.kelas];
   ws.getRow(4).values = ["Bulan", `${bulanName(month)} ${year}`];
-  [1, 2, 3, 4].forEach((r) => (ws.getRow(r).font = { bold: r === 1 }));
+  [1, 2, 3, 4].forEach((r) => {
+    ws.getRow(r).font = { bold: r === 1 };
+    ws.getRow(r).alignment = { horizontal: "center" };
+  });
 
   // Header kolom: No | Amalan | Keterangan | 1..dim | Total
   const headerRow = ws.getRow(6);
@@ -118,16 +121,27 @@ export function buildSantriSheet(
     }
     const row = ws.getRow(rowNo);
     row.values = [a.urut, a.nama, a.keterangan ?? "", ...cells, total];
-    row.eachCell((c) => {
+    row.eachCell({ includeEmpty: true }, (c, colNumber) => {
       c.border = {
-        top: { style: "hair" },
-        bottom: { style: "hair" },
-        left: { style: "hair" },
-        right: { style: "hair" },
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" },
       };
+      c.alignment = { horizontal: "center", vertical: "middle", wrapText: colNumber === 2 || colNumber === 3 };
     });
-    row.getCell(2).alignment = { horizontal: "left" };
-    row.getCell(3).alignment = { horizontal: "left" };
+    // Isi sel: V = hijau muda, X = merah muda
+    cells.forEach((v, ci) => {
+      if (v === "V" || v === "X") {
+        const cell = row.getCell(4 + ci);
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: v === "V" ? "FFC6EFCE" : "FFFFC7CE" },
+        };
+        cell.font = { bold: true, color: { argb: v === "V" ? "FF0E5440" : "FF9C0006" } };
+      }
+    });
     const totalCell = row.getCell(3 + dim + 1);
     totalCell.font = { bold: true };
   });
@@ -143,16 +157,22 @@ export function buildSantriSheet(
       hcells.push(on ? "H" : null);
     }
     haidRow.values = ["—", "Haid (dibebaskan)", "", ...hcells, `${hcount} hr`];
-    haidRow.eachCell((c) => {
+    haidRow.eachCell({ includeEmpty: true }, (c) => {
       c.border = {
-        top: { style: "hair" },
-        bottom: { style: "hair" },
-        left: { style: "hair" },
-        right: { style: "hair" },
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" },
       };
+      c.alignment = { horizontal: "center", vertical: "middle" };
     });
-    haidRow.getCell(2).alignment = { horizontal: "left" };
     haidRow.font = { italic: true };
+    // Sel H = merah muda lembut
+    for (let day = 1; day <= dim; day++) {
+      if (haidSet.has(isoOf(day))) {
+        haidRow.getCell(3 + day).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF2CBD1" } };
+      }
+    }
   }
 
   ws.getColumn(2).width = 26;
