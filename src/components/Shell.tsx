@@ -6,9 +6,11 @@ import { useEffect, useState } from "react";
 import {
   IconCalendarCheck as CalendarCheck,
   IconChartBar as ChartBar,
+  IconId as IdIcon,
   IconLayoutDashboard as LayoutDashboard,
   IconLogout as Logout,
   IconMenu2 as Menu2,
+  IconShieldLock as ShieldLock,
   IconUsers as Users,
   IconX as X,
 } from "@tabler/icons-react";
@@ -55,14 +57,34 @@ function Brand({ institusi }: { institusi?: string | null }) {
 function Nav({
   onNavigate,
   santriLabel,
+  isSuperadmin,
 }: {
   onNavigate?: () => void;
   santriLabel: string;
+  isSuperadmin: boolean;
 }) {
+  const groups = isSuperadmin
+    ? [
+        ...GROUPS,
+        {
+          label: "Sistem",
+          items: [
+            { href: "/pengguna", label: "Pengguna", icon: ShieldLock },
+            { href: "/akun", label: "Akun Saya", icon: IdIcon },
+          ],
+        },
+      ]
+    : [
+        ...GROUPS,
+        {
+          label: "Sistem",
+          items: [{ href: "/akun", label: "Akun Saya", icon: IdIcon }],
+        },
+      ];
   const pathname = usePathname();
   return (
     <nav className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-3 py-5">
-      {GROUPS.map((g) => (
+      {groups.map((g) => (
         <div key={g.label}>
           <div className="px-2.5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-faint">
             {g.label}
@@ -201,7 +223,7 @@ export default function Shell({
           <Brand institusi={institusi} />
         </div>
         {isSuperadmin && <div className="pt-3"><InstitusiSwitch institusi={institusi ?? "PA IMSHUS"} /></div>}
-        <Nav santriLabel={santriLabel} />
+        <Nav santriLabel={santriLabel} isSuperadmin={isSuperadmin} />
         <UserFooter email={email} institusi={institusi} />
       </aside>
 
@@ -245,7 +267,7 @@ export default function Shell({
             </button>
           </div>
           {isSuperadmin && <div className="pt-3"><InstitusiSwitch institusi={institusi ?? "PA IMSHUS"} /></div>}
-          <Nav onNavigate={() => setOpen(false)} santriLabel={santriLabel} />
+          <Nav onNavigate={() => setOpen(false)} santriLabel={santriLabel} isSuperadmin={isSuperadmin} />
           <UserFooter email={email} institusi={institusi} />
         </aside>
       </div>
