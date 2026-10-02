@@ -1,12 +1,18 @@
 import "server-only";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+export const INSTITUSI_COOKIE = "ksn-institusi";
+export const INSTITUSI_VALUES = ["PA IMSHUS", "PI IMSHUS"] as const;
 
 export interface CurrentUser {
   id: string;
   email: string;
+  /** Institusi AKTIF (superadmin bisa berpindah via cookie; admin biasa = institusi profil). */
   institusi: string;
   role: string;
+  isSuperadmin: boolean;
 }
 
 /** Cache profil in-memory (per instance, TTL 30 dtk) -> hemat 1 query per request. */
@@ -45,5 +51,14 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     }
   }
 
-  return { id: user.id, email: user.email, institusi, role };
+  // Superadmin: institusi aktif bisa dipilih via cookie (PA/PI). Admin biasa: tetap milik profilnya.
+  const isSuperadmin = role === "superadmin";
+  let activeInstitusi = institusi;
+  if (isSuperadmin) {
+    const cookieStore = await cookies();
+    const requested = cookieStore.get(INSTITUSI_COOKIE)?.value;
+    if (requested === "PA IMSHUS" || requested === "PI IMSHUS") activeInstitusi = requested;
+  }
+
+  return { id: user.id, email: user.email, institusi: activeInstitusi, role, isSuperadmin };
 }

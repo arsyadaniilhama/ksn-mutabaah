@@ -29,7 +29,7 @@ export default async function RootLayout({
       <body className="min-h-dvh font-sans">
         <ThemeProvider>
           {configured ? (
-            <Shell email={user?.email ?? null} institusi={user?.institusi ?? null}>
+            <Shell email={user?.email ?? null} institusi={user?.institusi ?? null} isSuperadmin={user?.isSuperadmin ?? false}>
               {children}
             </Shell>
           ) : (

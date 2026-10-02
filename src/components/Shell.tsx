@@ -12,7 +12,7 @@ import {
   IconUsers as Users,
   IconX as X,
 } from "@tabler/icons-react";
-import { signOut } from "@/app/login/actions";
+import { signOut, switchInstitusi } from "@/app/login/actions";
 import Avatar from "@/components/Avatar";
 import ThemeToggle from "@/components/ThemeToggle";
 import { SantriIcon, SantriwatiIcon } from "@/components/icons/InstitusiIcon";
@@ -101,6 +101,35 @@ function Nav({
   );
 }
 
+function InstitusiSwitch({ institusi }: { institusi: string }) {
+  return (
+    <div className="mx-3 mb-1 rounded-lg border border-line bg-canvas p-1" role="group" aria-label="Pilih institusi">
+      <div className="flex gap-1">
+        {(["PA IMSHUS", "PI IMSHUS"] as const).map((opt) => {
+          const active = opt === institusi;
+          return (
+            <form key={opt} action={switchInstitusi} className="flex-1">
+              <input type="hidden" name="institusi" value={opt} />
+              <button
+                type="submit"
+                aria-pressed={active}
+                className={
+                  "w-full rounded-md px-2 py-1.5 text-[11px] font-semibold transition " +
+                  (active
+                    ? "bg-accent text-accent-fg"
+                    : "text-muted hover:bg-surface2 hover:text-ink")
+                }
+              >
+                {opt === "PA IMSHUS" ? "Putra (PA)" : "Putri (PI)"}
+              </button>
+            </form>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function UserFooter({ email, institusi }: { email?: string | null; institusi?: string | null }) {
   return (
     <div className="border-t border-line p-3">
@@ -131,10 +160,12 @@ export default function Shell({
   children,
   email,
   institusi,
+  isSuperadmin = false,
 }: {
   children: React.ReactNode;
   email?: string | null;
   institusi?: string | null;
+  isSuperadmin?: boolean;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -169,6 +200,7 @@ export default function Shell({
         <div className="flex h-16 items-center border-b border-line px-5">
           <Brand institusi={institusi} />
         </div>
+        {isSuperadmin && <div className="pt-3"><InstitusiSwitch institusi={institusi ?? "PA IMSHUS"} /></div>}
         <Nav santriLabel={santriLabel} />
         <UserFooter email={email} institusi={institusi} />
       </aside>
@@ -212,6 +244,7 @@ export default function Shell({
               <X size={18} />
             </button>
           </div>
+          {isSuperadmin && <div className="pt-3"><InstitusiSwitch institusi={institusi ?? "PA IMSHUS"} /></div>}
           <Nav onNavigate={() => setOpen(false)} santriLabel={santriLabel} />
           <UserFooter email={email} institusi={institusi} />
         </aside>
