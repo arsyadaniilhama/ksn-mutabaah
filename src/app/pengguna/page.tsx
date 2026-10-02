@@ -18,7 +18,7 @@ export default async function PenggunaPage() {
         title="Manajemen Pengguna"
         description="Tambah akun, tetapkan/reset password, dan lihat kapan password terakhir diganti. Password tersimpan terenkripsi — yang tampil hanya catatan waktunya."
       />
-      <UserManage meEmail={cu.email} />
+      <UserManage meEmail={cu.email} meId={cu.id} />
     </div>
   );
 }

@@ -95,6 +95,45 @@ export async function resetUserPassword(_prev: ManageState, formData: FormData):
   return { ok: "Password berhasil direset. Sesi login pengguna itu otomatis keluar." };
 }
 
+/** Hapus pengguna (khusus superadmin). Tidak bisa menghapus diri sendiri atau superadmin terakhir. */
+export async function deleteUser(_prev: ManageState, formData: FormData): Promise<ManageState> {
+  const gate = await requireSuperadmin();
+  if (gate.error) return { error: gate.error };
+
+  const userId = String(formData.get("userId") ?? "");
+  const emailLabel = String(formData.get("email") ?? "");
+  if (!userId) return { error: "ID pengguna tidak valid." };
+  if (userId === gate.cu!.id) return { error: "Tidak bisa menghapus akun Anda sendiri." };
+
+  const admin = createAdminClient();
+
+  // Jangan sampai tidak ada superadmin yang tersisa.
+  const { data: target } = await admin.auth.admin.getUserById(userId);
+  if (!target?.user) return { error: "Pengguna tidak ditemukan." };
+  const { data: prof } = await admin
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+  if (prof?.role === "superadmin") {
+    const { data: supers } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("role", "superadmin");
+    if ((supers?.length ?? 0) <= 1)
+      return { error: "Tidak bisa menghapus satu-satunya superadmin." };
+  }
+
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) return { error: `Gagal menghapus: ${error.message}` };
+
+  // Bersihkan baris profil (bila cascade RLS tidak menanganinya).
+  await admin.from("profiles").delete().eq("id", userId);
+
+  revalidatePath("/pengguna");
+  return { ok: `Pengguna ${emailLabel || userId} berhasil dihapus.` };
+}
+
 /** Ganti password sendiri — semua user punya hak ini. */
 export async function changeOwnPassword(_prev: ManageState, formData: FormData): Promise<ManageState> {
   const cu = await getCurrentUser();

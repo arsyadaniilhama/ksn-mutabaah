@@ -8,9 +8,10 @@ import {
   IconLoader2 as Loader,
   IconPlus as Plus,
   IconRefresh as Refresh,
+  IconTrash as Trash,
   IconUserPlus as UserPlus,
 } from "@tabler/icons-react";
-import { createUser, resetUserPassword } from "@/app/pengguna/actions";
+import { createUser, deleteUser, resetUserPassword } from "@/app/pengguna/actions";
 import Toast from "@/components/Toast";
 
 interface UserRow {
@@ -74,7 +75,41 @@ function ResetForm({ userId, onDone }: { userId: string; onDone: (msg: string) =
   );
 }
 
-export default function UserManage({ meEmail }: { meEmail: string }) {
+function DeleteForm({
+  userId,
+  email,
+  onDone,
+  onCancel,
+}: {
+  userId: string;
+  email: string;
+  onDone: (msg: string) => void;
+  onCancel: () => void;
+}) {
+  const [state, formAction] = useActionState(deleteUser, {});
+  useEffect(() => {
+    if (state.ok) onDone(state.ok);
+    else if (state.error) onDone("!" + state.error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+  return (
+    <form action={formAction} className="flex flex-col gap-1.5">
+      <input type="hidden" name="userId" value={userId} />
+      <input type="hidden" name="email" value={email} />
+      {state.error && <div className="text-xs text-danger">{state.error}</div>}
+      <div className="flex items-center gap-1.5">
+        <button type="submit" className="btn h-8 bg-danger px-2.5 text-xs text-white hover:bg-danger/90">
+          {state.ok ? "Terdihapus" : "Ya, hapus"}
+        </button>
+        <button type="button" onClick={onCancel} className="btn-ghost h-8 px-2 text-xs">
+          Batal
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export default function UserManage({ meEmail, meId }: { meEmail: string; meId: string }) {
   const [users, setUsers] = useState<UserRow[] | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; tone: "ok" | "err" } | null>(null);
@@ -82,6 +117,7 @@ export default function UserManage({ meEmail }: { meEmail: string }) {
   const [addState, addFormAction] = useActionState(createUser, {});
   const addRef = useRef<HTMLFormElement>(null);
   const [showResetFor, setShowResetFor] = useState<Record<string, boolean>>({});
+  const [confirmDeleteFor, setConfirmDeleteFor] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoadErr(null);
@@ -209,24 +245,53 @@ export default function UserManage({ meEmail }: { meEmail: string }) {
                   <div className="mt-1 text-xs italic text-faint">isi password tidak dapat dilihat</div>
                 </td>
                 <td className="px-4 py-3">
-                  {showResetFor[u.id] ? (
-                    <ResetForm
-                      userId={u.id}
-                      onDone={(msg) => {
-                        setToast({ msg, tone: "ok" });
-                        setShowResetFor((s) => ({ ...s, [u.id]: false }));
-                      }}
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setShowResetFor((s) => ({ ...s, [u.id]: true }))}
-                      className="btn-outline h-8 px-2.5 text-xs"
-                    >
-                      <Key size={14} stroke={1.75} />
-                      Ganti Password
-                    </button>
-                  )}
+                  <div className="flex flex-col gap-1.5">
+                    {showResetFor[u.id] ? (
+                      <ResetForm
+                        userId={u.id}
+                        onDone={(msg) => {
+                          setToast({ msg, tone: "ok" });
+                          setShowResetFor((s) => ({ ...s, [u.id]: false }));
+                        }}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setShowResetFor((s) => ({ ...s, [u.id]: true }))}
+                          className="btn-outline h-8 px-2.5 text-xs"
+                        >
+                          <Key size={14} stroke={1.75} />
+                          Ganti Password
+                        </button>
+                        {u.id !== meId &&
+                          (confirmDeleteFor === u.id ? (
+                            <DeleteForm
+                              userId={u.id}
+                              email={u.email}
+                              onDone={(msg) => {
+                                setConfirmDeleteFor(null);
+                                if (msg.startsWith("!")) setToast({ msg: msg.slice(1), tone: "err" });
+                                else {
+                                  setToast({ msg, tone: "ok" });
+                                  load();
+                                }
+                              }}
+                              onCancel={() => setConfirmDeleteFor(null)}
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDeleteFor(u.id)}
+                              className="btn h-8 bg-danger-soft px-2 text-danger hover:bg-danger/15"
+                              title={`Hapus ${u.email}`}
+                            >
+                              <Trash size={14} stroke={1.75} />
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
