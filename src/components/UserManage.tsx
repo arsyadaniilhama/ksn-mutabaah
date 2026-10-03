@@ -6,12 +6,13 @@ import { useFormStatus } from "react-dom";
 import {
   IconKey as Key,
   IconLoader2 as Loader,
-  IconPlus as Plus,
   IconRefresh as Refresh,
   IconTrash as Trash,
   IconUserPlus as UserPlus,
 } from "@tabler/icons-react";
 import { createUser, deleteUser, resetUserPassword } from "@/app/pengguna/actions";
+import { tapFeedback } from "@/lib/haptics";
+import Modal from "@/components/Modal";
 import Toast from "@/components/Toast";
 
 interface UserRow {
@@ -53,24 +54,29 @@ function ResetForm({ userId, onDone }: { userId: string; onDone: (msg: string) =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
   return (
-    <form ref={ref} action={formAction} className="flex items-center gap-1.5">
+    <form ref={ref} action={formAction} className="space-y-3 pb-1">
       <input type="hidden" name="userId" value={userId} />
-      <input
-        type="password"
-        name="password"
-        required
-        minLength={6}
-        placeholder="Password baru"
-        className="input h-8 w-36 text-xs"
-        autoComplete="new-password"
-      />
-      <button
-        type="submit"
-        className="btn-outline h-8 px-2.5 text-xs"
-        title="Reset password pengguna ini"
-      >
-        {state.error ? "Coba lagi" : "Reset"}
-      </button>
+      <label className="block text-sm">
+        <span className="mb-1 block font-medium text-ink">Password baru</span>
+        <input
+          type="password"
+          name="password"
+          required
+          minLength={6}
+          placeholder="min. 6 karakter"
+          className="input"
+          autoComplete="new-password"
+        />
+      </label>
+      {state.error && (
+        <div className="shake-x rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{state.error}</div>
+      )}
+      <div className="flex items-center gap-2">
+        <button type="submit" className="btn-primary h-9 flex-1">
+          <Key size={15} stroke={1.75} />
+          Simpan Password Baru
+        </button>
+      </div>
     </form>
   );
 }
@@ -93,15 +99,19 @@ function DeleteForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
   return (
-    <form action={formAction} className="flex flex-col gap-1.5">
+    <form action={formAction} className="space-y-3 pb-1">
       <input type="hidden" name="userId" value={userId} />
       <input type="hidden" name="email" value={email} />
-      {state.error && <div className="text-xs text-danger">{state.error}</div>}
-      <div className="flex items-center gap-1.5">
-        <button type="submit" className="btn h-8 bg-danger px-2.5 text-xs text-white hover:bg-danger/90">
-          {state.ok ? "Terdihapus" : "Ya, hapus"}
+      <p className="text-sm text-muted">
+        Tindakan ini permanen. Akun <b className="text-ink">{email}</b> tidak akan bisa login lagi.
+      </p>
+      {state.error && <div className="shake-x rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{state.error}</div>}
+      <div className="flex items-center gap-2">
+        <button type="submit" className="btn h-9 flex-1 bg-danger text-white hover:bg-danger/90">
+          <Trash size={15} stroke={1.75} />
+          Ya, hapus
         </button>
-        <button type="button" onClick={onCancel} className="btn-ghost h-8 px-2 text-xs">
+        <button type="button" onClick={onCancel} className="btn-ghost h-9">
           Batal
         </button>
       </div>
@@ -116,7 +126,7 @@ export default function UserManage({ meEmail, meId }: { meEmail: string; meId: s
   const [showAdd, setShowAdd] = useState(false);
   const [addState, addFormAction] = useActionState(createUser, {});
   const addRef = useRef<HTMLFormElement>(null);
-  const [showResetFor, setShowResetFor] = useState<Record<string, boolean>>({});
+  const [resetTarget, setResetTarget] = useState<UserRow | null>(null);
   const [confirmDeleteFor, setConfirmDeleteFor] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -161,16 +171,33 @@ export default function UserManage({ meEmail, meId }: { meEmail: string; meId: s
             <Refresh size={15} stroke={1.75} />
             Muat ulang
           </button>
-          <button type="button" onClick={() => setShowAdd((v) => !v)} className="btn-primary h-9">
-            {showAdd ? <Plus size={15} className="rotate-45" /> : <UserPlus size={15} stroke={1.75} />}
-            {showAdd ? "Tutup" : "Tambah Pengguna"}
+          <button
+            type="button"
+            onClick={() => {
+              tapFeedback();
+              setShowAdd(true);
+            }}
+            className="btn-primary h-9"
+          >
+            <UserPlus size={15} stroke={1.75} />
+            Tambah Pengguna
           </button>
         </div>
       </div>
 
-      {/*Form tambah pengguna*/}
-      {showAdd && (
-        <form ref={addRef} action={addFormAction} className="card grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Modal tambah pengguna */}
+      <Modal
+        open={showAdd}
+        onClose={() => {
+          tapFeedback();
+          setShowAdd(false);
+        }}
+        title="Tambah Pengguna"
+        subtitle="Akun baru langsung bisa login setelah dibuat"
+        icon={<UserPlus size={18} stroke={1.9} />}
+        maxWidth="max-w-lg"
+      >
+        <form ref={addRef} action={addFormAction} className="grid gap-3 pb-1 sm:grid-cols-2">
           <label className="block text-sm">
             <span className="mb-1 block font-medium text-ink">Email</span>
             <input type="email" name="email" required placeholder="nama@imshus.com" className="input" autoComplete="off" />
@@ -201,7 +228,62 @@ export default function UserManage({ meEmail, meId }: { meEmail: string; meId: s
             <SubmitBtn label="Buat Akun" busyLabel="Membuat…" />
           </div>
         </form>
-      )}
+      </Modal>
+
+      {/* Modal reset password pengguna lain */}
+      <Modal
+        open={!!resetTarget}
+        onClose={() => {
+          tapFeedback();
+          setResetTarget(null);
+        }}
+        title="Reset Password"
+        subtitle={resetTarget?.email}
+        icon={<Key size={18} stroke={1.9} />}
+      >
+        {resetTarget && (
+          <ResetForm
+            key={resetTarget.id}
+            userId={resetTarget.id}
+            onDone={(msg) => {
+              setToast({ msg, tone: "ok" });
+              setResetTarget(null);
+            }}
+          />
+        )}
+      </Modal>
+
+      {/* Modal hapus pengguna */}
+      <Modal
+        open={!!confirmDeleteFor}
+        onClose={() => {
+          tapFeedback();
+          setConfirmDeleteFor(null);
+        }}
+        title="Hapus Pengguna"
+        subtitle={users?.find((u) => u.id === confirmDeleteFor)?.email}
+        icon={<Trash size={18} stroke={1.9} />}
+      >
+        {confirmDeleteFor && (
+          <DeleteForm
+            key={confirmDeleteFor}
+            userId={confirmDeleteFor}
+            email={users?.find((u) => u.id === confirmDeleteFor)?.email ?? ""}
+            onDone={(msg) => {
+              setConfirmDeleteFor(null);
+              if (msg.startsWith("!")) setToast({ msg: msg.slice(1), tone: "err" });
+              else {
+                setToast({ msg, tone: "ok" });
+                load();
+              }
+            }}
+            onCancel={() => {
+              tapFeedback();
+              setConfirmDeleteFor(null);
+            }}
+          />
+        )}
+      </Modal>
 
       {loadErr && <div className="card border-danger/40 bg-danger-soft p-4 text-sm text-danger">{loadErr}</div>}
 
@@ -245,51 +327,30 @@ export default function UserManage({ meEmail, meId }: { meEmail: string; meId: s
                   <div className="mt-1 text-xs italic text-faint">isi password tidak dapat dilihat</div>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex flex-col gap-1.5">
-                    {showResetFor[u.id] ? (
-                      <ResetForm
-                        userId={u.id}
-                        onDone={(msg) => {
-                          setToast({ msg, tone: "ok" });
-                          setShowResetFor((s) => ({ ...s, [u.id]: false }));
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        tapFeedback();
+                        setResetTarget(u);
+                      }}
+                      className="btn-outline h-8 px-2.5 text-xs"
+                    >
+                      <Key size={14} stroke={1.75} />
+                      Ganti Password
+                    </button>
+                    {u.id !== meId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          tapFeedback();
+                          setConfirmDeleteFor(u.id);
                         }}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setShowResetFor((s) => ({ ...s, [u.id]: true }))}
-                          className="btn-outline h-8 px-2.5 text-xs"
-                        >
-                          <Key size={14} stroke={1.75} />
-                          Ganti Password
-                        </button>
-                        {u.id !== meId &&
-                          (confirmDeleteFor === u.id ? (
-                            <DeleteForm
-                              userId={u.id}
-                              email={u.email}
-                              onDone={(msg) => {
-                                setConfirmDeleteFor(null);
-                                if (msg.startsWith("!")) setToast({ msg: msg.slice(1), tone: "err" });
-                                else {
-                                  setToast({ msg, tone: "ok" });
-                                  load();
-                                }
-                              }}
-                              onCancel={() => setConfirmDeleteFor(null)}
-                            />
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => setConfirmDeleteFor(u.id)}
-                              className="btn h-8 bg-danger-soft px-2 text-danger hover:bg-danger/15"
-                              title={`Hapus ${u.email}`}
-                            >
-                              <Trash size={14} stroke={1.75} />
-                            </button>
-                          ))}
-                      </div>
+                        className="btn h-8 bg-danger-soft px-2 text-danger hover:bg-danger/15"
+                        title={`Hapus ${u.email}`}
+                      >
+                        <Trash size={14} stroke={1.75} />
+                      </button>
                     )}
                   </div>
                 </td>
