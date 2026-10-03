@@ -152,7 +152,10 @@ export default function BottomNav({
 
       {/* ===== Sheet "Lainnya" ===== */}
       <div
-        className={"no-print fixed inset-0 z-50 lg:hidden " + (open ? "" : "pointer-events-none")}
+        className={
+          "no-print fixed inset-0 z-50 lg:hidden transition-[visibility] duration-[400ms] " +
+          (open ? "visible" : "invisible pointer-events-none")
+        }
         role="dialog"
         aria-modal="true"
         aria-label="Menu lainnya"
@@ -165,7 +168,7 @@ export default function BottomNav({
         <div
           className={
             "absolute inset-x-0 bottom-0 mx-auto max-w-lg rounded-t-2xl border border-line bg-surface px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-2 shadow-2xl transition-transform duration-[400ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none " +
-            (open ? "translate-y-0" : "translate-y-full")
+            (open ? "translate-y-0" : "translate-y-[110%]")
           }
         >
           <div className="mx-auto mb-3 mt-1 h-1 w-10 rounded-full bg-line-strong" />
