@@ -2,20 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import {
   IconCalendarCheck as CalendarCheck,
   IconChartBar as ChartBar,
   IconId as IdIcon,
   IconLayoutDashboard as LayoutDashboard,
   IconLogout as Logout,
-  IconMenu2 as Menu2,
   IconShieldLock as ShieldLock,
   IconUsers as Users,
-  IconX as X,
 } from "@tabler/icons-react";
 import { signOut, switchInstitusi } from "@/app/login/actions";
 import Avatar from "@/components/Avatar";
+import BottomNav from "@/components/BottomNav";
 import ThemeToggle from "@/components/ThemeToggle";
 import { SantriIcon, SantriwatiIcon } from "@/components/icons/InstitusiIcon";
 
@@ -190,28 +188,8 @@ export default function Shell({
   isSuperadmin?: boolean;
 }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
   const isLogin = pathname.startsWith("/login");
   const santriLabel = institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
-
-  useEffect(() => setOpen(false), [pathname]);
-
-  useEffect(() => {
-    if (!open) return;
-    const prevBody = document.body.style.overflow;
-    const prevHtml = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prevBody;
-      document.documentElement.style.overflow = prevHtml;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
 
   if (isLogin) return <>{children}</>;
 
@@ -227,55 +205,13 @@ export default function Shell({
         <UserFooter email={email} institusi={institusi} />
       </aside>
 
-      {/* Header mobile: hamburger kiri, Brand hanya di drawer */}
-      <header className="no-print sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur lg:hidden">
-        <button
-          aria-label="Buka menu"
-          aria-expanded={open}
-          onClick={() => setOpen(true)}
-          className="btn-ghost size-9 p-0"
-        >
-          <Menu2 size={20} stroke={1.75} />
-        </button>
-        <ThemeToggle />
-      </header>
-
-      {/* Drawer mobile: selalu terpasang agar bisa animasi slide buka/tutup */}
-      <div
-        className={`fixed inset-0 z-40 lg:hidden ${open ? "" : "pointer-events-none"}`}
-        role="dialog"
-        aria-modal="true"
-        aria-hidden={!open}
-      >
-        <div
-          className={`absolute inset-0 touch-none bg-black/50 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
-          onClick={() => setOpen(false)}
-        />
-        <aside
-          className={`absolute inset-y-0 left-0 flex w-64 flex-col border-r border-line bg-surface shadow-2xl transition-transform duration-300 ease-out ${
-            open ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="flex h-16 items-center justify-between border-b border-line px-5">
-            <Brand institusi={institusi} />
-            <button
-              aria-label="Tutup menu"
-              onClick={() => setOpen(false)}
-              className="btn-ghost size-8 p-0"
-            >
-              <X size={18} />
-            </button>
-          </div>
-          {isSuperadmin && <div className="pt-3"><InstitusiSwitch institusi={institusi ?? "PA IMSHUS"} /></div>}
-          <Nav onNavigate={() => setOpen(false)} santriLabel={santriLabel} isSuperadmin={isSuperadmin} />
-          <UserFooter email={email} institusi={institusi} />
-        </aside>
-      </div>
+      {/* Bottom nav mobile: menggantikan header hamburger + drawer */}
+      <BottomNav email={email} institusi={institusi} isSuperadmin={isSuperadmin} />
 
       <div className="lg:pl-64">
         <main
           className={
-            "mx-auto w-full px-4 py-6 lg:px-4 lg:py-6 2xl:px-8 2xl:py-8 " +
+            "mx-auto w-full px-4 pb-[calc(84px+env(safe-area-inset-bottom))] pt-6 lg:px-4 lg:pb-6 2xl:px-8 2xl:py-8 " +
             (pathname.startsWith("/input") ? "max-w-[1600px]" : "max-w-6xl")
           }
         >
