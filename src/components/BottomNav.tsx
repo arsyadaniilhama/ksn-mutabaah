@@ -89,6 +89,12 @@ export default function BottomNav({
 
   const dark = mounted && resolvedTheme === "dark";
 
+  // aksi server + tutup sheet agar tidak menggantung setelah pindah institusi
+  const switchInst = (formData: FormData) => {
+    setOpen(false);
+    switchInstitusi(formData);
+  };
+
   return (
     <>
       {/* ===== Bilah navigasi bawah (hanya layar < lg) ===== */}
@@ -197,7 +203,7 @@ export default function BottomNav({
                 {(["PA IMSHUS", "PI IMSHUS"] as const).map((opt) => {
                   const active = opt === institusi;
                   return (
-                    <form key={opt} action={switchInstitusi} className="flex-1">
+                    <form key={opt} action={switchInst} className="flex-1">
                       <input type="hidden" name="institusi" value={opt} />
                       <button
                         type="submit"
