@@ -75,7 +75,12 @@
       0 8px 24px -12px rgb(var(--shadow-color) / 0.08);
   }
   .btn {
-    @apply inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3.5 text-sm font-medium transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3.5 text-sm font-medium transition active:scale-[0.97] active:duration-75 disabled:pointer-events-none disabled:opacity-50;
+    /* lepas tekanan: kembali dengan pegas lembut ala aplikasi premium */
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    transition-duration: 0.28s;
+    transition-property: background-color, color, border-color, opacity, transform, box-shadow;
+    -webkit-tap-highlight-color: transparent;
   }
   .btn-primary {
     @apply btn bg-accent text-accent-fg hover:bg-accent-hover;
@@ -96,13 +101,92 @@
     font-variant-numeric: tabular-nums;
   }
   .sidebar-link {
-    @apply flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors;
+    @apply flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors active:scale-[0.985];
   }
 }
 
-/* Slide toggle (Ya/Tidak) */
+/* ===== Feel premium saat menekan: tap target non-btn ikut membal ===== */
+.toggle-hit,
+.tapable {
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+.toggle-hit:active,
+.tapable:active {
+  transform: scale(0.96);
+  opacity: 0.88;
+  transition-duration: 0.07s;
+}
+
+/* Centang "tersimpan" — pop singkat lalu pulih */
+@keyframes pop-in {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in {
+  animation: pop-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Goyang halus saat gagal */
+@keyframes shake-x {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+.shake-x {
+  animation: shake-x 0.32s ease both;
+}
+
+/* Transisi pergantian halaman: masuk lembut, bukan "tuk!" */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.page-in {
+  animation: page-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Nama santri berganti: meluncur lembut dari sisi tujuan */
+@keyframes name-slide {
+  from { opacity: 0; transform: translateX(var(--name-dir, 10px)); }
+  to { opacity: 1; transform: none; }
+}
+.name-slide {
+  animation: name-slide 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Hormati pengguna yang menolak animasi */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .toggle-hit,
+  .tapable {
+    transition-duration: 0.01ms !important;
+  }
+  .btn:active,
+  .toggle-hit:active,
+  .tapable:active {
+    transform: none;
+  }
+  .pop-in,
+  .shake-x,
+  .page-in,
+  .name-slide {
+    animation: none !important;
+  }
+}
+
+/* Slide toggle (Ya/Tidak) — meluncur dengan pegas lembut */
 .toggle-thumb {
-  transition: transform 0.15s ease;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s ease;
 }
 
 /* Keterangan amalan hanya muncul di layar tinggi & lebar (agar tak mengganggu fit di laptop pendek) */

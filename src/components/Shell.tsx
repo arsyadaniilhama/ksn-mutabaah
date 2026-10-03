@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import {
   IconCalendarCheck as CalendarCheck,
   IconChartBar as ChartBar,
@@ -191,6 +192,15 @@ export default function Shell({
   const isLogin = pathname.startsWith("/login");
   const santriLabel = institusi === "PI IMSHUS" ? "Santriwati" : "Santri";
 
+  // ganti halaman: kembali ke atas agar transisi masuk terasa rapi
+  const prevPath = useRef(pathname);
+  useEffect(() => {
+    if (prevPath.current !== pathname) {
+      prevPath.current = pathname;
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, [pathname]);
+
   if (isLogin) return <>{children}</>;
 
   return (
@@ -215,7 +225,10 @@ export default function Shell({
             (pathname.startsWith("/input") ? "max-w-[1600px]" : "max-w-6xl")
           }
         >
-          {children}
+          {/* key = pathname: konten masuk dengan fade-slide lembut tiap ganti halaman */}
+          <div key={pathname} className="page-in">
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { tapFeedback } from "@/lib/haptics";
 import type { BinaryStatus } from "@/types";
 
 interface Props {
@@ -13,7 +14,11 @@ interface Props {
  * Tap sisi aktif lagi -> kembali netral (hapus nilai).
  */
 export default function ToggleSlide({ value, onChange, disabled }: Props) {
-  const set = (v: BinaryStatus) => onChange(value === v ? null : v);
+  const set = (v: BinaryStatus) => {
+    if (disabled) return;
+    tapFeedback();
+    onChange(value === v ? null : v);
+  };
 
   return (
     <div
@@ -38,7 +43,7 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         onClick={() => set("done")}
         aria-pressed={value === "done"}
         className={
-          "relative z-10 flex-1 py-0.5 text-center transition-colors xl:py-1.5 " +
+          "toggle-hit relative z-10 flex-1 py-0.5 text-center transition-colors xl:py-1.5 " +
           (value === "done" ? "text-accent-fg" : "text-muted hover:text-ink")
         }
       >
@@ -50,7 +55,7 @@ export default function ToggleSlide({ value, onChange, disabled }: Props) {
         onClick={() => set("miss")}
         aria-pressed={value === "miss"}
         className={
-          "relative z-10 flex-1 py-0.5 text-center transition-colors xl:py-1.5 " +
+          "toggle-hit relative z-10 flex-1 py-0.5 text-center transition-colors xl:py-1.5 " +
           (value === "miss" ? "text-accent-fg" : "text-muted hover:text-ink")
         }
       >

@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { tapFeedback } from "@/lib/haptics";
 import { FARDHU_OPTIONS } from "@/lib/amalan";
 import type { FardhuStatus } from "@/types";
 
@@ -20,7 +21,11 @@ const activeBg: Record<FardhuStatus, string> = {
  * Tap opsi aktif lagi -> kembali netral (hapus nilai).
  */
 export default function FardhuSegment({ value, onChange, disabled }: Props) {
-  const set = (v: FardhuStatus) => onChange(value === v ? null : v);
+  const set = (v: FardhuStatus) => {
+    if (disabled) return;
+    tapFeedback();
+    onChange(value === v ? null : v);
+  };
 
   return (
     <div
@@ -42,7 +47,7 @@ export default function FardhuSegment({ value, onChange, disabled }: Props) {
             title={o.label}
             onClick={() => set(o.value)}
           className={
-            "flex-1 rounded-full px-1 py-0.5 whitespace-nowrap transition-colors 2xl:px-2 2xl:py-1 " +
+            "tapable flex-1 rounded-full px-1 py-0.5 whitespace-nowrap transition-colors 2xl:px-2 2xl:py-1 " +
             (active ? activeBg[o.value] : "text-muted hover:text-ink")
           }
         >

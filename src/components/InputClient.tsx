@@ -12,6 +12,7 @@ import type { AmalanKategori } from "@/types";
 import { daysInMonth, parseISO, todayISO } from "@/lib/dates";
 import AmalanRow from "@/components/AmalanRow";
 import Avatar from "@/components/Avatar";
+import { errorFeedback, successFeedback, tapFeedback } from "@/lib/haptics";
 import MiniCalendar from "@/components/MiniCalendar";
 import SantriList, { type SantriListItem } from "@/components/SantriList";
 import Toast from "@/components/Toast";
@@ -105,6 +106,19 @@ export default function InputClient({
   const [savingId, setSavingId] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [toastTone, setToastTone] = useState<"ok" | "err">("ok");
+  // kilat status per sel: "ok" = centang pop, "err" = goyang (auto-hilang)
+  const [flash, setFlash] = useState<{ id: number; kind: "ok" | "err"; n: number } | null>(null);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showFlash = (id: number, kind: "ok" | "err") => {
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    setFlash({ id, kind, n: Date.now() });
+    flashTimer.current = setTimeout(() => setFlash(null), kind === "ok" ? 550 : 400);
+  };
+  // arah pergantian santri untuk efek luncur nama: 1 = maju, -1 = mundur
+  const [navDir, setNavDir] = useState<1 | -1>(1);
+  const nameSlideStyle = {
+    ["--name-dir" as string]: navDir === 1 ? "12px" : "-12px",
+  } as React.CSSProperties;
 
   const firstVal = useRef(true);
   const firstProg = useRef(true);
@@ -282,6 +296,7 @@ export default function InputClient({
   const isHaidToday = haidDates.has(date);
   const toggleHaid = async () => {
     if (!canHaid || !santriId || haidSaving) return;
+    tapFeedback();
     const on = !isHaidToday;
     setHaidSaving(true);
     setHaidDates((s) => {
@@ -298,7 +313,9 @@ export default function InputClient({
         body: JSON.stringify({ santri_id: santriId, date, on }),
       });
       if (!res.ok) throw new Error();
+      successFeedback();
     } catch {
+      errorFeedback();
       setHaidDates((s) => {
         const n = new Set(s);
         if (on) n.delete(date);
@@ -344,7 +361,11 @@ export default function InputClient({
           coverageCache.current.set(ym, n);
           return n;
         });
+        successFeedback();
+        showFlash(amalanId, "ok");
       } catch {
+        errorFeedback();
+        showFlash(amalanId, "err");
         setValues((v) => {
           const rolled = { ...v, [amalanId]: prev };
           dayCache.current.set(`${santriId}:${date}`, rolled);
@@ -370,6 +391,7 @@ export default function InputClient({
         value={values[a.id] ?? null}
         onChange={(next) => handleChange(a.id, next)}
         saving={savingId === a.id}
+        flash={flash?.id === a.id ? { kind: flash.kind, n: flash.n } : null}
         compact={totalAmalan > 19}
       />
     ));
@@ -377,8 +399,10 @@ export default function InputClient({
   const colRight = amalanList.slice(splitIdx);
 
   const goNext = () => {
+    tapFeedback();
     const next = santriInKelas[currentIdx + 1];
     if (next) {
+      setNavDir(1);
       setSantriId(next.id);
     } else {
       setMobileOpen(false);
@@ -388,11 +412,16 @@ export default function InputClient({
   };
 
   const goPrev = () => {
+    tapFeedback();
     const prev = santriInKelas[currentIdx - 1];
-    if (prev) setSantriId(prev.id);
+    if (prev) {
+      setNavDir(-1);
+      setSantriId(prev.id);
+    }
   };
 
   const selectSantri = (id: string) => {
+    tapFeedback();
     setSantriId(id);
     setMobileOpen(true);
   };
@@ -420,7 +449,11 @@ export default function InputClient({
             <div className="flex min-w-0 items-center gap-3">
               <Avatar name={current.nama} />
               <div className="min-w-0 leading-tight">
-                <div className="truncate text-sm font-semibold text-ink">
+                <div
+                  key={current.id}
+                  style={nameSlideStyle}
+                  className="name-slide truncate text-sm font-semibold text-ink"
+                >
                   {current.nama}
                 </div>
                 <div className="tnum truncate text-xs text-faint">NIS {current.nis}</div>
@@ -614,7 +647,13 @@ export default function InputClient({
               <ChevronLeft size={19} stroke={2} />
             </button>
             <div className="min-w-0 flex-1 text-center leading-tight">
-              <div className="truncate text-sm font-semibold text-ink">{current.nama}</div>
+              <div
+                key={current.id}
+                style={nameSlideStyle}
+                className="name-slide truncate text-sm font-semibold text-ink"
+              >
+                {current.nama}
+              </div>
               <div className="tnum truncate text-[11px] text-faint">
                 {current.kelas} · NIS {current.nis}
               </div>

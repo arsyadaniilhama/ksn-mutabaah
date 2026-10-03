@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import { tapFeedback } from "@/lib/haptics";
+
 interface Props {
   value: number | null;
   onChange: (next: number | null) => void;
@@ -10,8 +12,16 @@ interface Props {
 /** Stepper angka cepat untuk amalan bertipe rakaat. null/0 = belum. */
 export default function RakaatStepper({ value, onChange, disabled, max = 99 }: Props) {
   const n = value ?? 0;
-  const dec = () => onChange(Math.max(0, n - 1) || null);
-  const inc = () => onChange(Math.min(max, n + 1));
+  const dec = () => {
+    if (disabled) return;
+    tapFeedback();
+    onChange(Math.max(0, n - 1) || null);
+  };
+  const inc = () => {
+    if (disabled) return;
+    tapFeedback();
+    onChange(Math.min(max, n + 1));
+  };
 
   return (
     <div className={"flex w-full items-center justify-between gap-1 " + (disabled ? "opacity-50" : "")}>

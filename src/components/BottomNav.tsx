@@ -18,6 +18,7 @@ import {
   IconX as X,
 } from "@tabler/icons-react";
 import { signOut, switchInstitusi } from "@/app/login/actions";
+import { tapFeedback } from "@/lib/haptics";
 import Avatar from "@/components/Avatar";
 
 function isActivePath(pathname: string, href: string) {
@@ -39,11 +40,12 @@ function Tab({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
+      onClick={() => tapFeedback()}
       className="group flex flex-col items-center gap-1 pb-1 pt-1.5 text-[10.5px] font-semibold outline-none motion-reduce:transition-none"
     >
       <span
         className={
-          "grid h-8 w-16 place-items-center rounded-full transition-colors duration-300 motion-reduce:transition-none " +
+          "grid h-8 w-16 place-items-center rounded-full transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none group-active:scale-90 " +
           (active ? "bg-accent-soft text-accent" : "text-faint group-hover:text-muted")
         }
       >
@@ -91,6 +93,7 @@ export default function BottomNav({
 
   // aksi server + tutup sheet agar tidak menggantung setelah pindah institusi
   const switchInst = (formData: FormData) => {
+    tapFeedback();
     setOpen(false);
     switchInstitusi(formData);
   };
@@ -111,6 +114,7 @@ export default function BottomNav({
           href="/input"
           aria-label="Input Harian"
           aria-current={isActivePath(pathname, "/input") ? "page" : undefined}
+          onClick={() => tapFeedback()}
           className="flex flex-col items-center gap-1 outline-none"
         >
           <span
@@ -133,7 +137,10 @@ export default function BottomNav({
         {/* Lainnya — membuka sheet */}
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            tapFeedback();
+            setOpen(true);
+          }}
           aria-haspopup="dialog"
           aria-expanded={open}
           className="group flex flex-col items-center gap-1 pb-1 pt-1.5 text-[10.5px] font-semibold text-faint outline-none motion-reduce:transition-none"
@@ -185,7 +192,10 @@ export default function BottomNav({
             <button
               type="button"
               aria-label="Ganti tema"
-              onClick={() => setTheme(dark ? "light" : "dark")}
+              onClick={() => {
+                tapFeedback();
+                setTheme(dark ? "light" : "dark");
+              }}
               className="btn-ghost size-9 shrink-0 p-0"
             >
               {dark ? <Sun size={18} stroke={1.75} /> : <Moon size={18} stroke={1.75} />}
