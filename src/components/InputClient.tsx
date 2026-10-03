@@ -63,7 +63,7 @@ const fmtTanggal = (iso: string) =>
   new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
     day: "numeric",
-    month: "long",
+    month: "short", // 3 huruf (Sep, Agu, Jun) — nama bulan panjang merusak kerapian pill
     year: "numeric",
   }).format(parseISO(iso));
 

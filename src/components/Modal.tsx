@@ -16,8 +16,9 @@ interface Props {
 }
 
 /**
- * Dialog premium: layar bawah(HP) melebar tengah(desktop), backdrop blur,
- * panel meluncur naik + pegas (scale .97 -> 1). Keluar dengan Esc/klik luar/X.
+ * Dialog premium: menempel ATAS di HP (turun dari atas, tidak menutupi
+ * tombol navigasi/gesture bar), melebar tengah di desktop. Backdrop blur,
+ * panel + pegas (translate + scale .97 -> 1). Keluar dengan Esc/klik luar/X.
  * Motif terlihat-sama-tertutup memakai visibility seperti sheet BottomNav
  * (menghindari artefak hantu di belakang elemen fixed lain).
  */
@@ -56,7 +57,7 @@ export default function Modal({
   return (
     <div
       className={
-        "no-print fixed inset-0 z-50 flex items-end justify-center transition-[visibility] duration-[420ms] sm:items-center sm:p-6 " +
+        "no-print fixed inset-0 z-50 flex items-start justify-center overflow-y-auto transition-[visibility] duration-[420ms] p-3 sm:items-center sm:p-6 " +
         (open ? "visible" : "invisible pointer-events-none")
       }
       role="dialog"
@@ -75,15 +76,15 @@ export default function Modal({
           onClose();
         }}
       />
-      {/* panel */}
+      {/* panel — HP: turun dari atas dengan sudut bawah membulat; desktop: tengah */}
       <div
         ref={panelRef}
         className={
-          "relative w-full " + maxWidth + " rounded-t-2xl border border-line bg-surface shadow-2xl " +
-          "pb-[max(16px,env(safe-area-inset-bottom))] transition duration-[380ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none " +
+          "relative my-2 w-full " + maxWidth + " rounded-b-2xl rounded-t-lg border border-line bg-surface shadow-2xl sm:rounded-2xl " +
+          "pt-[max(8px,env(safe-area-inset-top))] pb-4 transition duration-[380ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none " +
           (open
             ? "translate-y-0 scale-100 opacity-100"
-            : "translate-y-6 scale-[0.97] opacity-0")
+            : "-translate-y-6 scale-[0.97] opacity-0")
         }
       >
         {/* header */}
