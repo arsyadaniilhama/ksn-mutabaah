@@ -66,14 +66,6 @@ const fmtTanggal = (iso: string) =>
     year: "numeric",
   }).format(parseISO(iso));
 
-/** Versi ringkas untuk toolbar laptop kecil (<1280px), cegah wrap. */
-const fmtTanggalShort = (iso: string) =>
-  new Intl.DateTimeFormat("id-ID", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  }).format(parseISO(iso));
-
 export default function InputClient({
   santriList,
   initialKelas,
@@ -395,6 +387,11 @@ export default function InputClient({
     }
   };
 
+  const goPrev = () => {
+    const prev = santriInKelas[currentIdx - 1];
+    if (prev) setSantriId(prev.id);
+  };
+
   const selectSantri = (id: string) => {
     setSantriId(id);
     setMobileOpen(true);
@@ -532,8 +529,7 @@ export default function InputClient({
             aria-expanded={calOpen}
           >
             <CalendarDue size={14} stroke={1.75} className="shrink-0 text-accent" />
-            <span className="xl:hidden">{fmtTanggalShort(date)}</span>
-            <span className="hidden xl:inline">{fmtTanggal(date)}</span>
+            {fmtTanggal(date)}
           </button>
           <button
             onClick={() => shiftDate(1)}
@@ -600,27 +596,79 @@ export default function InputClient({
       {/* Mobile: slide-over panel */}
       {mobileOpen && current && (
         <div className="fixed inset-0 z-40 !mt-0 flex h-dvh flex-col bg-canvas lg:hidden">
-          <div className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
+          <div className="flex items-center gap-1.5 border-b border-line bg-surface px-2 py-2">
             <button
               onClick={() => setMobileOpen(false)}
               aria-label="Kembali ke daftar"
-              className="btn-ghost size-9 p-0"
+              className="btn-ghost size-9 shrink-0 p-0"
             >
               <ArrowLeft size={18} />
             </button>
-            <Avatar name={current.nama} size="sm" />
-            <div className="min-w-0 flex-1 leading-tight">
+            <button
+              onClick={goPrev}
+              disabled={currentIdx <= 0}
+              aria-label={`${label} sebelumnya`}
+              title={`${label} sebelumnya`}
+              className="btn-ghost size-9 shrink-0 p-0 disabled:opacity-30"
+            >
+              <ChevronLeft size={19} stroke={2} />
+            </button>
+            <div className="min-w-0 flex-1 text-center leading-tight">
               <div className="truncate text-sm font-semibold text-ink">{current.nama}</div>
-              <div className="tnum text-[11px] text-faint">
-                {current.kelas} · {fmtTanggal(date)}
+              <div className="tnum truncate text-[11px] text-faint">
+                {current.kelas} · NIS {current.nis}
               </div>
             </div>
+            <button
+              onClick={goNext}
+              disabled={currentIdx >= santriInKelas.length - 1}
+              aria-label={`${label} berikutnya`}
+              title={`${label} berikutnya`}
+              className="btn-ghost size-9 shrink-0 p-0 disabled:opacity-30"
+            >
+              <ChevronRight size={19} stroke={2} />
+            </button>
+            <span className="tnum chip shrink-0 bg-accent-soft text-accent">
+              {currentIdx + 1}/{santriInKelas.length}
+            </span>
+          </div>
+          <div className="flex items-center justify-center gap-1.5 border-b border-line bg-canvas px-3 py-1.5 text-[11.5px] font-medium text-muted">
+            <CalendarDue size={13} stroke={1.9} className="shrink-0 text-accent" />
+            {fmtTanggal(date)}
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">{panel}</div>
           <div className="border-t border-line bg-surface p-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
-            <button onClick={goNext} className="btn-primary w-full">
-              Selesai & {labelLc} berikutnya
-            </button>
+            <div className="flex items-stretch gap-2">
+              <button
+                onClick={goPrev}
+                disabled={currentIdx <= 0}
+                aria-label={`${label} sebelumnya`}
+                className="btn-outline size-11 shrink-0 p-0 disabled:opacity-30"
+              >
+                <ChevronLeft size={20} stroke={2} />
+              </button>
+              <div className="flex min-w-0 flex-1 flex-col items-stretch gap-1">
+                <button
+                  onClick={goNext}
+                  disabled={currentIdx >= santriInKelas.length - 1}
+                  className="btn-primary flex-1"
+                >
+                  Simpan &amp; berikutnya
+                  <ChevronRight size={16} stroke={2} />
+                </button>
+                <span className="tnum text-center text-[10.5px] text-faint">
+                  {items.find((i) => i.id === current.id)?.filled ?? 0}/{totalAmalan} amalan terisi
+                </span>
+              </div>
+              <button
+                onClick={goNext}
+                disabled={currentIdx >= santriInKelas.length - 1}
+                aria-label={`Lewati ke ${labelLc} berikutnya`}
+                className="btn-outline size-11 shrink-0 p-0 disabled:opacity-30"
+              >
+                <ChevronRight size={20} stroke={2} />
+              </button>
+            </div>
           </div>
         </div>
       )}
