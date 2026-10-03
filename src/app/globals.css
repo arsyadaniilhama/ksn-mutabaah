@@ -150,7 +150,9 @@
   to { opacity: 1; transform: none; }
 }
 .page-in {
-  animation: page-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* fill-mode "backwards" (bukan "both"): setelah animasi selesai transform dilepas,
+     agar wrapper tidak menjadi containing block bagi element fixed di dalamnya. */
+  animation: page-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 /* Nama santri berganti: meluncur lembut dari sisi tujuan */
