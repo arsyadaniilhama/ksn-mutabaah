@@ -71,8 +71,15 @@ export function buildSantriSheet(
   ws.getRow(2).values = ["Nama", santri.nama];
   ws.getRow(3).values = ["Kelas", santri.kelas];
   ws.getRow(4).values = ["Bulan", `${bulanName(month)} ${year}`];
-  [1, 2, 3, 4].forEach((r) => {
-    ws.getRow(r).font = { bold: r === 1 };
+  // Judul gabungan A1:B1 tengah — kolom A sempit (No), tanpa merge teks terpotong
+  ws.mergeCells("A1:B1");
+  const titleCell = ws.getCell("A1");
+  titleCell.font = { bold: true, size: 14 };
+  titleCell.alignment = { horizontal: "center", vertical: "middle" };
+  ws.getRow(1).height = 22;
+  [2, 3, 4].forEach((r) => {
+    ws.getRow(r).font = { bold: false };
+    ws.getRow(r).getCell(1).font = { bold: true };
     ws.getRow(r).alignment = { horizontal: "center" };
   });
 
@@ -130,16 +137,19 @@ export function buildSantriSheet(
       };
       c.alignment = { horizontal: "center", vertical: "middle", wrapText: colNumber === 2 || colNumber === 3 };
     });
-    // Isi sel: V = hijau muda, X = merah muda
+    // Isi sel: V/T hijau, M kuning, X/S merah — sepadan dengan chip di aplikasi
+    const cellStyle: Record<string, { fill: string; font: string }> = {
+      V: { fill: "FFC6EFCE", font: "FF0E5440" },
+      T: { fill: "FFC6EFCE", font: "FF0E5440" },
+      M: { fill: "FFFFEB9C", font: "FF9C6500" },
+      X: { fill: "FFFFC7CE", font: "FF9C0006" },
+      S: { fill: "FFFFC7CE", font: "FF9C0006" },
+    };
     cells.forEach((v, ci) => {
-      if (v === "V" || v === "X") {
+      if (v && cellStyle[v]) {
         const cell = row.getCell(4 + ci);
-        cell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: v === "V" ? "FFC6EFCE" : "FFFFC7CE" },
-        };
-        cell.font = { bold: true, color: { argb: v === "V" ? "FF0E5440" : "FF9C0006" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: cellStyle[v].fill } };
+        cell.font = { bold: true, color: { argb: cellStyle[v].font } };
       }
     });
     const totalCell = row.getCell(3 + dim + 1);
