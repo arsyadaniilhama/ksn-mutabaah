@@ -51,51 +51,61 @@ function InstallRow() {
 
   if (state.canInstall) {
     return (
-      <button
-        type="button"
-        onClick={async () => {
-          tapFeedback();
-          const outcome = await getInstallState().prompt();
-          if (outcome === "accepted") successFeedback();
-        }}
-        className="flex w-full items-center gap-3 rounded-xl px-2.5 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface2 motion-reduce:transition-none"
-      >
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
-          <PlusIcon size={20} stroke={1.9} />
-        </span>
-        Pasang Aplikasi
-        <span className="chip ml-auto bg-surface2 text-muted">Android</span>
-      </button>
-    );
-  }
-
-  if (state.isIos) {
-    return (
-      <div>
+      <>
+        <div className="mb-1.5 mt-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
+          Aplikasi
+        </div>
         <button
           type="button"
-          onClick={() => {
+          onClick={async () => {
             tapFeedback();
-            setShowIos((v) => !v);
+            const outcome = await getInstallState().prompt();
+            if (outcome === "accepted") successFeedback();
           }}
-          aria-expanded={showIos}
           className="flex w-full items-center gap-3 rounded-xl px-2.5 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface2 motion-reduce:transition-none"
         >
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
             <PlusIcon size={20} stroke={1.9} />
           </span>
-          Pasang di iPhone / iPad
+          Pasang Aplikasi
+          <span className="chip ml-auto bg-surface2 text-muted">Android</span>
         </button>
-        {showIos && (
-          <div className="mb-1 ml-12 rounded-xl border border-line bg-canvas p-3 text-[12.5px] leading-relaxed text-muted">
-            Buka lewat Safari, lalu ketuk
-            <span className="mx-1 inline-flex items-center gap-1 align-middle font-semibold text-ink">
-              <ShareIcon size={14} stroke={1.9} /> Bagikan
+      </>
+    );
+  }
+
+  if (state.isIos) {
+    return (
+      <>
+        <div className="mb-1.5 mt-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
+          Aplikasi
+        </div>
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              tapFeedback();
+              setShowIos((v) => !v);
+            }}
+            aria-expanded={showIos}
+            className="flex w-full items-center gap-3 rounded-xl px-2.5 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface2 motion-reduce:transition-none"
+          >
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+              <PlusIcon size={20} stroke={1.9} />
             </span>
-            → pilih <span className="font-semibold text-ink">&ldquo;Tambah ke Layar Utama&rdquo;</span>.
-          </div>
-        )}
-      </div>
+            Pasang di iPhone / iPad
+          </button>
+          {showIos && (
+            <div className="mb-1 ml-12 rounded-xl border border-line bg-canvas p-3 text-[12.5px] leading-relaxed text-muted">
+              Buka lewat Safari, lalu ketuk
+              <span className="mx-1 inline-flex items-center gap-1 align-middle font-semibold text-ink">
+                <ShareIcon size={14} stroke={1.9} /> Bagikan
+              </span>
+              → pilih <span className="font-semibold text-ink">&ldquo;Tambah ke Layar Utama&rdquo;</span>.
+            </div>
+          )}
+        </div>
+      </>
     );
   }
 
@@ -312,9 +322,6 @@ export default function BottomNav({
             </div>
           )}
 
-          <div className="mb-1.5 mt-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
-            Aplikasi
-          </div>
           <InstallRow />
 
           <div className="mb-1.5 mt-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
