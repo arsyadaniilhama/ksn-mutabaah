@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AMALAN_BY_ID } from "@/lib/amalan";
+import { valueLabel, type StoredCell } from "@/lib/audit";
 import type { CellValue, EntryStatus, MutabaahEntry, Santri } from "@/types";
 
 /* ===== In-Memory Caches (per instance, TTL singkat) =====
@@ -293,6 +294,28 @@ export async function getDayValues(
   return out;
 }
 
+/** Nilai mentah (status + rakaat) seluruh amalan satu santri pada satu tanggal. */
+export async function getDayStored(
+  santriId: string,
+  date: string,
+): Promise<Map<number, StoredCell>> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("mutabaah_entries")
+    .select("amalan_id,status,rakaat")
+    .eq("santri_id", santriId)
+    .eq("entry_date", date);
+  if (error) throw new Error(error.message);
+  const out = new Map<number, StoredCell>();
+  for (const row of data ?? []) {
+    out.set(row.amalan_id as number, {
+      status: (row.status as string | null) ?? null,
+      rakaat: (row.rakaat as number | null) ?? null,
+    });
+  }
+  return out;
+}
+
 /**
  * Nilai amalan untuk SEKELOMPOK santri (mis. satu kelas) pada satu tanggal dalam 1 query (~80ms).
  * Mengembalikan: santri_id -> amalan_id -> CellValue.
@@ -425,6 +448,126 @@ export async function listHaidForMonth(
   return map;
 }
 
+/** Satu baris log aktivitas untuk halaman /log. */
+export interface AuditLogRow {
+  id: number;
+  created_at: string;
+  actor_email: string;
+  actor_role: string | null;
+  institusi: string | null;
+  entity: string;
+  action: string;
+  santri_nama: string | null;
+  santri_kelas: string | null;
+  amalan_id: number | null;
+  amalan_nama: string | null;
+  entry_date: string | null;
+  new_value: string | null;
+  rakaat: number | null;
+}
+
+export interface AuditFilter {
+  limit?: number;
+  offset?: number;
+  actor?: string;
+  santriId?: string;
+  action?: string;
+  entity?: string;
+  from?: string; // ISO date (WIB) awal
+  to?: string; // ISO date (WIB) akhir (inklusif)
+  q?: string; // cari nama santri / amalan
+}
+
+/** Apakah tabel audit_log sudah ada (migrasi 0007 dijalankan). */
+export async function auditTableExists(): Promise<boolean> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("audit_log")
+    .select("id", { head: true, count: "exact" })
+    .limit(1);
+  return !error;
+}
+
+/** Daftar log aktivitas mutabaah (terbaru dulu) + total untuk paginasi. */
+export async function listAuditLog(
+  f: AuditFilter,
+  institusi?: string,
+): Promise<{ rows: AuditLogRow[]; total: number }> {
+  const supabase = createAdminClient();
+  const limit = Math.min(200, Math.max(1, f.limit ?? 50));
+  const offset = Math.max(0, f.offset ?? 0);
+  let q = supabase
+    .from("audit_log")
+    .select(
+      "id,created_at,actor_email,actor_role,institusi,entity,action,santri_nama,santri_kelas,amalan_id,amalan_nama,entry_date,new_value,rakaat",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (institusi) q = q.eq("institusi", institusi);
+  if (f.actor) q = q.eq("actor_email", f.actor);
+  if (f.santriId) q = q.eq("santri_id", f.santriId);
+  if (f.action) q = q.eq("action", f.action);
+  if (f.entity) q = q.eq("entity", f.entity);
+  if (f.from) q = q.gte("created_at", `${f.from}T00:00:00+07:00`);
+  if (f.to) q = q.lte("created_at", `${f.to}T23:59:59+07:00`);
+  if (f.q) {
+    const safe = f.q.replace(/[,%()]/g, " ").trim().slice(0, 60);
+    if (safe) q = q.or(`santri_nama.ilike.%${safe}%,amalan_nama.ilike.%${safe}%`);
+  }
+  const { data, error, count } = await q;
+  if (error) throw new Error(error.message);
+  return { rows: (data ?? []) as AuditLogRow[], total: count ?? 0 };
+}
+
+/** Daftar akun unik yang pernah muncul di log (untuk dropdown filter). */
+export async function listAuditActors(): Promise<string[]> {
+  const supabase = createAdminClient();
+  const rows = await fetchAll<{ actor_email: string }>((from, to) =>
+    supabase
+      .from("audit_log")
+      .select("actor_email")
+      .order("actor_email")
+      .range(from, to),
+  );
+  return [...new Set(rows.map((r) => r.actor_email))].filter(Boolean).sort();
+}
+
+/** Ringkasan jumlah aksi hari ini (WIB) untuk kartu statistik. */
+export async function auditSummaryToday(todayIso: string, institusi?: string) {
+  const supabase = createAdminClient();
+  const start = `${todayIso}T00:00:00+07:00`;
+  const end = `${todayIso}T23:59:59+07:00`;
+  const base = () => {
+    let q = supabase
+      .from("audit_log")
+      .select("id", { head: true, count: "exact" })
+      .gte("created_at", start)
+      .lte("created_at", end);
+    if (institusi) q = q.eq("institusi", institusi);
+    return q;
+  };
+  const [check, uncheck, actors] = await Promise.all([
+    base().eq("action", "check"),
+    base().eq("action", "uncheck"),
+    (async () => {
+      let q = supabase
+        .from("audit_log")
+        .select("actor_email")
+        .gte("created_at", start)
+        .lte("created_at", end);
+      if (institusi) q = q.eq("institusi", institusi);
+      const { data } = await q.limit(1000);
+      return new Set((data ?? []).map((r) => r.actor_email)).size;
+    })(),
+  ]);
+  return {
+    check: check.count ?? 0,
+    uncheck: uncheck.count ?? 0,
+    akunAktif: actors,
+  };
+}
+
 /** Tandai/batalkan hari haid. */
 export async function setHaid(
   santriId: string,
@@ -457,21 +600,39 @@ export async function upsertEntries(
     status?: EntryStatus | null;
     rakaat?: number | null;
   }[],
+  actor?: { id: string; email: string },
 ): Promise<void> {
   if (entries.length === 0) return;
   const supabase = createAdminClient();
+  const nowIso = new Date().toISOString();
   const rows = entries.map((e) => ({
     santri_id: e.santri_id,
     amalan_id: e.amalan_id,
     entry_date: e.entry_date,
     status: e.status ?? null,
     rakaat: e.rakaat ?? null,
+    // jejak siapa & kapan terakhir mengubah (dipakai feed "Aktivitas Terakhir")
+    updated_by: actor?.id ?? null,
+    updated_by_email: actor?.email ?? null,
+    updated_at: nowIso,
   }));
   const { error } = await supabase
     .from("mutabaah_entries")
     .upsert(rows, {
       onConflict: "santri_id,amalan_id,entry_date",
     });
-  if (error) throw new Error(error.message);
+  if (error) {
+    // Fallback: bila kolom updated_by_email belum ada (migrasi belum jalan),
+    // coba lagi tanpa kolom tersebut agar penyimpanan tetap berhasil.
+    if (/updated_by_email/i.test(error.message)) {
+      const legacy = rows.map(({ updated_by_email: _skip, ...rest }) => rest);
+      const { error: e2 } = await supabase
+        .from("mutabaah_entries")
+        .upsert(legacy, { onConflict: "santri_id,amalan_id,entry_date" });
+      if (e2) throw new Error(e2.message);
+    } else {
+      throw new Error(error.message);
+    }
+  }
   invalidateMutation();
 }

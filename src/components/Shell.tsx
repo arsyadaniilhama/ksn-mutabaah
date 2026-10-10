@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import {
   IconCalendarCheck as CalendarCheck,
   IconChartBar as ChartBar,
+  IconHistory as History,
   IconId as IdIcon,
   IconLayoutDashboard as LayoutDashboard,
   IconLogout as Logout,
@@ -69,6 +70,7 @@ function Nav({
           label: "Sistem",
           items: [
             { href: "/pengguna", label: "Pengguna", icon: ShieldLock },
+            { href: "/log", label: "Log Aktivitas", icon: History },
             { href: "/akun", label: "Akun Saya", icon: IdIcon },
           ],
         },

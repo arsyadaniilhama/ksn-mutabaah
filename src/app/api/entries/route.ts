@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
-import { getDayValues, getDayValuesForSantriList, listSantri, upsertEntries } from "@/lib/data";
+import {
+  getDayStored,
+  getDayValues,
+  getDayValuesForSantriList,
+  getSantri,
+  listSantri,
+  upsertEntries,
+} from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { bulkUpsertSchema } from "@/lib/validations";
+import { diffMutabaah, writeAudit, type AuditRow, type StoredCell } from "@/lib/audit";
 
 async function allowedSantriIds(institusi: string): Promise<Set<string>> {
   const santri = await listSantri(undefined, true, institusi);
@@ -64,7 +72,56 @@ export async function POST(request: Request) {
     );
 
   try {
-    await upsertEntries(parsed.data.entries);
+    // Nilai lama (per santri+tanggal) untuk membandingkan centang vs batal-centang.
+    const pairs = new Map<string, { santriId: string; date: string }>();
+    for (const e of parsed.data.entries) {
+      pairs.set(`${e.santri_id}:${e.entry_date}`, {
+        santriId: e.santri_id,
+        date: e.entry_date,
+      });
+    }
+    const beforeByKey = new Map<string, Map<number, StoredCell>>();
+    await Promise.all(
+      [...pairs.entries()].map(async ([key, p]) => {
+        beforeByKey.set(key, await getDayStored(p.santriId, p.date));
+      }),
+    );
+
+    await upsertEntries(parsed.data.entries, { id: cu.id, email: cu.email });
+
+    // Susun batas "sesudah" lalu turunkan baris log (hanya centang/batal-centang).
+    const afterByKey = new Map<string, Map<number, StoredCell>>();
+    for (const [key, map] of beforeByKey) {
+      afterByKey.set(key, new Map(map));
+    }
+    for (const e of parsed.data.entries) {
+      const key = `${e.santri_id}:${e.entry_date}`;
+      let m = afterByKey.get(key);
+      if (!m) {
+        m = new Map<number, StoredCell>();
+        afterByKey.set(key, m);
+      }
+      m.set(e.amalan_id, {
+        status: (e.status as string | null) ?? null,
+        rakaat: (e.rakaat as number | null) ?? null,
+      });
+    }
+
+    const santriCache = new Map<string, Awaited<ReturnType<typeof getSantri>>>();
+    const auditRows: AuditRow[] = [];
+    for (const key of pairs.keys()) {
+      const p = pairs.get(key)!;
+      if (!santriCache.has(p.santriId)) {
+        santriCache.set(p.santriId, await getSantri(p.santriId));
+      }
+      const santri = santriCache.get(p.santriId);
+      if (!santri) continue;
+      auditRows.push(
+        ...diffMutabaah(cu, santri, p.date, beforeByKey.get(key)!, afterByKey.get(key)!),
+      );
+    }
+    await writeAudit(auditRows);
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(

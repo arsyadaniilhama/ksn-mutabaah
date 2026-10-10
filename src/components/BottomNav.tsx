@@ -7,6 +7,7 @@ import { useTheme } from "next-themes";
 import {
   IconChartBar as ChartBar,
   IconDots as Dots,
+  IconHistory as History,
   IconId as IdIcon,
   IconLayoutDashboard as LayoutDashboard,
   IconLogout as Logout,
@@ -335,6 +336,13 @@ export default function BottomNav({
             <Link href="/pengguna" className="flex items-center gap-3 rounded-xl px-2.5 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface2 motion-reduce:transition-none">
               <ShieldLock size={20} stroke={1.75} className="text-muted" />
               Pengguna
+              <span className="chip ml-auto bg-surface2 text-muted">superadmin</span>
+            </Link>
+          )}
+          {isSuperadmin && (
+            <Link href="/log" className="flex items-center gap-3 rounded-xl px-2.5 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface2 motion-reduce:transition-none">
+              <History size={20} stroke={1.75} className="text-muted" />
+              Log Aktivitas
               <span className="chip ml-auto bg-surface2 text-muted">superadmin</span>
             </Link>
           )}

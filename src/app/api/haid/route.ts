@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getHaidDates, setHaid } from "@/lib/data";
+import { getHaidDates, getSantri, setHaid } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { haidRow, writeAudit } from "@/lib/audit";
 import { z } from "zod";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -58,6 +59,11 @@ export async function POST(request: Request) {
 
   try {
     await setHaid(parsed.data.santri_id, parsed.data.date, parsed.data.on);
+    const cu = await getCurrentUser();
+    const santri = await getSantri(parsed.data.santri_id);
+    if (cu && santri) {
+      await writeAudit([haidRow(cu, santri, parsed.data.date, parsed.data.on)]);
+    }
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(
