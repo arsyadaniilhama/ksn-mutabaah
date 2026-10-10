@@ -1,6 +1,5 @@
 "use client";
 
-import { IconCheck as Check } from "@tabler/icons-react";
 import ToggleSlide from "@/components/ToggleSlide";
 import RakaatStepper from "@/components/RakaatStepper";
 import FardhuSegment from "@/components/FardhuSegment";
@@ -16,7 +15,7 @@ interface Props {
   value: CellValue;
   onChange: (next: CellValue) => void;
   saving?: boolean;
-  /** Kilat status pasca-simpan: "ok" = centang pop, "err" = goyang. n = kunci retrigger. */
+  /** Kilat status pasca-simpan: "err" = sel bergetar. n = kunci retrigger. */
   flash?: { kind: "ok" | "err"; n: number } | null;
   /** Mode padat (PC, >19 kategori): tinggi sel tetap, tanpa keterangan. */
   compact?: boolean;
@@ -43,15 +42,6 @@ export default function AmalanRow({ amalan, value, onChange, saving, flash, comp
         (flash?.kind === "err" ? " shake-x" : "")
       }
     >
-      {flash?.kind === "ok" && (
-        <span
-          key={flash.n}
-          aria-hidden
-          className="pop-in pointer-events-none absolute -right-1 -top-2 z-10 grid size-6 place-items-center rounded-full bg-accent text-white shadow-md"
-        >
-          <Check size={14} stroke={3} />
-        </span>
-      )}
       <div className="min-w-0 md:flex-[3_1_0%]">
         <div className="flex min-w-0 items-center gap-1.5 md:gap-2">
           <span className="tnum w-4 shrink-0 text-right text-[10px] font-semibold text-faint md:w-5 md:text-xs">

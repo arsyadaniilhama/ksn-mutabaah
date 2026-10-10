@@ -106,13 +106,15 @@ export default function InputClient({
   const [savingId, setSavingId] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [toastTone, setToastTone] = useState<"ok" | "err">("ok");
-  // kilat status per sel: "ok" = centang pop, "err" = goyang (auto-hilang)
+  // kilat status per sel: hanya "err" = sel bergetar saat gagal simpan (auto-hilang).
+  // Efek centang pop saat berhasil dihilangkan agar tidak terasa berkedip.
   const [flash, setFlash] = useState<{ id: number; kind: "ok" | "err"; n: number } | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showFlash = (id: number, kind: "ok" | "err") => {
+    if (kind === "ok") return;
     if (flashTimer.current) clearTimeout(flashTimer.current);
     setFlash({ id, kind, n: Date.now() });
-    flashTimer.current = setTimeout(() => setFlash(null), kind === "ok" ? 550 : 400);
+    flashTimer.current = setTimeout(() => setFlash(null), 400);
   };
   // arah pergantian santri untuk efek luncur nama: 1 = maju, -1 = mundur
   const [navDir, setNavDir] = useState<1 | -1>(1);
