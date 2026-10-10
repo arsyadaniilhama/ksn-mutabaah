@@ -191,20 +191,17 @@
     background-color 0.2s ease;
 }
 
-/* Keterangan amalan hanya muncul di layar tinggi & lebar (agar tak mengganggu fit di laptop pendek) */
-@media (min-width: 1280px) and (min-height: 880px) {
+/* Keterangan amalan muncul di layar lebar — teks tidak lagi hilang di laptop menengah */
+@media (min-width: 1280px) {
   .amalan-ket {
     display: block;
   }
 }
 
-/* Laptop pendek (tinggi efektif <=800px, mis. 1366x768): padatkan sel mode compact
-   agar daftar amalan panjang (PI 30) tetap hemat scroll. */
-@media (min-width: 1024px) and (max-height: 800px) {
-  .amalan-cell.amalan-compact {
-    height: 34px;
-    min-height: 34px;
-    max-height: 34px;
+/* Laptop pendek: nama amalan sedikit dikecilkan agar tetap satu baris utuh */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .amalan-cell .amalan-name {
+    font-size: 12px;
   }
 }
 
