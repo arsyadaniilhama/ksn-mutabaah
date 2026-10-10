@@ -481,10 +481,10 @@ export interface AuditFilter {
 /** Apakah tabel audit_log sudah ada (migrasi 0007 dijalankan). */
 export async function auditTableExists(): Promise<boolean> {
   const supabase = createAdminClient();
-  const { error } = await supabase
-    .from("audit_log")
-    .select("id", { head: true, count: "exact" })
-    .limit(1);
+  // CATATAN: jangan pakai `head: true` — PostgREST mengembalikan error: null untuk
+  // HEAD 404 sehingga tabel yang belum ada terdeteksi seolah "ada" lalu halaman
+  // crash. Select biasa mengembalikan error dengan benar.
+  const { error } = await supabase.from("audit_log").select("id").limit(1);
   return !error;
 }
 
