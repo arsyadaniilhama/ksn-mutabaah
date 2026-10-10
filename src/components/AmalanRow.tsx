@@ -31,13 +31,10 @@ export default function AmalanRow({ amalan, value, onChange, saving, flash, comp
   return (
     <div
       className={
-        // Tinggi: HP menumpuk (58px). Desktop: baris membagi tinggi panel secara
-        // merata dengan batas 38–60px (compact/PI 30 amalan: 32–46px) sehingga
-        // SEMUA baris selalu tampil utuh — tidak ada yang terpotong separuh.
         "amalan-cell relative flex h-[58px] flex-col justify-between rounded-lg border px-2 py-1 transition-colors md:h-[38px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-3 " +
         (compact
-          ? "lg:h-auto lg:min-h-[32px] lg:max-h-[46px] lg:flex-1 lg:py-0.5 amalan-compact "
-          : "lg:h-auto lg:min-h-[38px] lg:max-h-[60px] lg:flex-1 lg:py-0.5 ") +
+          ? "lg:h-auto lg:min-h-[40px] lg:max-h-[58px] lg:flex-1 lg:py-0.5 xl:max-h-[96px] amalan-compact "
+          : "lg:h-auto lg:min-h-0 lg:max-h-[58px] lg:flex-1 lg:py-0.5 xl:max-h-[96px] ") +
         (filled
           ? "border-accent/30 bg-accent-soft/60"
           : "border-line bg-surface") +
@@ -50,9 +47,18 @@ export default function AmalanRow({ amalan, value, onChange, saving, flash, comp
           <span className="tnum w-4 shrink-0 text-right text-[10px] font-semibold text-faint md:w-5 md:text-xs">
             {amalan.urut}
           </span>
-          {/* Nama amalan SELALU tampil (bukan berganti pendek/panjang per breakpoint),
-              dipotong "…" hanya bila ruang benar-benar sempit → tidak lagi muncul-hilang. */}
-          <span className="amalan-name truncate text-[11px] font-medium text-ink md:text-[13px] xl:text-sm">
+          {/* <md & lg-xl: nama pendek; >=xl: nama penuh (kontrol fleksibel menyisakan ruang) */}
+          <span className="truncate text-[11px] font-medium text-ink md:hidden lg:block xl:hidden">
+            {amalan.short}
+          </span>
+          <span
+            className={
+              "hidden truncate text-sm font-medium text-ink md:block lg:hidden xl:block " +
+              (compact
+                ? "xl:text-[13px]"
+                : "xl:whitespace-normal xl:line-clamp-2 xl:leading-tight")
+            }
+          >
             {amalan.nama}
           </span>
         </div>

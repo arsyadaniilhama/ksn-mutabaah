@@ -487,9 +487,9 @@ export default function InputClient({
               <button
                 onClick={goNext}
                 title={`${label} berikutnya`}
-                className="btn-primary hidden h-7 shrink-0 items-center gap-1 whitespace-nowrap px-2.5 text-xs lg:inline-flex"
+                className="btn-primary hidden h-7 shrink-0 items-center gap-1 whitespace-nowrap px-2 text-xs lg:inline-flex"
               >
-                <span className="hidden lg:inline">{label} berikutnya</span>
+                <span className="hidden xl:inline">{label} berikutnya</span>
                 <ChevronRight size={14} stroke={2} />
               </button>
             </div>
@@ -507,13 +507,10 @@ export default function InputClient({
             <div className="flex-1 space-y-1">{rowsFor(colLeft)}</div>
             <div className="flex-1 space-y-1">{rowsFor(colRight)}</div>
           </div>
-          {/* PC lg+: 2 kolom vertikal auto-fit. Baris membagi tinggi panel secara
-              merata (min 38 / maks 60px) sehingga 19 amalan PA selalu tampil utuh
-              tanpa scroll di resolusi apa pun. Scroll hanya muncul sebagai jaring
-              pengaman bila amalan sangat banyak (PI 30) di layar sangat pendek. */}
-          <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-y-auto lg:flex">
-            <div className="flex min-w-0 flex-1 flex-col gap-1.5">{rowsFor(colLeft)}</div>
-            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          {/* PC lg+: 2 kolom vertikal auto-fit (sel mengisi tinggi tersedia, bebas resolusi) */}
+          <div className="hidden min-h-0 min-w-0 flex-1 gap-1.5 overflow-y-auto pr-1 lg:flex">
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5 xl:gap-1.5">{rowsFor(colLeft)}</div>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5 xl:gap-1.5">
               {rowsFor(colRight)}
               {colRight.length < colLeft.length && (
                 <div aria-hidden className="hidden flex-1 lg:block" />
